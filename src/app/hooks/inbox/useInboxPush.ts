@@ -13,6 +13,11 @@ export function useInboxPush(userId: string | null | undefined) {
   const sendTestNotification = usePushStore((s) => s.sendTestNotification);
 
   useEffect(() => {
+    if (!userId || !isFcmConfigured() || !("serviceWorker" in navigator)) return;
+    void import("@/app/push/fcm").then((m) => m.registerMessagingServiceWorker());
+  }, [userId]);
+
+  useEffect(() => {
     if (getNotificationPermission() === "denied" && usePushStore.getState().enabled) {
       usePushStore.setState({ enabled: false, error: null });
     }
