@@ -119,6 +119,40 @@
     opacity: 0.75;
     cursor: wait;
   }
+
+  /* Reply textarea — matches auth-input focus on dark glass */
+  .reply-composer {
+    border: 1px solid var(--glass-border);
+    background-color: var(--glass-bg) !important;
+    color: var(--text-primary);
+    box-shadow: none;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .reply-composer::placeholder {
+    color: var(--text-muted);
+  }
+
+  .reply-composer:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--glass-border) 70%, var(--cyan) 30%);
+  }
+
+  .reply-composer:focus-visible {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px var(--glow-cyan);
+    outline: none;
+  }
+
+  .reply-composer[aria-invalid="true"] {
+    border-color: color-mix(in srgb, var(--error) 55%, var(--glass-border));
+  }
+
+  .reply-composer:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
 }
 
 /* Generic dark inputs (reply composer, etc.) */

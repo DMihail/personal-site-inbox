@@ -8,6 +8,13 @@ const LoginPage = lazy(() =>
 const InboxShell = lazy(() =>
   import("./pages/InboxShell").then((m) => ({ default: m.InboxShell })),
 );
+const TabletDrawerPreviewPage = import.meta.env.DEV
+  ? lazy(() =>
+      import("./pages/dev/TabletDrawerPreviewPage").then((m) => ({
+        default: m.TabletDrawerPreviewPage,
+      })),
+    )
+  : null;
 
 function RouteFallback() {
   return (
@@ -22,6 +29,9 @@ export default function App() {
     <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        {TabletDrawerPreviewPage ? (
+          <Route path="/dev/tablet-drawer" element={<TabletDrawerPreviewPage />} />
+        ) : null}
         <Route element={<RequireAuth />}>
           <Route path="/" element={<Navigate to="/inbox" replace />} />
           <Route path="/inbox" element={<InboxShell />} />

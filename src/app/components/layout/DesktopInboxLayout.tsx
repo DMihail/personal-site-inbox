@@ -91,7 +91,7 @@ export function DesktopInboxLayout({
         isOnline={isOnline}
         unreadCount={unreadCount}
         onOpenNav={onOpenNavMenu}
-        showMessagesListToggle={showMessagesDrawer}
+        showMessagesListToggle={false}
         onOpenMessagesList={onOpenMessagesList}
         pushEnabled={pushEnabled}
         pushRegistering={pushRegistering}

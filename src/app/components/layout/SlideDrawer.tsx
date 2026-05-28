@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useDrawerGesture } from "../../hooks/useDrawerGesture";
 import type { DrawerSide } from "../../hooks/drawerGesture";
 
@@ -30,7 +30,9 @@ export function SlideDrawer({
 }: SlideDrawerProps) {
   const fallbackTitleId = useId();
   const titleId = labelledBy ?? fallbackTitleId;
+  const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
+  const focusBeforeOpenRef = useRef<HTMLElement | null>(null);
   const [mounted, setMounted] = useState(() => open || persistent);
 
   if ((open || persistent) && !mounted) {
@@ -72,6 +74,27 @@ export function SlideDrawer({
     };
   }, [open]);
 
+  useLayoutEffect(() => {
+    if (open) {
+      const active = document.activeElement;
+      focusBeforeOpenRef.current =
+        active instanceof HTMLElement ? active : null;
+      return;
+    }
+
+    const root = rootRef.current;
+    const active = document.activeElement;
+    if (!(active instanceof HTMLElement) || !root?.contains(active)) {
+      return;
+    }
+
+    active.blur();
+    const restore = focusBeforeOpenRef.current;
+    if (restore?.isConnected) {
+      restore.focus({ preventScroll: true });
+    }
+  }, [open]);
+
   if (!mounted) return null;
 
   const sideClass =
@@ -81,11 +104,11 @@ export function SlideDrawer({
 
   return (
     <div
+      ref={rootRef}
       className={`slide-drawer-root fixed inset-0 z-50 touch-none ${open ? "" : "pointer-events-none"}`.trim()}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={titleId}
-      aria-hidden={!open}
+      role={open ? "dialog" : undefined}
+      aria-modal={open ? true : undefined}
+      aria-labelledby={open ? titleId : undefined}
       {...(open ? rootHandlers : {})}
     >
       {!open ? (
@@ -107,6 +130,7 @@ export function SlideDrawer({
         ref={panelRef}
         id={titleId}
         style={panelStyle}
+        inert={!open ? true : undefined}
         className={`slide-drawer-panel pointer-events-auto absolute flex flex-col border-glass-border bg-background shadow-2xl ${sideClass} ${panelClassName}`.trim()}
       >
         {children}
