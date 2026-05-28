@@ -129,7 +129,7 @@ export function DesktopInboxLayout({
           </div>
         ) : (
           <>
-            <div className="w-96 border-r border-glass-border glass backdrop-blur-xl flex flex-col">
+            <div className="w-96 border-r border-glass-border glass backdrop-blur-xl flex flex-col min-h-0">
               <div className="p-4 border-b border-glass-border space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-text-primary">
@@ -149,7 +149,7 @@ export function DesktopInboxLayout({
                 />
               </div>
 
-              <ScrollArea className="flex-1">
+              <ScrollArea className="flex-1 min-h-0">
                 {filteredMessages.length > 0 ? (
                   <div className="p-3 space-y-2">
                     {filteredMessages.map((message) => (

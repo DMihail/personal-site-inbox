@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 import { ReplyDialog } from "../components/ReplyDialog";
@@ -6,11 +6,12 @@ import { OfflineModal } from "../components/OfflineModal";
 import { SettingsView } from "../components/SettingsView";
 import { DesktopInboxLayout } from "../components/layout/DesktopInboxLayout";
 import { MobileInboxLayout } from "../components/layout/MobileInboxLayout";
-import { useInbox } from "../features/inbox/useInbox";
 import type { View } from "../features/inbox/types";
 import { pathToView, viewToPath } from "../features/inbox/viewRouting";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { useAuthStore } from "../store/authStore";
+import { useMessagesStore } from "../store/messagesStore";
+import { ensureNotificationPermission } from "../push/notify";
 
 export function InboxShell() {
   const location = useLocation();
@@ -24,24 +25,87 @@ export function InboxShell() {
   const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [lastSync, setLastSync] = useState<Date>(new Date());
 
-  const {
-    searchQuery,
-    setSearchQuery,
-    sortBy,
-    setSortBy,
-    filterBy,
-    setFilterBy,
-    selectedMessage,
-    inboxCount,
-    unreadCount,
-    importantCount,
-    filteredMessages,
-    selectMessage,
-    markAsRead,
-    archive,
-    toggleImportant,
-    remove,
-  } = useInbox(currentView);
+  const startSubscription = useMessagesStore((s) => s.startSubscription);
+  const stopSubscription = useMessagesStore((s) => s.stopSubscription);
+  const messages = useMessagesStore((s) => s.messages);
+  const selectedMessageId = useMessagesStore((s) => s.selectedMessageId);
+  const searchQuery = useMessagesStore((s) => s.searchQuery);
+  const setSearchQuery = useMessagesStore((s) => s.setSearchQuery);
+  const sortBy = useMessagesStore((s) => s.sortBy);
+  const setSortBy = useMessagesStore((s) => s.setSortBy);
+  const filterBy = useMessagesStore((s) => s.filterBy);
+  const setFilterBy = useMessagesStore((s) => s.setFilterBy);
+  const selectMessage = useMessagesStore((s) => s.selectMessage);
+  const markAsRead = useMessagesStore((s) => s.markAsRead);
+  const archive = useMessagesStore((s) => s.archive);
+  const toggleImportant = useMessagesStore((s) => s.toggleImportant);
+  const remove = useMessagesStore((s) => s.remove);
+
+  const selectedMessage = useMemo(
+    () => messages.find((m) => m.id === selectedMessageId) ?? null,
+    [messages, selectedMessageId],
+  );
+
+  const inboxCount = useMemo(() => messages.filter((m) => !m.isArchived).length, [messages]);
+  const unreadCount = useMemo(
+    () => messages.filter((m) => !m.isRead && !m.isArchived).length,
+    [messages],
+  );
+  const importantCount = useMemo(
+    () => messages.filter((m) => m.isImportant && !m.isArchived).length,
+    [messages],
+  );
+
+  const filteredMessages = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const viewed =
+      currentView === "unread"
+        ? messages.filter((m) => !m.isRead && !m.isArchived)
+        : currentView === "important"
+          ? messages.filter((m) => m.isImportant && !m.isArchived)
+          : currentView === "archived"
+            ? messages.filter((m) => m.isArchived)
+            : currentView === "inbox"
+              ? messages.filter((m) => !m.isArchived)
+              : messages;
+
+    const filtered =
+      filterBy === "all"
+        ? viewed
+        : filterBy === "unread"
+          ? viewed.filter((m) => !m.isRead)
+          : filterBy === "important"
+            ? viewed.filter((m) => m.isImportant)
+            : viewed.filter((m) => m.isArchived);
+
+    const searched = !q
+      ? filtered
+      : filtered.filter(
+          (m) =>
+            m.senderName.toLowerCase().includes(q) ||
+            m.company.toLowerCase().includes(q) ||
+            m.preview.toLowerCase().includes(q) ||
+            m.subject.toLowerCase().includes(q),
+        );
+
+    return [...searched].sort((a, b) => {
+      if (sortBy === "newest") return b.timestamp.getTime() - a.timestamp.getTime();
+      if (sortBy === "oldest") return a.timestamp.getTime() - b.timestamp.getTime();
+      if (sortBy === "unread") return (a.isRead ? 1 : 0) - (b.isRead ? 1 : 0);
+      if (sortBy === "important") return (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0);
+      return 0;
+    });
+  }, [messages, currentView, filterBy, searchQuery, sortBy]);
+
+  useEffect(() => {
+    startSubscription();
+    return () => stopSubscription();
+  }, [startSubscription, stopSubscription]);
+
+  useEffect(() => {
+    // Best-effort: ask once; browsers may require a user gesture.
+    void ensureNotificationPermission();
+  }, []);
 
   const isOnline = useOnlineStatus({
     onOnline: () => {
