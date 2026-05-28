@@ -1,10 +1,10 @@
 import { Archive, Inbox, Mail, Settings, Star, X } from "lucide-react";
 import { NavItem } from "../NavItem";
 import { StatusIndicator } from "../StatusIndicator";
-import { SystemMetadata } from "../SystemMetadata";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
 import { scrollPaneClass } from "./scrollPane";
+import { AppVersion } from "../AppVersion";
 import type { View } from "../../features/inbox/types";
 
 interface DeveloperInboxNavPanelProps {
@@ -38,7 +38,7 @@ export function DeveloperInboxNavPanel({
             <h2 id={titleId} className="truncate text-lg text-text-primary">
               Developer Inbox
             </h2>
-            <SystemMetadata>inbox.v1</SystemMetadata>
+            <p className="text-meta text-text-muted">Portfolio contact messages</p>
           </div>
           <Button
             type="button"
@@ -52,9 +52,16 @@ export function DeveloperInboxNavPanel({
           </Button>
         </div>
         <div className="flex flex-col gap-1">
-          <StatusIndicator label="sync.online" status={isOnline ? "online" : "offline"} />
+          <StatusIndicator
+            label={isOnline ? "Connected" : "Offline"}
+            status={isOnline ? "online" : "offline"}
+          />
           {showDesktopMeta ? (
-            <StatusIndicator label="firestore.live" status="online" showPulse={false} />
+            <StatusIndicator
+              label="Live sync"
+              status={isOnline ? "online" : "offline"}
+              showPulse={false}
+            />
           ) : null}
         </div>
       </header>
@@ -101,6 +108,8 @@ export function DeveloperInboxNavPanel({
             onSelect={onSelectView}
           />
         </nav>
+
+        {showDesktopMeta ? <AppVersion className="mt-6 px-1" /> : null}
       </div>
     </>
   );

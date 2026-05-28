@@ -3,7 +3,6 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { PushNotificationButton } from "../PushNotificationButton";
 import { StatusIndicator } from "../StatusIndicator";
-import { SystemMetadata } from "../SystemMetadata";
 
 interface InboxAppHeaderProps {
   isOnline: boolean;
@@ -47,7 +46,10 @@ export function InboxAppHeader({
         <div className="min-w-0 space-y-0.5">
           <h1 className="truncate text-body text-text-primary md:text-heading-sm">Developer Inbox</h1>
           {compact ? (
-            <StatusIndicator label="sync.online" status={isOnline ? "online" : "offline"} />
+            <StatusIndicator
+              label={isOnline ? "Connected" : "Offline"}
+              status={isOnline ? "online" : "offline"}
+            />
           ) : null}
         </div>
       </div>
@@ -55,8 +57,11 @@ export function InboxAppHeader({
       <div className="flex shrink-0 items-center gap-3 md:gap-4">
         {!compact ? (
           <div className="hidden items-center gap-4 lg:flex">
-            <StatusIndicator label="realtime.active" status={isOnline ? "online" : "offline"} />
-            <SystemMetadata className="hidden xl:inline">pwa.v1</SystemMetadata>
+            <StatusIndicator
+              label={isOnline ? "Connected" : "Offline"}
+              status={isOnline ? "online" : "offline"}
+            />
+            <span className="text-meta hidden text-text-muted xl:inline">Installable app</span>
           </div>
         ) : null}
 

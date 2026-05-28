@@ -1,9 +1,18 @@
 import { useEffect } from "react";
 import { RefreshCw, X } from "lucide-react";
 import { useRegisterSW } from "virtual:pwa-register/react";
+import { isPwaRuntime } from "@/pwa/config";
+import { getActiveServiceWorkerRegistration } from "@/pwa/waitForServiceWorker";
 import { Button } from "./ui/button";
 
 const UPDATE_CHECK_MS = 60 * 60 * 1000;
+
+function safeUpdateCheck(registration: ServiceWorkerRegistration) {
+  if (!registration.active && registration.installing) return;
+  void registration.update().catch(() => {
+    // Ignore transient InvalidStateError while a worker is installing.
+  });
+}
 
 export function PwaUpdateBanner() {
   const {
@@ -15,9 +24,7 @@ export function PwaUpdateBanner() {
       setNeedRefresh(true);
     },
     onRegisteredSW(_swUrl, registration) {
-      if (registration) {
-        void registration.update();
-      }
+      if (registration) safeUpdateCheck(registration);
     },
   });
 
@@ -27,24 +34,29 @@ export function PwaUpdateBanner() {
   }, [offlineReady, setOfflineReady]);
 
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
+    if (!isPwaRuntime || !("serviceWorker" in navigator)) return;
 
     let intervalId: number | undefined;
+    let registration: ServiceWorkerRegistration | undefined;
 
     const checkForUpdates = () => {
-      void navigator.serviceWorker.ready.then((registration) => registration.update());
+      if (registration) safeUpdateCheck(registration);
     };
 
     const onVisible = () => {
       if (document.visibilityState === "visible") checkForUpdates();
     };
 
-    void navigator.serviceWorker.ready.then(() => {
-      checkForUpdates();
-      window.addEventListener("focus", checkForUpdates);
-      document.addEventListener("visibilitychange", onVisible);
-      intervalId = window.setInterval(checkForUpdates, UPDATE_CHECK_MS);
-    });
+    void getActiveServiceWorkerRegistration("/")
+      .then((reg) => {
+        if (!reg) return;
+        registration = reg;
+        checkForUpdates();
+        window.addEventListener("focus", checkForUpdates);
+        document.addEventListener("visibilitychange", onVisible);
+        intervalId = window.setInterval(checkForUpdates, UPDATE_CHECK_MS);
+      })
+      .catch(() => undefined);
 
     return () => {
       window.removeEventListener("focus", checkForUpdates);
@@ -53,7 +65,7 @@ export function PwaUpdateBanner() {
     };
   }, []);
 
-  if (!needRefresh) return null;
+  if (!isPwaRuntime || !needRefresh) return null;
 
   const applyUpdate = () => {
     setNeedRefresh(false);

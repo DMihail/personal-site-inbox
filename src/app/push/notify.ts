@@ -1,6 +1,7 @@
 import type { MessagePayload } from "firebase/messaging";
 import type { Message } from "../features/inbox/types";
 import { getPwaServiceWorkerRegistration } from "./fcm";
+import { getNotificationPermission } from "./notificationPermission";
 
 export async function notifyFromFcmPayload(payload: MessagePayload) {
   const data = payload.data ?? {};
@@ -14,7 +15,7 @@ export async function notifyFromFcmPayload(payload: MessagePayload) {
 
   try {
     if (!("Notification" in window)) return;
-    if (Notification.permission !== "granted") return;
+    if (getNotificationPermission() !== "granted") return;
 
     const reg = await getPwaServiceWorkerRegistration();
 
@@ -37,22 +38,10 @@ export async function notifyFromFcmPayload(payload: MessagePayload) {
   }
 }
 
-export async function ensureNotificationPermission() {
-  try {
-    if (!("Notification" in window)) return "unsupported" as const;
-    if (Notification.permission === "granted") return "granted" as const;
-    if (Notification.permission === "denied") return "denied" as const;
-
-    return await Notification.requestPermission();
-  } catch {
-    return "unsupported" as const;
-  }
-}
-
 export async function notifyNewMessage(message: Message) {
   try {
     if (!("Notification" in window)) return;
-    if (Notification.permission !== "granted") return;
+    if (getNotificationPermission() !== "granted") return;
 
     const title = "New contact message";
     const body = `${message.senderName} · ${message.senderEmail}`;

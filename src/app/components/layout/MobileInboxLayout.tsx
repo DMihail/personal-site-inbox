@@ -159,7 +159,6 @@ export function MobileInboxLayout({
                           ? "No archived messages"
                           : "Your inbox is empty"
                 }
-                metadata="inbox.empty"
               />
             </div>
           )}

@@ -12,6 +12,7 @@ import { pathToView, VIEW_PAGE_TITLES, viewToPath } from "../features/inbox/view
 import type { View } from "../features/inbox/types";
 import { useAuthStore } from "../store/authStore";
 import { useMessagesStore } from "../store/messagesStore";
+import { getNotificationPermission } from "../push/notificationPermission";
 import { usePushStore } from "../store/pushStore";
 import { isPortfolioApiConfigured, sendInboxReply } from "@/utils/reply-api";
 import { useDocumentTitle } from "./useDocumentTitle";
@@ -86,11 +87,14 @@ export function useInboxController() {
   const isOnline = useOnlineStatus({ onOnline: handleOnline, onOffline: handleOffline });
 
   useEffect(() => {
+    if (getNotificationPermission() === "denied" && usePushStore.getState().enabled) {
+      usePushStore.setState({ enabled: false, error: null });
+    }
     void syncPushWithUser(user?.uid ?? null);
   }, [user?.uid, syncPushWithUser]);
 
   const handleLogout = useCallback(() => {
-    void logout().finally(() => {
+    return logout().finally(() => {
       toast.info("Signed out successfully");
       navigate("/login", { replace: true });
     });

@@ -1,8 +1,6 @@
 import { WifiOff, RefreshCw } from "lucide-react";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
-import { SystemMetadata } from "./SystemMetadata";
-
 interface OfflineModalProps {
   isOpen: boolean;
   onRetry: () => void;
@@ -21,17 +19,17 @@ export function OfflineModal({ isOpen, onRetry, onContinue, lastSync }: OfflineM
             </div>
             <div>
               <DialogTitle>You're offline</DialogTitle>
-              <SystemMetadata className="mt-1">network.disconnected</SystemMetadata>
+              <p className="text-meta mt-1 text-text-muted">No internet connection</p>
             </div>
           </div>
           <DialogDescription className="text-text-secondary">
             Connection to the communication service was lost. Some features may be temporarily unavailable.
           </DialogDescription>
           {lastSync && (
-            <div className="mt-3 pt-3 border-t border-glass-border">
-              <SystemMetadata>
+            <div className="mt-3 border-t border-glass-border pt-3">
+              <p className="text-meta text-text-muted">
                 Last synced: {lastSync.toLocaleTimeString()}
-              </SystemMetadata>
+              </p>
             </div>
           )}
         </DialogHeader>

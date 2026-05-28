@@ -1,6 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
 import { Mail, MailOpen, Star, Trash2 } from "lucide-react";
-import { SystemMetadata } from "./SystemMetadata";
 import { Button } from "./ui/button";
 import type { Message } from "../features/inbox/types";
 
@@ -62,7 +61,7 @@ export function InboxItem({
                 {message.isImportant ? (
                   <Star className="h-3 w-3 fill-mint text-mint" aria-label="Important" />
                 ) : null}
-                <SystemMetadata>{message.company}</SystemMetadata>
+                <span className="text-meta text-text-muted">{message.company}</span>
               </div>
 
               <p
@@ -83,7 +82,7 @@ export function InboxItem({
                 <span className="text-text-muted" aria-hidden="true">
                   ·
                 </span>
-                <SystemMetadata>{message.source}</SystemMetadata>
+                <span className="text-meta text-text-muted">{message.source}</span>
                 {message.tags && message.tags.length > 0 ? (
                   <>
                     <span className="text-text-muted" aria-hidden="true">

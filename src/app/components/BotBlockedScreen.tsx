@@ -1,6 +1,4 @@
 import { ShieldOff } from "lucide-react";
-import { SystemMetadata } from "./SystemMetadata";
-
 export function BotBlockedScreen() {
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-background p-6">
@@ -11,7 +9,6 @@ export function BotBlockedScreen() {
           Automated clients and crawlers are not allowed on this application. If you are a human,
           open this site in a standard browser.
         </p>
-        <SystemMetadata>security.bot-blocked</SystemMetadata>
       </div>
     </div>
   );

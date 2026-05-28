@@ -2,7 +2,6 @@ import { format } from "date-fns";
 import { Archive, CheckCheck, Mail, Star, Trash2, Reply, ExternalLink, MailCheck } from "lucide-react";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
-import { SystemMetadata } from "./SystemMetadata";
 import { EmptyState } from "./EmptyState";
 import type { Message } from "../features/inbox/types";
 
@@ -29,7 +28,6 @@ export function MessageDetail({
         icon={Mail}
         title="No message selected"
         description="Select a message from the inbox to view details"
-        metadata="inbox.v1"
       />
     );
   }
@@ -55,20 +53,21 @@ export function MessageDetail({
                 ) : null}
               </div>
               <address className="space-y-1 not-italic">
-                <SystemMetadata className="text-text-secondary">
-                  <a href={`mailto:${message.senderEmail}`} className="hover:text-cyan">
-                    {message.senderEmail}
-                  </a>
-                </SystemMetadata>
-                <SystemMetadata>{message.company}</SystemMetadata>
+                <a
+                  href={`mailto:${message.senderEmail}`}
+                  className="text-meta text-text-secondary hover:text-cyan"
+                >
+                  {message.senderEmail}
+                </a>
+                <p className="text-meta text-text-muted">{message.company}</p>
               </address>
             </div>
             <time
-              className="space-y-1 text-end"
+              className="block space-y-0.5 text-end text-meta text-text-muted"
               dateTime={message.timestamp.toISOString()}
             >
-              <SystemMetadata>{format(message.timestamp, "MMM d, yyyy")}</SystemMetadata>
-              <SystemMetadata>{format(message.timestamp, "HH:mm")}</SystemMetadata>
+              <span className="block">{format(message.timestamp, "MMM d, yyyy")}</span>
+              <span className="block">{format(message.timestamp, "HH:mm")}</span>
             </time>
           </div>
         </div>
@@ -150,10 +149,9 @@ export function MessageDetail({
       <div className="md:min-h-0 md:flex-1 md:overflow-y-auto md:overscroll-y-contain">
         <div className="space-y-6 p-4 md:p-6">
           <section className="space-y-3" aria-labelledby="message-body-label">
-            <h3 id="message-body-label" className="sr-only">
-              Message body
+            <h3 id="message-body-label" className="text-body-sm font-medium text-text-primary">
+              Message
             </h3>
-            <SystemMetadata>message.body</SystemMetadata>
             <div className="glass-elevated rounded-xl border border-glass-border p-6">
               <p className="leading-relaxed whitespace-pre-wrap text-text-primary">
                 {message.preview}
@@ -163,18 +161,20 @@ export function MessageDetail({
 
           {message.lastReplyPreview ? (
             <section className="space-y-3" aria-labelledby="last-reply-label">
-              <h3 id="last-reply-label" className="sr-only">
+              <h3 id="last-reply-label" className="text-body-sm font-medium text-text-primary">
                 Your last reply
               </h3>
-              <SystemMetadata>your.last.reply</SystemMetadata>
               <blockquote className="glass rounded-xl border border-mint/20 p-4">
                 <p className="text-body-sm line-clamp-6 whitespace-pre-wrap text-text-secondary">
                   {message.lastReplyPreview}
                 </p>
                 {message.repliedAt ? (
                   <footer className="mt-2">
-                    <time dateTime={message.repliedAt.toISOString()}>
-                      <SystemMetadata>{format(message.repliedAt, "PPpp")}</SystemMetadata>
+                    <time
+                      className="text-meta text-text-muted"
+                      dateTime={message.repliedAt.toISOString()}
+                    >
+                      {format(message.repliedAt, "PPpp")}
                     </time>
                   </footer>
                 ) : null}
@@ -185,10 +185,9 @@ export function MessageDetail({
           <Separator className="bg-glass-border" />
 
           <section className="space-y-3" aria-labelledby="message-meta-label">
-            <h3 id="message-meta-label" className="sr-only">
-              Message metadata
+            <h3 id="message-meta-label" className="text-body-sm font-medium text-text-primary">
+              Details
             </h3>
-            <SystemMetadata>metadata</SystemMetadata>
             <dl className="glass text-body-sm space-y-3 rounded-xl border border-glass-border p-4">
               <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
                 <dt className="shrink-0 text-text-muted sm:w-32">From</dt>
@@ -225,14 +224,14 @@ export function MessageDetail({
                 <dt className="shrink-0 text-text-muted sm:w-32">Status</dt>
                 <dd className="flex items-center gap-2">
                   <span className={message.isRead ? "text-text-muted" : "text-cyan"}>
-                    {message.isRead ? "read" : "unread"}
+                    {message.isRead ? "Read" : "Unread"}
                   </span>
                   {message.isImportant ? (
                     <>
                       <span className="text-text-muted" aria-hidden="true">
                         ·
                       </span>
-                      <span className="text-mint">important</span>
+                      <span className="text-mint">Important</span>
                     </>
                   ) : null}
                   {message.isArchived ? (
@@ -240,7 +239,7 @@ export function MessageDetail({
                       <span className="text-text-muted" aria-hidden="true">
                         ·
                       </span>
-                      <span className="text-text-muted">archived</span>
+                      <span className="text-text-muted">Archived</span>
                     </>
                   ) : null}
                 </dd>

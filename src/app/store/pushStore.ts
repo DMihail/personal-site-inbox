@@ -2,7 +2,12 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { withSecurePersist } from "./securePersist";
 import { registerFcmToken, subscribeForegroundMessages, unregisterFcmToken } from "../push/fcm";
-import { ensureNotificationPermission, notifyFromFcmPayload, notifyNewMessage } from "../push/notify";
+import {
+  getNotificationPermission,
+  getNotificationPermissionError,
+  getPushNotificationSupport,
+} from "../push/notificationPermission";
+import { notifyFromFcmPayload, notifyNewMessage } from "../push/notify";
 
 interface PushState {
   enabled: boolean;
@@ -52,13 +57,24 @@ export const usePushStore = create<PushState>()(
 
         set({ isRegistering: true, error: null });
 
-        const permission = await ensureNotificationPermission();
+        const support = getPushNotificationSupport();
+        if (!support.ok) {
+          set({
+            enabled: false,
+            token: null,
+            isRegistering: false,
+            error: support.message,
+          });
+          return;
+        }
+
+        const permission = getNotificationPermission();
         if (permission !== "granted") {
           set({
             enabled: false,
             token: null,
             isRegistering: false,
-            error: "Notification permission denied",
+            error: getNotificationPermissionError(permission),
           });
           return;
         }
@@ -76,12 +92,12 @@ export const usePushStore = create<PushState>()(
           fcmWarning =
             result.message ??
             "FCM token not saved — in-tab Firestore alerts still work. Check console and Firestore rules for fcmTokens.";
-        } else {
+        } else if (result.reason === "permission-denied") {
           set({
             enabled: false,
             token: null,
             isRegistering: false,
-            error: "Notification permission denied",
+            error: getNotificationPermissionError("denied"),
           });
           return;
         }

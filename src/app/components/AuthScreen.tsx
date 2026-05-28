@@ -1,10 +1,11 @@
 import { useRef, useState } from "react";
-import { Mail, Lock, Shield, ArrowRight } from "lucide-react";
+import { Mail, Lock, Shield, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { SystemMetadata } from "./SystemMetadata";
 import { isHoneypotTripped } from "../security/automatedClient";
+import { cn } from "./ui/utils";
+import { AppVersion } from "./AppVersion";
 
 interface AuthScreenProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -49,13 +50,13 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
             <p className="text-body text-text-secondary">
               Secure access to your developer inbox
             </p>
-            <SystemMetadata>auth.v1</SystemMetadata>
+            <p className="text-meta text-text-muted">Secure sign-in</p>
           </div>
         </div>
 
         {/* Login Form */}
-        <div className="glass-elevated rounded-2xl p-8 border border-glass-border space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="glass-elevated motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 rounded-2xl border border-glass-border space-y-6 p-8">
+          <form onSubmit={handleSubmit} className="space-y-5" autoComplete="on">
             <input
               ref={honeypotRef}
               type="text"
@@ -73,14 +74,21 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
                 Email Address
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
+                <Mail
+                  className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-text-muted"
+                  aria-hidden="true"
+                />
                 <Input
                   id="email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  spellCheck={false}
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 glass border-glass-border focus:border-cyan transition-colors"
+                  className="auth-input pl-10 shadow-none focus-visible:ring-0"
                   required
                 />
               </div>
@@ -91,14 +99,19 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
                 Password
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
+                <Lock
+                  className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-text-muted"
+                  aria-hidden="true"
+                />
                 <Input
                   id="password"
+                  name="password"
                   type="password"
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 glass border-glass-border focus:border-cyan transition-colors"
+                  className="auth-input pl-10 shadow-none focus-visible:ring-0"
                   required
                 />
               </div>
@@ -106,15 +119,23 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
 
             <Button
               type="submit"
-              className="w-full bg-cyan hover:bg-cyan/90 text-background transition-all duration-200 hover:shadow-lg hover:shadow-cyan/20"
+              className={cn(
+                "btn-auth-submit h-11 w-full border-0 bg-cyan text-background",
+                "hover:bg-cyan/90 hover:shadow-lg hover:shadow-cyan/20",
+                "focus-visible:ring-cyan/40",
+              )}
               disabled={isLoading}
+              aria-busy={isLoading}
             >
               {isLoading ? (
-                "Authenticating..."
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  Signing in…
+                </>
               ) : (
                 <>
                   Sign In
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </>
               )}
             </Button>
@@ -124,15 +145,17 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
         {/* Security Features */}
         <div className="glass rounded-xl p-5 border border-glass-border space-y-3">
           <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-mint" />
-            <SystemMetadata>security.features</SystemMetadata>
+            <Shield className="h-4 w-4 text-mint" aria-hidden="true" />
+            <span className="text-body-sm font-medium text-text-primary">Security</span>
           </div>
           <ul className="text-body-sm text-text-secondary space-y-1.5 ms-6">
-            <li>• Firebase Authentication</li>
-            <li>• Firestore data only when signed in</li>
-            <li>• Not indexed by search engines</li>
+            <li>• Sign in with email and password</li>
+            <li>• Messages load only after you sign in</li>
+            <li>• Private — not listed in search engines</li>
           </ul>
         </div>
+
+        <AppVersion />
       </div>
     </main>
   );

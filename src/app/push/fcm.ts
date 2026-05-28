@@ -8,8 +8,15 @@ import {
 } from "firebase/messaging";
 import { deleteDoc, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import app, { firestoreDb } from "@/utils/firebase";
+import { isPwaRuntime } from "@/pwa/config";
+import {
+  getActiveServiceWorkerRegistration,
+  isMessagingServiceWorker,
+  waitForServiceWorkerActive,
+} from "@/pwa/waitForServiceWorker";
 
 const LEGACY_MESSAGING_SW_SCOPE = "/firebase/";
+const DEV_MESSAGING_SW_URL = "/firebase-messaging-sw.js";
 
 let messaging: Messaging | null = null;
 let foregroundUnsub: (() => void) | null = null;
@@ -28,12 +35,7 @@ async function getMessagingIfSupported(): Promise<Messaging | null> {
 
 /** PWA Workbox SW (imports firebase-messaging-sw.js) — same registration used for background push. */
 export async function getPwaServiceWorkerRegistration(): Promise<ServiceWorkerRegistration | null> {
-  if (!("serviceWorker" in navigator)) return null;
-  try {
-    return await navigator.serviceWorker.ready;
-  } catch {
-    return null;
-  }
+  return getActiveServiceWorkerRegistration("/");
 }
 
 async function unregisterLegacyMessagingServiceWorker(): Promise<void> {
@@ -47,11 +49,53 @@ async function unregisterLegacyMessagingServiceWorker(): Promise<void> {
   }
 }
 
+async function registerDevMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (!("serviceWorker" in navigator)) return null;
+
+  const registrations = await navigator.serviceWorker.getRegistrations();
+
+  for (const reg of registrations) {
+    if (isMessagingServiceWorker(reg)) {
+      return waitForServiceWorkerActive(reg);
+    }
+  }
+
+  for (const reg of registrations) {
+    if (!isMessagingServiceWorker(reg)) {
+      await reg.unregister().catch(() => undefined);
+    }
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.register(DEV_MESSAGING_SW_URL, { scope: "/" });
+    return await waitForServiceWorkerActive(reg);
+  } catch {
+    return null;
+  }
+}
+
+async function registerProdMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  const active = await getActiveServiceWorkerRegistration("/");
+  if (active) return active;
+
+  try {
+    const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+    return await waitForServiceWorkerActive(reg);
+  } catch {
+    return getActiveServiceWorkerRegistration("/");
+  }
+}
+
 export async function registerMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
 
   await unregisterLegacyMessagingServiceWorker();
-  return getPwaServiceWorkerRegistration();
+
+  if (!isPwaRuntime) {
+    return registerDevMessagingServiceWorker();
+  }
+
+  return registerProdMessagingServiceWorker();
 }
 
 export async function registerFcmToken(
@@ -79,8 +123,12 @@ export async function registerFcmToken(
 
   try {
     const swReg = await registerMessagingServiceWorker();
-    if (!swReg?.active) {
-      return { ok: false, reason: "unsupported", message: "Service worker not active yet — reload and try again" };
+    if (!swReg) {
+      return {
+        ok: false,
+        reason: "unsupported",
+        message: "Could not register service worker for push notifications",
+      };
     }
 
     const token = await getToken(messagingInstance, { vapidKey, serviceWorkerRegistration: swReg });

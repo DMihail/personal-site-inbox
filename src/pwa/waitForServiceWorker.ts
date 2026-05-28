@@ -1,0 +1,91 @@
+const DEFAULT_TIMEOUT_MS = 20_000;
+
+function workerScriptUrl(registration: ServiceWorkerRegistration): string {
+  const worker = registration.active ?? registration.installing ?? registration.waiting;
+  return worker?.scriptURL ?? "";
+}
+
+/** Resolves when `registration` has an active worker (or the page is already controlled). */
+export function waitForServiceWorkerActive(
+  registration: ServiceWorkerRegistration,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+): Promise<ServiceWorkerRegistration> {
+  if (registration.active) {
+    return Promise.resolve(registration);
+  }
+
+  return new Promise((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error("Service worker activation timed out"));
+    }, timeoutMs);
+
+    const done = (reg: ServiceWorkerRegistration) => {
+      window.clearTimeout(timeoutId);
+      resolve(reg);
+    };
+
+    const fail = (message: string) => {
+      window.clearTimeout(timeoutId);
+      reject(new Error(message));
+    };
+
+    const worker = registration.installing ?? registration.waiting;
+    if (worker) {
+      const onStateChange = () => {
+        if (registration.active || worker.state === "activated") {
+          worker.removeEventListener("statechange", onStateChange);
+          done(registration);
+        } else if (worker.state === "redundant") {
+          worker.removeEventListener("statechange", onStateChange);
+          fail("Service worker failed to activate");
+        }
+      };
+
+      worker.addEventListener("statechange", onStateChange);
+
+      if (registration.waiting) {
+        registration.waiting.postMessage({ type: "SKIP_WAITING" });
+      }
+
+      if (worker.state === "activated" || registration.active) {
+        worker.removeEventListener("statechange", onStateChange);
+        done(registration);
+      }
+      return;
+    }
+
+    void navigator.serviceWorker.ready.then(done).catch(() => {
+      fail("Service worker activation timed out");
+    });
+  });
+}
+
+export async function getActiveServiceWorkerRegistration(
+  scope = "/",
+): Promise<ServiceWorkerRegistration | null> {
+  if (!("serviceWorker" in navigator)) return null;
+
+  const existing = await navigator.serviceWorker.getRegistration(scope);
+  if (existing) {
+    try {
+      return await waitForServiceWorkerActive(existing);
+    } catch {
+      return navigator.serviceWorker.ready.catch(() => null);
+    }
+  }
+
+  try {
+    return await navigator.serviceWorker.ready;
+  } catch {
+    return null;
+  }
+}
+
+export function isMessagingServiceWorker(registration: ServiceWorkerRegistration): boolean {
+  return workerScriptUrl(registration).includes("firebase-messaging-sw");
+}
+
+export function isWorkboxServiceWorker(registration: ServiceWorkerRegistration): boolean {
+  const url = workerScriptUrl(registration);
+  return url.includes("/sw.js") || url.includes("workbox");
+}

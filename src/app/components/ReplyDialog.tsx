@@ -10,7 +10,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "./ui/dialog";
-import { SystemMetadata } from "./SystemMetadata";
 import type { Message } from "../features/inbox/types";
 import { isPortfolioApiConfigured } from "@/utils/reply-api";
 
@@ -55,11 +54,11 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
             <div>
               <DialogTitle>Reply to {message.senderName}</DialogTitle>
               <DialogDescription className="text-body-sm text-text-secondary">
-                Your reply will be sent by email to {message.senderEmail} through the portfolio API.
+                Your reply will be emailed to {message.senderEmail} from your portfolio site.
               </DialogDescription>
-              <SystemMetadata className="mt-1">
-                {message.company} • portfolio.api/inbox/reply
-              </SystemMetadata>
+              {message.company ? (
+                <p className="text-meta mt-1 text-text-muted">{message.company}</p>
+              ) : null}
             </div>
           </div>
         </DialogHeader>
@@ -90,7 +89,9 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
                 Reply must be at least {MIN_REPLY_LENGTH} characters.
               </p>
             ) : (
-              <SystemMetadata>Sent via engineering-profile → SMTP to {message.senderEmail}</SystemMetadata>
+              <p className="text-meta text-text-muted">
+                Delivered by email to {message.senderEmail}
+              </p>
             )}
           </div>
         </div>

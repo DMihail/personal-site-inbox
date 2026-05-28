@@ -116,7 +116,7 @@ export function DesktopInboxLayout({
         ) : (
           <div className="flex min-h-0 min-w-0 flex-1">
             <aside
-              className="flex w-full max-w-md shrink-0 flex-col border-e border-glass-border glass backdrop-blur-xl md:max-w-sm lg:w-96 lg:max-w-none"
+              className="flex w-full max-w-md shrink-0 flex-col border-e border-glass-border glass backdrop-blur-xl md:max-w-md lg:w-[28rem] xl:w-[32rem] lg:max-w-none"
               aria-label="Message list"
             >
               <section
@@ -171,7 +171,6 @@ export function DesktopInboxLayout({
                               ? "No archived messages"
                               : "Your inbox is empty"
                     }
-                    metadata="inbox.empty"
                   />
                 )}
               </div>
