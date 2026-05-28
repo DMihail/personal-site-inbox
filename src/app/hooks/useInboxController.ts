@@ -17,6 +17,7 @@ import { usePushStore } from "../store/pushStore";
 import { isPortfolioApiConfigured, sendInboxReply } from "@/utils/reply-api";
 import { useDocumentTitle } from "./useDocumentTitle";
 import { useOnlineStatus } from "./useOnlineStatus";
+import { useIsTabletLayout } from "./useMediaQuery";
 
 export function useInboxController() {
   const location = useLocation();
@@ -63,7 +64,9 @@ export function useInboxController() {
   const importantCount = useMemo(() => selectImportantCount(messages), [messages]);
 
   const [navMenuOpen, setNavMenuOpen] = useState(false);
+  const [messagesListOpen, setMessagesListOpen] = useState(false);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const isTablet = useIsTabletLayout();
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [lastSync, setLastSync] = useState(() => new Date());
@@ -136,14 +139,22 @@ export function useInboxController() {
       navigate(viewToPath(view));
       setNavMenuOpen(false);
       setMobileDetailOpen(false);
+      setMessagesListOpen(view !== "settings");
     },
     [navigate],
   );
+
+  if (!isTablet || currentView === "settings") {
+    if (messagesListOpen) setMessagesListOpen(false);
+  } else if (!selectedMessageId && !messagesListOpen) {
+    setMessagesListOpen(true);
+  }
 
   const handleSelectMessage = useCallback(
     (messageId: string) => {
       selectMessage(messageId);
       setMobileDetailOpen(true);
+      setMessagesListOpen(false);
     },
     [selectMessage],
   );
@@ -200,6 +211,8 @@ export function useInboxController() {
     isOnline,
     lastSync,
     navMenuOpen,
+    messagesListOpen,
+    selectedMessageId,
     mobileDetailOpen,
     replyDialogOpen,
     showOfflineModal,
@@ -232,6 +245,8 @@ export function useInboxController() {
     setMobileDetailOpen,
     onOpenNavMenu: () => setNavMenuOpen(true),
     onCloseNavMenu: () => setNavMenuOpen(false),
+    onOpenMessagesList: () => setMessagesListOpen(true),
+    onCloseMessagesList: () => setMessagesListOpen(false),
     onOpenMobileDetail: () => setMobileDetailOpen(true),
     onCloseMobileDetail: () => setMobileDetailOpen(false),
     onRetryReconnect: () => {

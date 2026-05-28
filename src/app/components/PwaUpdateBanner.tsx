@@ -98,7 +98,7 @@ export function PwaUpdateBanner() {
             type="button"
             size="icon"
             variant="ghost"
-            className="hover:glass-elevated"
+            className="ui-hover-ghost"
             onClick={() => setNeedRefresh(false)}
             aria-label="Dismiss update notice"
           >

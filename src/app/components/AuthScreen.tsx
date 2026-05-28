@@ -48,9 +48,8 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
           <div className="space-y-2">
             <h1 className="text-display text-text-primary">Communication Hub</h1>
             <p className="text-body text-text-secondary">
-              Secure access to your developer inbox
+              Sign in with your inbox email and password
             </p>
-            <p className="text-meta text-text-muted">Secure sign-in</p>
           </div>
         </div>
 
@@ -120,8 +119,7 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
             <Button
               type="submit"
               className={cn(
-                "btn-auth-submit h-11 w-full border-0 bg-cyan text-background",
-                "hover:bg-cyan/90 hover:shadow-lg hover:shadow-cyan/20",
+                "btn-auth-submit ui-hover-cyan h-11 w-full border-0 bg-cyan text-background",
                 "focus-visible:ring-cyan/40",
               )}
               disabled={isLoading}
@@ -143,17 +141,17 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
         </div>
 
         {/* Security Features */}
-        <div className="glass rounded-xl p-5 border border-glass-border space-y-3">
-          <div className="flex items-center gap-2">
+        <section className="glass space-y-3 rounded-xl border border-glass-border p-5" aria-labelledby="auth-security-heading">
+          <h2 id="auth-security-heading" className="flex items-center gap-2 text-body-sm font-medium text-text-primary">
             <Shield className="h-4 w-4 text-mint" aria-hidden="true" />
-            <span className="text-body-sm font-medium text-text-primary">Security</span>
-          </div>
-          <ul className="text-body-sm text-text-secondary space-y-1.5 ms-6">
-            <li>• Sign in with email and password</li>
-            <li>• Messages load only after you sign in</li>
-            <li>• Private — not listed in search engines</li>
+            Security
+          </h2>
+          <ul className="list-disc space-y-1.5 ps-5 text-body-sm text-text-secondary">
+            <li>Sign in with email and password</li>
+            <li>Messages load only after you sign in</li>
+            <li>Private — not listed in search engines</li>
           </ul>
-        </div>
+        </section>
 
         <AppVersion />
       </div>

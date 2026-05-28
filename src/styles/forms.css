@@ -60,6 +60,10 @@
     caret-color: var(--text-primary);
   }
 
+  .btn-auth-submit:not(:disabled) {
+    cursor: pointer;
+  }
+
   .btn-auth-submit {
     transition:
       background-color 0.2s ease,
@@ -76,6 +80,10 @@
     .btn-auth-submit:not(:disabled):active {
       transform: translateY(0) scale(0.99);
     }
+  }
+
+  .btn-sign-out:not(:disabled) {
+    cursor: pointer;
   }
 
   .btn-sign-out {

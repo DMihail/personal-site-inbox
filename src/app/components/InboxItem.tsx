@@ -23,22 +23,23 @@ export function InboxItem({
   const itemLabel = `${message.isRead ? "" : "Unread: "}${message.senderName}, ${message.company}`;
 
   return (
-    <li className="list-none">
+    <li className="list-none" role="presentation">
       <div
-        className={`group flex w-full items-start gap-1 rounded-xl border transition-[transform,box-shadow,border-color] duration-200 ${
+        className={`group ui-transition flex w-full items-start gap-1 rounded-xl border ${
           isActive
             ? "glass-elevated border-cyan/40 shadow-lg shadow-cyan/5"
             : message.isRead
-              ? "glass border-glass-border hover:border-glass-border/50"
-              : "glass-elevated border-cyan/20 shadow-md shadow-cyan/5"
+              ? "glass ui-hover-inbox border-glass-border"
+              : "glass-elevated ui-hover-inbox-unread border-cyan/20 shadow-md shadow-cyan/5"
         }`}
       >
         <button
           type="button"
+          role="option"
           onClick={onClick}
-          aria-current={isActive ? "true" : undefined}
+          aria-selected={isActive}
           aria-label={itemLabel}
-          className="min-w-0 flex-1 rounded-xl p-4 text-left transition-transform duration-200 hover:scale-[1.01] motion-reduce:transform-none motion-reduce:hover:scale-100"
+          className="min-w-0 flex-1 cursor-pointer rounded-xl p-4 text-left"
         >
           <div className="flex items-start gap-3">
             <div className="mt-0.5" aria-hidden="true">
@@ -104,14 +105,17 @@ export function InboxItem({
         </button>
 
         {showActions ? (
-          <div className="flex shrink-0 items-center gap-1 self-center pe-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+          <div className="flex shrink-0 items-center gap-1 self-center pe-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
             {onToggleImportant ? (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => onToggleImportant(message.id)}
-                className="h-7 w-7 p-0 hover:bg-glass-elevated"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onToggleImportant(message.id);
+                }}
+                className="ui-hover-ghost h-7 w-7 p-0"
                 aria-label={message.isImportant ? "Remove star" : "Mark important"}
               >
                 <Star
@@ -124,8 +128,11 @@ export function InboxItem({
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => onDelete(message.id)}
-                className="h-7 w-7 p-0 hover:bg-glass-elevated hover:text-error"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete(message.id);
+                }}
+                className="ui-hover-ghost ui-hover-danger h-7 w-7 p-0"
                 aria-label={`Delete message from ${message.senderName}`}
               >
                 <Trash2 className="h-4 w-4" />

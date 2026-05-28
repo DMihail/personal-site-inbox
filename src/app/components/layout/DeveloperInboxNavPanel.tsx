@@ -35,7 +35,7 @@ export function DeveloperInboxNavPanel({
       <header className="shrink-0 space-y-3 border-b border-glass-border glass p-4 backdrop-blur-xl">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
-            <h2 id={titleId} className="truncate text-lg text-text-primary">
+            <h2 id={titleId} className="truncate text-lg text-text-primary md:text-heading-sm">
               Developer Inbox
             </h2>
             <p className="text-meta text-text-muted">Portfolio contact messages</p>
@@ -45,7 +45,7 @@ export function DeveloperInboxNavPanel({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="shrink-0 hover:glass-elevated"
+            className="ui-hover-ghost shrink-0"
             aria-label="Close navigation menu"
           >
             <X className="h-5 w-5" aria-hidden="true" />

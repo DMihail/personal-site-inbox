@@ -129,7 +129,7 @@ export function MobileInboxLayout({
           </section>
           {filteredMessages.length > 0 ? (
             <div className={scrollPaneClass}>
-              <ul className="m-0 list-none space-y-2 p-3" aria-label="Messages">
+              <ul className="m-0 list-none space-y-2 p-3" role="listbox" aria-label="Messages">
                 {filteredMessages.map((message) => (
                   <InboxItem
                     key={message.id}
@@ -175,7 +175,7 @@ export function MobileInboxLayout({
               variant="ghost"
               size="sm"
               onClick={onCloseDetail}
-              className="hover:glass-elevated"
+              className="ui-hover-ghost"
             >
               <X className="me-2 h-4 w-4" aria-hidden="true" />
               Back to inbox

@@ -1,13 +1,15 @@
-import { MailX } from "lucide-react";
-import { InboxItem } from "../InboxItem";
+import { List } from "lucide-react";
+import { Button } from "../ui/button";
 import { MessageDetail } from "../MessageDetail";
-import { EmptyState } from "../EmptyState";
-import { SearchBar } from "../SearchBar";
-import { FilterBar } from "../FilterBar";
 import { scrollPaneClass } from "./scrollPane";
 import { InboxAppHeader } from "./InboxAppHeader";
 import { InboxNavDrawer } from "./InboxNavDrawer";
+import { InboxMessagesDrawer } from "./InboxMessagesDrawer";
+import { InboxMessagesPanel } from "./InboxMessagesPanel";
 import { VIEW_SECTION_HEADINGS } from "../../features/inbox/viewRouting";
+import { useEdgeDrawerOpenGesture } from "../../hooks/useEdgeDrawerOpenGesture";
+import { useIsTabletLayout } from "../../hooks/useMediaQuery";
+import { useRef } from "react";
 import type { View } from "../../features/inbox/types";
 import type { Message } from "../../features/inbox/types";
 import type { FilterOption, SortOption } from "../FilterBar";
@@ -16,6 +18,7 @@ interface DesktopInboxLayoutProps {
   isOnline: boolean;
   currentView: View;
   selectedMessage: Message | null;
+  selectedMessageId: string | null;
   filteredMessages: Message[];
   inboxCount: number;
   unreadCount: number;
@@ -24,8 +27,11 @@ interface DesktopInboxLayoutProps {
   sortBy: SortOption;
   filterBy: FilterOption;
   navMenuOpen: boolean;
+  messagesListOpen: boolean;
   onOpenNavMenu: () => void;
   onCloseNavMenu: () => void;
+  onOpenMessagesList: () => void;
+  onCloseMessagesList: () => void;
   onSelectView: (view: View) => void;
   onSearchChange: (value: string) => void;
   onSortChange: (value: SortOption) => void;
@@ -49,6 +55,7 @@ export function DesktopInboxLayout({
   isOnline,
   currentView,
   selectedMessage,
+  selectedMessageId,
   filteredMessages,
   inboxCount,
   unreadCount,
@@ -57,8 +64,11 @@ export function DesktopInboxLayout({
   sortBy,
   filterBy,
   navMenuOpen,
+  messagesListOpen,
   onOpenNavMenu,
   onCloseNavMenu,
+  onOpenMessagesList,
+  onCloseMessagesList,
   onSelectView,
   onSearchChange,
   onSortChange,
@@ -77,10 +87,38 @@ export function DesktopInboxLayout({
   onDisablePush,
   onTestPush,
 }: DesktopInboxLayoutProps) {
+  const isTablet = useIsTabletLayout();
+  const detailRef = useRef<HTMLElement>(null);
+
   const listHeading =
     currentView === "settings"
       ? "Settings"
       : VIEW_SECTION_HEADINGS[currentView as keyof typeof VIEW_SECTION_HEADINGS];
+
+  const showMessagesDrawer =
+    isTablet && currentView !== "settings";
+
+  useEdgeDrawerOpenGesture({
+    enabled: showMessagesDrawer && !messagesListOpen,
+    onOpen: onOpenMessagesList,
+    targetRef: detailRef,
+  });
+
+  const messagesPanelProps = {
+    listHeading,
+    filteredMessages,
+    selectedMessageId,
+    searchQuery,
+    sortBy,
+    filterBy,
+    currentView,
+    onSearchChange,
+    onSortChange,
+    onFilterChange,
+    onSelectMessage,
+    onToggleImportant,
+    onDelete,
+  };
 
   return (
     <div className="hidden h-full min-h-0 flex-col overflow-hidden md:flex">
@@ -88,6 +126,8 @@ export function DesktopInboxLayout({
         isOnline={isOnline}
         unreadCount={unreadCount}
         onOpenNav={onOpenNavMenu}
+        showMessagesListToggle={showMessagesDrawer}
+        onOpenMessagesList={onOpenMessagesList}
         pushEnabled={pushEnabled}
         pushRegistering={pushRegistering}
         pushError={pushError}
@@ -108,87 +148,59 @@ export function DesktopInboxLayout({
         showDesktopMeta
       />
 
+      {showMessagesDrawer ? (
+        <InboxMessagesDrawer
+          open={messagesListOpen}
+          persistent
+          onClose={onCloseMessagesList}
+          {...messagesPanelProps}
+        />
+      ) : null}
+
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {currentView === "settings" ? (
-          <main id="app-main" className={`${scrollPaneClass} w-full`} aria-label="Settings">
+          <main id="app-main" className={`${scrollPaneClass} w-full tablet-detail-scroll`} aria-label="Settings">
             {settingsView}
           </main>
         ) : (
           <div className="flex min-h-0 min-w-0 flex-1">
+            {/* Desktop lg+: fixed message list */}
             <aside
-              className="flex w-full max-w-md shrink-0 flex-col border-e border-glass-border glass backdrop-blur-xl md:max-w-md lg:w-[28rem] xl:w-[32rem] lg:max-w-none"
+              className="hidden w-[28rem] shrink-0 flex-col border-e border-glass-border glass backdrop-blur-xl lg:flex xl:w-[32rem]"
               aria-label="Message list"
             >
-              <section
-                className="shrink-0 space-y-3 border-b border-glass-border p-4"
-                aria-labelledby="inbox-list-heading"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <h2 id="inbox-list-heading" className="text-text-primary capitalize">
-                    {listHeading}
-                  </h2>
-                  <p className="font-mono text-meta text-text-muted" aria-live="polite">
-                    <span className="sr-only">Message count: </span>
-                    {filteredMessages.length}
-                  </p>
-                </div>
-                <SearchBar value={searchQuery} onChange={onSearchChange} />
-                <FilterBar
-                  sortBy={sortBy}
-                  onSortChange={onSortChange}
-                  filterBy={filterBy}
-                  onFilterChange={onFilterChange}
-                />
-              </section>
-
-              <div className={scrollPaneClass}>
-                {filteredMessages.length > 0 ? (
-                  <ul className="m-0 list-none space-y-2 p-3" aria-label="Messages">
-                    {filteredMessages.map((message) => (
-                      <InboxItem
-                        key={message.id}
-                        message={message}
-                        isActive={message.id === selectedMessage?.id}
-                        onClick={() => onSelectMessage(message.id)}
-                        onToggleImportant={onToggleImportant}
-                        onDelete={onDelete}
-                        showActions
-                      />
-                    ))}
-                  </ul>
-                ) : (
-                  <EmptyState
-                    icon={MailX}
-                    title="No messages"
-                    description={
-                      searchQuery
-                        ? "No results found for your search"
-                        : currentView === "unread"
-                          ? "All messages have been read"
-                          : currentView === "important"
-                            ? "No important messages"
-                            : currentView === "archived"
-                              ? "No archived messages"
-                              : "Your inbox is empty"
-                    }
-                  />
-                )}
-              </div>
+              <InboxMessagesPanel {...messagesPanelProps} />
             </aside>
 
             <main
+              ref={detailRef}
               id="app-main"
-              className="min-h-0 min-w-0 flex-1 overflow-hidden bg-background"
+              className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background"
               aria-label="Message details"
             >
-              <MessageDetail
-                message={selectedMessage}
-                onMarkAsRead={onMarkAsRead}
-                onArchive={onArchive}
-                onToggleImportant={onToggleImportant}
-                onDelete={onDelete}
-                onReply={onReply}
-              />
+              {showMessagesDrawer && !messagesListOpen ? (
+                <div className="tablet-detail-toolbar shrink-0 border-b border-glass-border glass lg:hidden">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onOpenMessagesList}
+                    className="tablet-messages-toggle glass ui-hover-glass w-full justify-start border-glass-border sm:w-auto"
+                  >
+                    <List className="me-2.5 shrink-0" aria-hidden="true" />
+                    {listHeading}
+                  </Button>
+                </div>
+              ) : null}
+              <div className={`min-h-0 flex-1 overflow-hidden ${showMessagesDrawer ? "tablet-detail-scroll" : ""}`}>
+                <MessageDetail
+                  message={selectedMessage}
+                  onMarkAsRead={onMarkAsRead}
+                  onArchive={onArchive}
+                  onToggleImportant={onToggleImportant}
+                  onDelete={onDelete}
+                  onReply={onReply}
+                />
+              </div>
             </main>
           </div>
         )}

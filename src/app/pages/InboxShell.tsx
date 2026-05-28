@@ -34,8 +34,12 @@ export function InboxShell() {
     sortBy: c.sortBy,
     filterBy: c.filterBy,
     navMenuOpen: c.navMenuOpen,
+    messagesListOpen: c.messagesListOpen,
+    selectedMessageId: c.selectedMessageId,
     onOpenNavMenu: c.onOpenNavMenu,
     onCloseNavMenu: c.onCloseNavMenu,
+    onOpenMessagesList: c.onOpenMessagesList,
+    onCloseMessagesList: c.onCloseMessagesList,
     onSelectView: c.handleSelectView,
     onSearchChange: c.setSearchQuery,
     onSortChange: c.setSortBy,
@@ -73,7 +77,7 @@ export function InboxShell() {
 
       <PwaUpdateBanner />
 
-      <DesktopInboxLayout {...layoutProps} onSelectMessage={c.selectMessage} />
+      <DesktopInboxLayout {...layoutProps} onSelectMessage={c.handleSelectMessage} />
 
       <MobileInboxLayout
         {...layoutProps}

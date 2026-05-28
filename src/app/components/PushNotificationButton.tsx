@@ -71,7 +71,7 @@ export function PushNotificationButton({
         <Button
           variant="ghost"
           size="icon"
-          className={`shrink-0 hover:glass-elevated ${isActive ? "text-cyan" : ""}`}
+          className={`ui-hover-ghost shrink-0 ${isActive ? "text-cyan" : ""}`}
           aria-label="Push notifications"
           disabled={isRegistering}
         >
@@ -100,21 +100,20 @@ export function PushNotificationButton({
         {isActive ? (
           <>
             {onTest ? (
-              <DropdownMenuItem className="hover:bg-glass-elevated" onClick={onTest}>
+              <DropdownMenuItem onClick={onTest}>
                 Send test notification
               </DropdownMenuItem>
             ) : null}
-            <DropdownMenuItem className="hover:bg-glass-elevated" onClick={onDisable}>
+            <DropdownMenuItem onClick={onDisable}>
               Turn off
             </DropdownMenuItem>
           </>
         ) : isDenied ? (
-          <DropdownMenuItem className="hover:bg-glass-elevated" onClick={recheckPermission}>
+          <DropdownMenuItem onClick={recheckPermission}>
             Check permission again
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem
-            className="hover:bg-glass-elevated"
             disabled={isRegistering}
             onClick={handleEnable}
           >

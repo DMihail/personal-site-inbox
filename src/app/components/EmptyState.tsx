@@ -19,7 +19,7 @@ export function EmptyState({ icon: Icon, title, description, metadata }: EmptySt
           <Icon className="h-10 w-10 text-text-muted" />
         </div>
         <div className="space-y-2">
-          <p className="text-heading text-text-primary">{title}</p>
+          <h3 className="text-heading text-text-primary">{title}</h3>
           {description ? <p className="text-body-sm text-text-secondary">{description}</p> : null}
         </div>
         {metadata ? <SystemMetadata>{metadata}</SystemMetadata> : null}

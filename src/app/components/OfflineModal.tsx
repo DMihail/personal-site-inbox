@@ -37,13 +37,13 @@ export function OfflineModal({ isOpen, onRetry, onContinue, lastSync }: OfflineM
           <Button
             variant="outline"
             onClick={onContinue}
-            className="glass border-glass-border hover:bg-glass-elevated"
+            className="glass ui-hover-glass border-glass-border"
           >
             Continue Offline
           </Button>
           <Button
             onClick={onRetry}
-            className="bg-cyan hover:bg-cyan/90 text-background"
+            className="ui-hover-cyan ui-transition bg-cyan text-background"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry Connection

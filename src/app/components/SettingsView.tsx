@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Bell, CheckCircle2, Database, Wifi, LogOut, Mail, Loader2 } from "lucide-react";
 import { getPortfolioApiLabel, isPortfolioApiConfigured } from "@/utils/reply-api";
 import { useNotificationPermission } from "../hooks/useNotificationPermission";
@@ -6,6 +6,7 @@ import { useRecheckPushPermission } from "../hooks/useRecheckPushPermission";
 import { useRequestPushPermission } from "../hooks/useRequestPushPermission";
 import { NotificationPermissionHelp } from "./NotificationPermissionHelp";
 import { Button } from "./ui/button";
+import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 import { Separator } from "./ui/separator";
 import { AppVersion } from "./AppVersion";
@@ -34,6 +35,7 @@ export function SettingsView({
   const recheckPermission = useRecheckPushPermission(refresh);
   const isDenied = permission === "denied";
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const pushSwitchId = useId();
 
   const handleSignOut = () => {
     setIsSigningOut(true);
@@ -65,11 +67,13 @@ export function SettingsView({
             Notifications
           </h3>
           <div className="glass-elevated space-y-4 rounded-xl border border-glass-border p-5">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <Bell className="h-4 w-4 text-cyan" aria-hidden="true" />
-                  <span className="text-body text-text-primary">Push notifications</span>
+                  <Label htmlFor={pushSwitchId} className="text-body text-text-primary">
+                    Push notifications
+                  </Label>
                 </div>
                 <p className="text-meta text-text-muted">Browser alerts for new messages</p>
                 {isDenied ? null : pushError ? (
@@ -85,10 +89,10 @@ export function SettingsView({
                 )}
               </div>
               <Switch
+                id={pushSwitchId}
                 checked={pushEnabled && !isDenied}
                 disabled={pushRegistering || isDenied}
                 onCheckedChange={handlePushSwitchChange}
-                aria-label="Push notifications"
               />
             </div>
 
@@ -101,7 +105,7 @@ export function SettingsView({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="w-full glass border-glass-border"
+                className="glass ui-hover-glass w-full border-glass-border"
                 onClick={onTestPush}
               >
                 Send test notification
@@ -189,7 +193,7 @@ export function SettingsView({
               variant="outline"
               disabled={isSigningOut}
               aria-busy={isSigningOut}
-              className="btn-sign-out h-11 w-full shadow-none hover:text-error"
+              className="btn-sign-out h-11 w-full shadow-none"
             >
               {isSigningOut ? (
                 <>

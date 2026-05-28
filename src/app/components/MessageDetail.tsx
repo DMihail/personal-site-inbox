@@ -33,13 +33,13 @@ export function MessageDetail({
   }
 
   return (
-    <article className="flex flex-col md:h-full md:min-h-0" aria-labelledby="message-subject">
+    <article className="flex flex-col md:h-full md:min-h-0" aria-labelledby="message-from-heading">
       <header className="glass shrink-0 space-y-3 border-b border-glass-border p-4 md:space-y-4 md:p-6">
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 id="message-subject" className="text-heading text-text-primary md:text-heading-lg">
+                <h2 id="message-from-heading" className="text-heading text-text-primary md:text-heading-lg">
                   {message.senderName}
                 </h2>
                 {message.isImportant ? (
@@ -55,7 +55,7 @@ export function MessageDetail({
               <address className="space-y-1 not-italic">
                 <a
                   href={`mailto:${message.senderEmail}`}
-                  className="text-meta text-text-secondary hover:text-cyan"
+                  className="ui-hover-link ui-transition text-meta text-text-secondary"
                 >
                   {message.senderEmail}
                 </a>
@@ -81,7 +81,7 @@ export function MessageDetail({
             type="button"
             size="sm"
             onClick={onReply}
-            className="bg-cyan text-background hover:bg-cyan/90"
+            className="ui-hover-cyan ui-transition bg-cyan text-background"
           >
             <Reply className="me-2 h-4 w-4" aria-hidden="true" />
             Reply
@@ -91,7 +91,7 @@ export function MessageDetail({
             size="sm"
             variant="outline"
             onClick={() => onToggleImportant(message.id)}
-            className={`glass border-glass-border hover:bg-glass-elevated ${
+            className={`glass ui-hover-glass border-glass-border ${
               message.isImportant ? "border-mint/40 text-mint" : ""
             }`}
             aria-pressed={message.isImportant}
@@ -108,7 +108,7 @@ export function MessageDetail({
             variant="outline"
             onClick={() => onMarkAsRead(message.id)}
             disabled={message.isRead}
-            className="glass border-glass-border hover:bg-glass-elevated"
+            className="glass ui-hover-glass border-glass-border"
           >
             <CheckCheck className="me-2 h-4 w-4" aria-hidden="true" />
             Mark read
@@ -118,7 +118,7 @@ export function MessageDetail({
             size="sm"
             variant="outline"
             onClick={() => onArchive(message.id)}
-            className="glass border-glass-border hover:bg-glass-elevated"
+            className="glass ui-hover-glass border-glass-border"
           >
             <Archive className="me-2 h-4 w-4" aria-hidden="true" />
             Archive
@@ -128,7 +128,7 @@ export function MessageDetail({
             size="sm"
             variant="outline"
             onClick={() => window.open(`mailto:${message.senderEmail}`, "_blank")}
-            className="glass border-glass-border hover:bg-glass-elevated"
+            className="glass ui-hover-glass border-glass-border"
           >
             <ExternalLink className="me-2 h-4 w-4" aria-hidden="true" />
             Open in mail
@@ -138,7 +138,7 @@ export function MessageDetail({
             size="sm"
             variant="outline"
             onClick={() => onDelete(message.id)}
-            className="ms-auto glass border-glass-border hover:border-error/40 hover:bg-glass-elevated hover:text-error"
+            className="ui-hover-danger glass ms-auto border-glass-border"
           >
             <Trash2 className="me-2 h-4 w-4" aria-hidden="true" />
             Delete
@@ -198,7 +198,7 @@ export function MessageDetail({
                 <dd>
                   <a
                     href={`mailto:${message.senderEmail}`}
-                    className="font-mono text-meta text-text-secondary hover:text-cyan"
+                    className="ui-hover-link ui-transition font-mono text-meta text-text-secondary"
                   >
                     {message.senderEmail}
                   </a>

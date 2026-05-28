@@ -100,7 +100,7 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
           <Button
             variant="outline"
             onClick={onOpenInMailClient}
-            className="glass border-glass-border hover:bg-glass-elevated"
+            className="glass ui-hover-glass border-glass-border"
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             Open in Mail Client
@@ -108,7 +108,7 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
           <Button
             onClick={handleSend}
             disabled={!canSend}
-            className="bg-cyan hover:bg-cyan/90 text-background"
+            className="ui-hover-cyan ui-transition bg-cyan text-background"
           >
             <Send className="h-4 w-4 mr-2" />
             {isSending ? "Sending..." : "Send Reply"}

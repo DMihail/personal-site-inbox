@@ -21,10 +21,10 @@ export function NavItem({ icon: Icon, label, view, currentView, count, onSelect 
       type="button"
       onClick={() => onSelect(view)}
       aria-current={isCurrent ? "page" : undefined}
-      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-[background-color,border-color,color,box-shadow] duration-200 ${
+      className={`ui-transition flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${
         isCurrent
           ? "glass-elevated border border-cyan/30 text-text-primary shadow-lg shadow-cyan/5"
-          : "text-text-muted hover:glass-elevated hover:text-text-primary"
+          : "ui-hover-nav text-text-muted"
       }`}
     >
       <Icon className="h-4 w-4" aria-hidden="true" />

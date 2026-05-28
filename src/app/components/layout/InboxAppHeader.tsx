@@ -1,4 +1,4 @@
-import { Menu } from "lucide-react";
+import { List, Menu } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { PushNotificationButton } from "../PushNotificationButton";
@@ -8,6 +8,8 @@ interface InboxAppHeaderProps {
   isOnline: boolean;
   unreadCount: number;
   onOpenNav: () => void;
+  showMessagesListToggle?: boolean;
+  onOpenMessagesList?: () => void;
   compact?: boolean;
   pushEnabled: boolean;
   pushRegistering: boolean;
@@ -21,6 +23,8 @@ export function InboxAppHeader({
   isOnline,
   unreadCount,
   onOpenNav,
+  showMessagesListToggle = false,
+  onOpenMessagesList,
   compact,
   pushEnabled,
   pushRegistering,
@@ -37,7 +41,7 @@ export function InboxAppHeader({
           variant="ghost"
           size="icon"
           onClick={onOpenNav}
-          className="shrink-0 hover:glass-elevated"
+          className="ui-hover-ghost shrink-0"
           aria-label="Open navigation menu"
           aria-haspopup="dialog"
         >
@@ -54,9 +58,22 @@ export function InboxAppHeader({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-3 md:gap-4">
+      <div className="flex shrink-0 items-center gap-2 md:gap-4">
+        {showMessagesListToggle && onOpenMessagesList ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onOpenMessagesList}
+            className="tablet-messages-toggle glass ui-hover-glass border-glass-border lg:hidden"
+            aria-label="Open message list"
+          >
+            <List className="me-2 shrink-0" aria-hidden="true" />
+            <span className="hidden md:inline">All messages</span>
+          </Button>
+        ) : null}
+
         {!compact ? (
-          <div className="hidden items-center gap-4 lg:flex">
+          <div className="hidden items-center gap-4 md:flex lg:flex">
             <StatusIndicator
               label={isOnline ? "Connected" : "Offline"}
               status={isOnline ? "online" : "offline"}
