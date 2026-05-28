@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -8,27 +9,42 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-export function SearchBar({ value, onChange, placeholder = "Search messages..." }: SearchBarProps) {
+export function SearchBar({
+  value,
+  onChange,
+  placeholder = "Search messages…",
+}: SearchBarProps) {
+  const inputId = useId();
+
   return (
-    <div className="relative">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
+    <search className="relative" role="search">
+      <label htmlFor={inputId} className="sr-only">
+        Search messages
+      </label>
+      <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" aria-hidden="true" />
       <Input
-        type="text"
+        id={inputId}
+        type="search"
+        name="message-search"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="pl-10 pr-10 glass border-glass-border focus:border-cyan transition-colors"
+        autoComplete="off"
+        enterKeyHint="search"
+        className="border-glass-border glass ps-10 pe-10 transition-colors focus:border-cyan"
       />
-      {value && (
+      {value ? (
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           onClick={() => onChange("")}
-          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-glass-elevated"
+          className="absolute end-1 top-1/2 h-7 w-7 -translate-y-1/2 p-0 hover:bg-glass-elevated"
+          aria-label="Clear search"
         >
           <X className="h-3 w-3" />
         </Button>
-      )}
-    </div>
+      ) : null}
+    </search>
   );
 }

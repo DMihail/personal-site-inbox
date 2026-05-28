@@ -27,7 +27,7 @@ export function StatusIndicator({ label, status, showPulse = true }: StatusIndic
           />
         )}
       </div>
-      <span className="font-mono text-xs text-text-muted">{label}</span>
+      <span className="font-mono text-meta text-text-muted">{label}</span>
     </div>
   );
 }

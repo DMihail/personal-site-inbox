@@ -34,13 +34,15 @@ export function FilterBar({ sortBy, onSortChange, filterBy, onFilterChange }: Fi
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Sort and filter messages">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
+            type="button"
             variant="outline"
             size="sm"
             className="glass border-glass-border hover:bg-glass-elevated"
+            aria-label={`Sort: ${sortLabels[sortBy]}`}
           >
             <ArrowUpDown className="h-4 w-4 mr-2" />
             {sortLabels[sortBy]}
@@ -78,11 +80,13 @@ export function FilterBar({ sortBy, onSortChange, filterBy, onFilterChange }: Fi
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
+            type="button"
             variant="outline"
             size="sm"
             className="glass border-glass-border hover:bg-glass-elevated"
+            aria-label={`Filter: ${filterLabels[filterBy]}`}
           >
-            <SlidersHorizontal className="h-4 w-4 mr-2" />
+            <SlidersHorizontal className="h-4 w-4 mr-2" aria-hidden="true" />
             {filterLabels[filterBy]}
           </Button>
         </DropdownMenuTrigger>

@@ -1,11 +1,13 @@
+import type { ReactNode } from "react";
+
 interface SystemMetadataProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }
 
 export function SystemMetadata({ children, className = "" }: SystemMetadataProps) {
   return (
-    <span className={`font-mono text-xs text-text-muted ${className}`}>
+    <span className={`font-mono text-meta text-text-muted ${className}`.trim()}>
       {children}
     </span>
   );

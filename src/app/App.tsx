@@ -7,18 +7,14 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-
       <Route element={<RequireAuth />}>
-        <Route element={<InboxShell />}>
-          <Route index element={<Navigate to="/inbox" replace />} />
-          <Route path="/inbox" element={null} />
-          <Route path="/unread" element={null} />
-          <Route path="/important" element={null} />
-          <Route path="/archived" element={null} />
-          <Route path="/settings" element={null} />
-        </Route>
+        <Route path="/" element={<Navigate to="/inbox" replace />} />
+        <Route path="/inbox" element={<InboxShell />} />
+        <Route path="/unread" element={<InboxShell />} />
+        <Route path="/important" element={<InboxShell />} />
+        <Route path="/archived" element={<InboxShell />} />
+        <Route path="/settings" element={<InboxShell />} />
       </Route>
-
       <Route path="*" element={<Navigate to="/inbox" replace />} />
     </Routes>
   );

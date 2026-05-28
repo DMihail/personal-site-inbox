@@ -14,16 +14,20 @@ interface NavItemProps {
 }
 
 export function NavItem({ icon: Icon, label, view, currentView, count, onSelect }: NavItemProps) {
+  const isCurrent = currentView === view;
+
   return (
     <button
+      type="button"
       onClick={() => onSelect(view)}
-      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-        currentView === view
+      aria-current={isCurrent ? "page" : undefined}
+      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-[background-color,border-color,color,box-shadow] duration-200 ${
+        isCurrent
           ? "glass-elevated border border-cyan/30 text-text-primary shadow-lg shadow-cyan/5"
           : "text-text-muted hover:glass-elevated hover:text-text-primary"
       }`}
     >
-      <Icon className="h-4 w-4" />
+      <Icon className="h-4 w-4" aria-hidden="true" />
       <span className="flex-1 text-left">{label}</span>
       {count !== undefined && count > 0 && (
         <Badge variant="secondary" className="bg-cyan/20 text-cyan border border-cyan/30 text-xs">

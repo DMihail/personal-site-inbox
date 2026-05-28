@@ -31,7 +31,7 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
   };
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-background text-foreground dark p-6 relative overflow-hidden">
+    <main className="relative flex h-dvh w-screen items-center justify-center overflow-hidden bg-background p-6 text-foreground dark">
       {/* Background glow effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan/10 rounded-full blur-3xl" />
@@ -45,8 +45,8 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
             <Shield className="h-10 w-10 text-cyan" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-4xl text-text-primary">Communication Hub</h1>
-            <p className="text-text-secondary">
+            <h1 className="text-display text-text-primary">Communication Hub</h1>
+            <p className="text-body text-text-secondary">
               Secure access to your developer inbox
             </p>
             <SystemMetadata>auth.v1</SystemMetadata>
@@ -127,13 +127,13 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
             <Shield className="h-4 w-4 text-mint" />
             <SystemMetadata>security.features</SystemMetadata>
           </div>
-          <ul className="text-sm text-text-secondary space-y-1.5 ml-6">
+          <ul className="text-body-sm text-text-secondary space-y-1.5 ms-6">
             <li>• Firebase Authentication</li>
             <li>• Firestore data only when signed in</li>
             <li>• Not indexed by search engines</li>
           </ul>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
