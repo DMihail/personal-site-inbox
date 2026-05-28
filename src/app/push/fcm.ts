@@ -9,8 +9,7 @@ import {
 import { deleteDoc, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import app, { firestoreDb } from "@/utils/firebase";
 
-const MESSAGING_SW_URL = "/firebase/firebase-messaging-sw.js";
-const MESSAGING_SW_SCOPE = "/firebase/";
+const LEGACY_MESSAGING_SW_SCOPE = "/firebase/";
 
 let messaging: Messaging | null = null;
 let foregroundUnsub: (() => void) | null = null;
@@ -27,40 +26,32 @@ async function getMessagingIfSupported(): Promise<Messaging | null> {
   return messaging;
 }
 
-async function waitForMessagingServiceWorker(
-  reg: ServiceWorkerRegistration,
-): Promise<ServiceWorkerRegistration> {
-  if (reg.active) return reg;
-
-  const installing = reg.installing ?? reg.waiting;
-  if (installing) {
-    await new Promise<void>((resolve, reject) => {
-      const timeout = window.setTimeout(
-        () => reject(new Error("FCM service worker activation timed out")),
-        15_000,
-      );
-      installing.addEventListener("statechange", () => {
-        if (reg.active) {
-          window.clearTimeout(timeout);
-          resolve();
-        }
-      });
-    });
-    return reg;
+/** PWA Workbox SW (imports firebase-messaging-sw.js) — same registration used for background push. */
+export async function getPwaServiceWorkerRegistration(): Promise<ServiceWorkerRegistration | null> {
+  if (!("serviceWorker" in navigator)) return null;
+  try {
+    return await navigator.serviceWorker.ready;
+  } catch {
+    return null;
   }
+}
 
-  await navigator.serviceWorker.ready;
-  return reg;
+async function unregisterLegacyMessagingServiceWorker(): Promise<void> {
+  try {
+    const legacy = await navigator.serviceWorker.getRegistration(LEGACY_MESSAGING_SW_SCOPE);
+    if (legacy) {
+      await legacy.unregister();
+    }
+  } catch {
+    // best-effort migration from older /firebase/ scoped SW
+  }
 }
 
 export async function registerMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
 
-  const existing = await navigator.serviceWorker.getRegistration(MESSAGING_SW_SCOPE);
-  const reg =
-    existing ?? (await navigator.serviceWorker.register(MESSAGING_SW_URL, { scope: MESSAGING_SW_SCOPE }));
-
-  return waitForMessagingServiceWorker(reg);
+  await unregisterLegacyMessagingServiceWorker();
+  return getPwaServiceWorkerRegistration();
 }
 
 export async function registerFcmToken(
@@ -88,8 +79,8 @@ export async function registerFcmToken(
 
   try {
     const swReg = await registerMessagingServiceWorker();
-    if (!swReg) {
-      return { ok: false, reason: "unsupported" };
+    if (!swReg?.active) {
+      return { ok: false, reason: "unsupported", message: "Service worker not active yet — reload and try again" };
     }
 
     const token = await getToken(messagingInstance, { vapidKey, serviceWorkerRegistration: swReg });

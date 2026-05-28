@@ -1,34 +1,29 @@
 import type { MessagePayload } from "firebase/messaging";
 import type { Message } from "../features/inbox/types";
-
-function pickServiceWorkerRegistration(regs: Array<ServiceWorkerRegistration | undefined>) {
-  return regs.find((r) => r?.showNotification) ?? null;
-}
+import { getPwaServiceWorkerRegistration } from "./fcm";
 
 export async function notifyFromFcmPayload(payload: MessagePayload) {
-  const title = payload.notification?.title ?? payload.data?.title ?? "New contact message";
+  const data = payload.data ?? {};
+  const title = payload.notification?.title ?? data.title ?? "New contact message";
   const body =
     payload.notification?.body ??
-    payload.data?.body ??
-    (payload.data?.preview ? String(payload.data.preview) : "");
-  const messageId = payload.data?.messageId;
-  const url = payload.data?.url ?? "/";
+    data.body ??
+    (data.preview ? String(data.preview) : "");
+  const messageId = data.messageId;
+  const url = data.url ?? "/";
 
   try {
     if (!("Notification" in window)) return;
     if (Notification.permission !== "granted") return;
 
-    const reg = pickServiceWorkerRegistration([
-      await navigator.serviceWorker.getRegistration("/firebase/"),
-      await navigator.serviceWorker.getRegistration(),
-    ]);
+    const reg = await getPwaServiceWorkerRegistration();
 
     const options: NotificationOptions = {
       body,
       icon: "/favicon.png",
       badge: "/favicon.png",
       tag: messageId ? `message:${messageId}` : undefined,
-      data: { ...payload.data, url },
+      data: { ...data, url },
     };
 
     if (reg?.showNotification) {
@@ -62,11 +57,7 @@ export async function notifyNewMessage(message: Message) {
     const title = "New contact message";
     const body = `${message.senderName} · ${message.senderEmail}`;
 
-    // Prefer SW notifications (works better in installed PWA).
-    const reg = pickServiceWorkerRegistration([
-      await navigator.serviceWorker.getRegistration("/firebase/"),
-      await navigator.serviceWorker.getRegistration(),
-    ]);
+    const reg = await getPwaServiceWorkerRegistration();
     if (reg?.showNotification) {
       await reg.showNotification(title, {
         body,
@@ -78,10 +69,8 @@ export async function notifyNewMessage(message: Message) {
       return;
     }
 
-    // Fallback (tab must be open).
     new Notification(title, { body, icon: "/favicon.png" });
   } catch {
     // best-effort
   }
 }
-

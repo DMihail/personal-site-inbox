@@ -7,8 +7,10 @@
 
 # Build output
 /dist/
+/dev-dist/
 
-# Generated FCM service worker (contains Firebase config from .env)
+# Generated FCM handler (imported by Workbox SW; contains Firebase config from .env)
+/public/firebase-messaging-sw.js
 /public/firebase/
 
 # Env files (never commit secrets)
@@ -32,3 +34,4 @@ lerna-debug.log*
 # Vercel
 .vercel
 /.vscode/
+/dev-dist/
