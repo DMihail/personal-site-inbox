@@ -2,9 +2,11 @@ import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AuthScreen } from "../components/AuthScreen";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useAuthStore } from "../store/authStore";
 
 export function LoginPage() {
+  useDocumentTitle("Sign in");
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
   const user = useAuthStore((s) => s.user);

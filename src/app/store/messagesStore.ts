@@ -10,7 +10,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { firestoreDb } from "@/utils/firebase";
-import type { Message, View } from "../features/inbox/types";
+import type { Message } from "../features/inbox/types";
 import type { FilterOption, SortOption } from "../components/FilterBar";
 import { notifyNewMessage } from "../push/notify";
 import { shouldNotifyNewMessages } from "../push/shouldNotify";
@@ -52,43 +52,6 @@ function toAppMessage(id: string, d: FirestoreMessageDoc): Message {
   };
 }
 
-function sortMessages(messages: Message[], sortBy: SortOption) {
-  return [...messages].sort((a, b) => {
-    if (sortBy === "newest") return b.timestamp.getTime() - a.timestamp.getTime();
-    if (sortBy === "oldest") return a.timestamp.getTime() - b.timestamp.getTime();
-    if (sortBy === "unread") return (a.isRead ? 1 : 0) - (b.isRead ? 1 : 0);
-    if (sortBy === "important") return (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0);
-    return 0;
-  });
-}
-
-function applyView(messages: Message[], view: View) {
-  if (view === "unread") return messages.filter((m) => !m.isRead && !m.isArchived);
-  if (view === "important") return messages.filter((m) => m.isImportant && !m.isArchived);
-  if (view === "archived") return messages.filter((m) => m.isArchived);
-  if (view === "inbox") return messages.filter((m) => !m.isArchived);
-  return messages;
-}
-
-function applyFilter(messages: Message[], filterBy: FilterOption) {
-  if (filterBy === "all") return messages;
-  if (filterBy === "unread") return messages.filter((m) => !m.isRead);
-  if (filterBy === "important") return messages.filter((m) => m.isImportant);
-  return messages.filter((m) => m.isArchived);
-}
-
-function applySearch(messages: Message[], queryStr: string) {
-  const q = queryStr.trim().toLowerCase();
-  if (!q) return messages;
-  return messages.filter(
-    (m) =>
-      m.senderName.toLowerCase().includes(q) ||
-      m.company.toLowerCase().includes(q) ||
-      m.preview.toLowerCase().includes(q) ||
-      m.subject.toLowerCase().includes(q),
-  );
-}
-
 interface MessagesState {
   messages: Message[];
   selectedMessageId: string | null;
@@ -107,12 +70,6 @@ interface MessagesState {
   setSearchQuery: (q: string) => void;
   setSortBy: (s: SortOption) => void;
   setFilterBy: (f: FilterOption) => void;
-
-  inboxCount: () => number;
-  unreadCount: () => number;
-  importantCount: () => number;
-  selectedMessage: () => Message | null;
-  filteredMessages: (view: View) => Message[];
 
   markAsRead: (id: string) => Promise<void>;
   archive: (id: string) => Promise<void>;
@@ -182,19 +139,6 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
   setSortBy: (s) => set({ sortBy: s }),
   setFilterBy: (f) => set({ filterBy: f }),
 
-  inboxCount: () => get().messages.filter((m) => !m.isArchived).length,
-  unreadCount: () => get().messages.filter((m) => !m.isRead && !m.isArchived).length,
-  importantCount: () => get().messages.filter((m) => m.isImportant && !m.isArchived).length,
-  selectedMessage: () =>
-    get().messages.find((m) => m.id === get().selectedMessageId) ?? null,
-  filteredMessages: (view) => {
-    const { messages, filterBy, searchQuery, sortBy } = get();
-    const viewed = applyView(messages, view);
-    const filtered = applyFilter(viewed, filterBy);
-    const searched = applySearch(filtered, searchQuery);
-    return sortMessages(searched, sortBy);
-  },
-
   markAsRead: async (id) => {
     await updateDoc(doc(firestoreDb, "messages", id), { read: true });
   },
@@ -211,4 +155,3 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     if (get().selectedMessageId === id) set({ selectedMessageId: null });
   },
 }));
-

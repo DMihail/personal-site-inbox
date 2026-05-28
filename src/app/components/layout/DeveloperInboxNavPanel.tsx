@@ -8,6 +8,7 @@ import { scrollPaneClass } from "./scrollPane";
 import type { View } from "../../features/inbox/types";
 
 interface DeveloperInboxNavPanelProps {
+  titleId: string;
   isOnline: boolean;
   currentView: View;
   inboxCount: number;
@@ -19,6 +20,7 @@ interface DeveloperInboxNavPanelProps {
 }
 
 export function DeveloperInboxNavPanel({
+  titleId,
   isOnline,
   currentView,
   inboxCount,
@@ -30,32 +32,35 @@ export function DeveloperInboxNavPanel({
 }: DeveloperInboxNavPanelProps) {
   return (
     <>
-      <div className="shrink-0 border-b border-glass-border glass backdrop-blur-xl p-4 space-y-3">
+      <header className="shrink-0 space-y-3 border-b border-glass-border glass p-4 backdrop-blur-xl">
         <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1 min-w-0">
-            <h2 className="text-lg text-text-primary truncate">Developer Inbox</h2>
+          <div className="min-w-0 space-y-1">
+            <h2 id={titleId} className="truncate text-lg text-text-primary">
+              Developer Inbox
+            </h2>
             <SystemMetadata>inbox.v1</SystemMetadata>
           </div>
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             onClick={onClose}
             className="shrink-0 hover:glass-elevated"
-            aria-label="Close menu"
+            aria-label="Close navigation menu"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </Button>
         </div>
         <div className="flex flex-col gap-1">
           <StatusIndicator label="sync.online" status={isOnline ? "online" : "offline"} />
-          {showDesktopMeta && (
+          {showDesktopMeta ? (
             <StatusIndicator label="firestore.live" status="online" showPulse={false} />
-          )}
+          ) : null}
         </div>
-      </div>
+      </header>
 
       <div className={scrollPaneClass}>
-        <nav className="p-3 space-y-1" aria-label="Inbox navigation">
+        <nav className="space-y-1 p-3" aria-label="Inbox views">
           <NavItem
             icon={Inbox}
             label="Inbox"

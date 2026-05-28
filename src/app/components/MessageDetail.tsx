@@ -21,7 +21,7 @@ export function MessageDetail({
   onArchive,
   onToggleImportant,
   onDelete,
-  onReply
+  onReply,
 }: MessageDetailProps) {
   if (!message) {
     return (
@@ -35,196 +35,235 @@ export function MessageDetail({
   }
 
   return (
-    <div className="flex flex-col md:h-full md:min-h-0">
-      <div className="shrink-0 border-b border-glass-border p-4 md:p-6 space-y-3 md:space-y-4 glass">
+    <article className="flex flex-col md:h-full md:min-h-0" aria-labelledby="message-subject">
+      <header className="glass shrink-0 space-y-3 border-b border-glass-border p-4 md:space-y-4 md:p-6">
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-xl md:text-2xl text-text-primary">{message.senderName}</h2>
-                {message.isImportant && (
-                  <Star className="h-5 w-5 text-mint fill-mint" />
-                )}
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 id="message-subject" className="text-heading text-text-primary md:text-heading-lg">
+                  {message.senderName}
+                </h2>
+                {message.isImportant ? (
+                  <Star className="h-5 w-5 fill-mint text-mint" aria-label="Important" />
+                ) : null}
                 {message.repliedAt ? (
-                  <span className="inline-flex items-center gap-1 text-xs text-mint border border-mint/30 rounded-full px-2 py-0.5">
-                    <MailCheck className="h-3 w-3" />
+                  <span className="text-meta inline-flex items-center gap-1 rounded-full border border-mint/30 px-2 py-0.5 text-mint">
+                    <MailCheck className="h-3 w-3" aria-hidden="true" />
                     Replied {format(message.repliedAt, "MMM d")}
                   </span>
                 ) : null}
               </div>
-              <div className="space-y-1">
+              <address className="space-y-1 not-italic">
                 <SystemMetadata className="text-text-secondary">
-                  {message.senderEmail}
+                  <a href={`mailto:${message.senderEmail}`} className="hover:text-cyan">
+                    {message.senderEmail}
+                  </a>
                 </SystemMetadata>
                 <SystemMetadata>{message.company}</SystemMetadata>
-              </div>
+              </address>
             </div>
-            <div className="text-right space-y-1">
-              <SystemMetadata>
-                {format(message.timestamp, "MMM d, yyyy")}
-              </SystemMetadata>
-              <SystemMetadata>
-                {format(message.timestamp, "HH:mm")}
-              </SystemMetadata>
-            </div>
+            <time
+              className="space-y-1 text-end"
+              dateTime={message.timestamp.toISOString()}
+            >
+              <SystemMetadata>{format(message.timestamp, "MMM d, yyyy")}</SystemMetadata>
+              <SystemMetadata>{format(message.timestamp, "HH:mm")}</SystemMetadata>
+            </time>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div
+          className="flex flex-wrap items-center gap-2"
+          role="toolbar"
+          aria-label="Message actions"
+        >
           <Button
+            type="button"
             size="sm"
             onClick={onReply}
-            className="bg-cyan hover:bg-cyan/90 text-background"
+            className="bg-cyan text-background hover:bg-cyan/90"
           >
-            <Reply className="h-4 w-4 mr-2" />
+            <Reply className="me-2 h-4 w-4" aria-hidden="true" />
             Reply
           </Button>
           <Button
+            type="button"
             size="sm"
             variant="outline"
             onClick={() => onToggleImportant(message.id)}
             className={`glass border-glass-border hover:bg-glass-elevated ${
               message.isImportant ? "border-mint/40 text-mint" : ""
             }`}
+            aria-pressed={message.isImportant}
           >
-            <Star className={`h-4 w-4 mr-2 ${message.isImportant ? "fill-mint" : ""}`} />
+            <Star
+              className={`me-2 h-4 w-4 ${message.isImportant ? "fill-mint" : ""}`}
+              aria-hidden="true"
+            />
             {message.isImportant ? "Starred" : "Star"}
           </Button>
           <Button
+            type="button"
             size="sm"
             variant="outline"
             onClick={() => onMarkAsRead(message.id)}
             disabled={message.isRead}
             className="glass border-glass-border hover:bg-glass-elevated"
           >
-            <CheckCheck className="h-4 w-4 mr-2" />
-            Mark Read
+            <CheckCheck className="me-2 h-4 w-4" aria-hidden="true" />
+            Mark read
           </Button>
           <Button
+            type="button"
             size="sm"
             variant="outline"
             onClick={() => onArchive(message.id)}
             className="glass border-glass-border hover:bg-glass-elevated"
           >
-            <Archive className="h-4 w-4 mr-2" />
+            <Archive className="me-2 h-4 w-4" aria-hidden="true" />
             Archive
           </Button>
           <Button
+            type="button"
             size="sm"
             variant="outline"
-            onClick={() => window.open(`mailto:${message.senderEmail}`, '_blank')}
+            onClick={() => window.open(`mailto:${message.senderEmail}`, "_blank")}
             className="glass border-glass-border hover:bg-glass-elevated"
           >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            Open in Mail
+            <ExternalLink className="me-2 h-4 w-4" aria-hidden="true" />
+            Open in mail
           </Button>
           <Button
+            type="button"
             size="sm"
             variant="outline"
             onClick={() => onDelete(message.id)}
-            className="glass border-glass-border hover:bg-glass-elevated hover:border-error/40 hover:text-error ml-auto"
+            className="ms-auto glass border-glass-border hover:border-error/40 hover:bg-glass-elevated hover:text-error"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
+            <Trash2 className="me-2 h-4 w-4" aria-hidden="true" />
             Delete
           </Button>
         </div>
-      </div>
+      </header>
 
-      <div className="md:flex-1 md:min-h-0 md:overflow-y-auto md:overscroll-y-contain">
-        <div className="p-4 md:p-6 space-y-6">
-          <div className="space-y-3">
+      <div className="md:min-h-0 md:flex-1 md:overflow-y-auto md:overscroll-y-contain">
+        <div className="space-y-6 p-4 md:p-6">
+          <section className="space-y-3" aria-labelledby="message-body-label">
+            <h3 id="message-body-label" className="sr-only">
+              Message body
+            </h3>
             <SystemMetadata>message.body</SystemMetadata>
-            <div className="glass-elevated rounded-xl p-6 border border-glass-border">
-              <p className="text-text-primary leading-relaxed whitespace-pre-wrap">
+            <div className="glass-elevated rounded-xl border border-glass-border p-6">
+              <p className="leading-relaxed whitespace-pre-wrap text-text-primary">
                 {message.preview}
               </p>
             </div>
-          </div>
+          </section>
 
           {message.lastReplyPreview ? (
-            <div className="space-y-3">
+            <section className="space-y-3" aria-labelledby="last-reply-label">
+              <h3 id="last-reply-label" className="sr-only">
+                Your last reply
+              </h3>
               <SystemMetadata>your.last.reply</SystemMetadata>
-              <div className="glass rounded-xl p-4 border border-mint/20">
-                <p className="text-sm text-text-secondary whitespace-pre-wrap line-clamp-6">
+              <blockquote className="glass rounded-xl border border-mint/20 p-4">
+                <p className="text-body-sm line-clamp-6 whitespace-pre-wrap text-text-secondary">
                   {message.lastReplyPreview}
                 </p>
                 {message.repliedAt ? (
-                  <SystemMetadata className="mt-2">
-                    {format(message.repliedAt, "PPpp")}
-                  </SystemMetadata>
+                  <footer className="mt-2">
+                    <time dateTime={message.repliedAt.toISOString()}>
+                      <SystemMetadata>{format(message.repliedAt, "PPpp")}</SystemMetadata>
+                    </time>
+                  </footer>
                 ) : null}
-              </div>
-            </div>
+              </blockquote>
+            </section>
           ) : null}
 
           <Separator className="bg-glass-border" />
 
-          <div className="space-y-3">
+          <section className="space-y-3" aria-labelledby="message-meta-label">
+            <h3 id="message-meta-label" className="sr-only">
+              Message metadata
+            </h3>
             <SystemMetadata>metadata</SystemMetadata>
-            <div className="glass rounded-xl p-4 border border-glass-border space-y-3">
-              <div className="grid gap-3 text-sm">
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
-                  <span className="text-text-muted sm:w-32 shrink-0">From:</span>
-                  <span className="text-text-primary">{message.senderName}</span>
-                </div>
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
-                  <span className="text-text-muted sm:w-32 shrink-0">Email:</span>
-                  <span className="text-text-secondary font-mono text-xs">{message.senderEmail}</span>
-                </div>
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
-                  <span className="text-text-muted sm:w-32 shrink-0">Company:</span>
-                  <span className="text-text-primary">{message.company}</span>
-                </div>
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
-                  <span className="text-text-muted sm:w-32 shrink-0">Source:</span>
-                  <span className="text-text-secondary">{message.source}</span>
-                </div>
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
-                  <span className="text-text-muted sm:w-32 shrink-0">Received:</span>
-                  <span className="text-text-secondary">
-                    {format(message.timestamp, "PPpp")}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
-                  <span className="text-text-muted sm:w-32 shrink-0">Status:</span>
-                  <div className="flex items-center gap-2">
-                    <span className={message.isRead ? "text-text-muted" : "text-cyan"}>
-                      {message.isRead ? "read" : "unread"}
-                    </span>
-                    {message.isImportant && (
-                      <>
-                        <span className="text-text-muted">·</span>
-                        <span className="text-mint">important</span>
-                      </>
-                    )}
-                    {message.isArchived && (
-                      <>
-                        <span className="text-text-muted">·</span>
-                        <span className="text-text-muted">archived</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                {message.tags && message.tags.length > 0 && (
-                  <div className="flex flex-col gap-0.5 sm:flex-row sm:items-start">
-                    <span className="text-text-muted sm:w-32 shrink-0">Tags:</span>
-                    <div className="flex gap-2 flex-wrap">
-                      {message.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-1 rounded-md text-xs bg-cyan/10 text-cyan border border-cyan/20"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+            <dl className="glass text-body-sm space-y-3 rounded-xl border border-glass-border p-4">
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
+                <dt className="shrink-0 text-text-muted sm:w-32">From</dt>
+                <dd className="text-text-primary">{message.senderName}</dd>
               </div>
-            </div>
-          </div>
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
+                <dt className="shrink-0 text-text-muted sm:w-32">Email</dt>
+                <dd>
+                  <a
+                    href={`mailto:${message.senderEmail}`}
+                    className="font-mono text-meta text-text-secondary hover:text-cyan"
+                  >
+                    {message.senderEmail}
+                  </a>
+                </dd>
+              </div>
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
+                <dt className="shrink-0 text-text-muted sm:w-32">Company</dt>
+                <dd className="text-text-primary">{message.company}</dd>
+              </div>
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
+                <dt className="shrink-0 text-text-muted sm:w-32">Source</dt>
+                <dd className="text-text-secondary">{message.source}</dd>
+              </div>
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
+                <dt className="shrink-0 text-text-muted sm:w-32">Received</dt>
+                <dd className="text-text-secondary">
+                  <time dateTime={message.timestamp.toISOString()}>
+                    {format(message.timestamp, "PPpp")}
+                  </time>
+                </dd>
+              </div>
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
+                <dt className="shrink-0 text-text-muted sm:w-32">Status</dt>
+                <dd className="flex items-center gap-2">
+                  <span className={message.isRead ? "text-text-muted" : "text-cyan"}>
+                    {message.isRead ? "read" : "unread"}
+                  </span>
+                  {message.isImportant ? (
+                    <>
+                      <span className="text-text-muted" aria-hidden="true">
+                        ·
+                      </span>
+                      <span className="text-mint">important</span>
+                    </>
+                  ) : null}
+                  {message.isArchived ? (
+                    <>
+                      <span className="text-text-muted" aria-hidden="true">
+                        ·
+                      </span>
+                      <span className="text-text-muted">archived</span>
+                    </>
+                  ) : null}
+                </dd>
+              </div>
+              {message.tags && message.tags.length > 0 ? (
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-start">
+                  <dt className="shrink-0 text-text-muted sm:w-32">Tags</dt>
+                  <dd className="flex flex-wrap gap-2">
+                    {message.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-meta rounded-md border border-cyan/20 bg-cyan/10 px-2 py-1 text-cyan"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+          </section>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

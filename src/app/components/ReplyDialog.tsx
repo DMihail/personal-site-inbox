@@ -2,7 +2,14 @@ import { useState } from "react";
 import { Send, ExternalLink } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "./ui/dialog";
 import { SystemMetadata } from "./SystemMetadata";
 import type { Message } from "../features/inbox/types";
 import { isPortfolioApiConfigured } from "@/utils/reply-api";
@@ -47,6 +54,9 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
           <div className="flex items-start justify-between">
             <div>
               <DialogTitle>Reply to {message.senderName}</DialogTitle>
+              <DialogDescription className="text-body-sm text-text-secondary">
+                Your reply will be sent by email to {message.senderEmail} through the portfolio API.
+              </DialogDescription>
               <SystemMetadata className="mt-1">
                 {message.company} • portfolio.api/inbox/reply
               </SystemMetadata>
@@ -56,15 +66,15 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
 
         <div className="space-y-4">
           {!apiConfigured ? (
-            <p className="text-sm text-error rounded-lg border border-error/30 bg-error/10 p-3">
-              Set <code className="text-xs">VITE_PORTFOLIO_API_URL</code> in <code className="text-xs">.env</code>{" "}
+            <p className="text-body-sm rounded-lg border border-error/30 bg-error/10 p-3 text-error">
+              Set <code className="text-meta">VITE_PORTFOLIO_API_URL</code> in <code className="text-meta">.env</code>{" "}
               (engineering-profile origin, e.g. http://localhost:3000 or https://dzhezhelo.dev).
             </p>
           ) : null}
 
           <div className="glass rounded-lg p-4 border border-glass-border">
-            <p className="text-sm text-text-muted mb-2">Replying to:</p>
-            <p className="text-sm text-text-secondary line-clamp-3">{message.preview}</p>
+            <p className="text-body-sm mb-2 text-text-muted">Replying to:</p>
+            <p className="text-body-sm line-clamp-3 text-text-secondary">{message.preview}</p>
           </div>
 
           <div className="space-y-2">
@@ -76,7 +86,9 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
               className="min-h-[200px] glass border-glass-border focus:border-cyan resize-none"
             />
             {tooShort ? (
-              <p className="text-xs text-error">Reply must be at least {MIN_REPLY_LENGTH} characters.</p>
+              <p className="text-meta text-error">
+                Reply must be at least {MIN_REPLY_LENGTH} characters.
+              </p>
             ) : (
               <SystemMetadata>Sent via engineering-profile → SMTP to {message.senderEmail}</SystemMetadata>
             )}

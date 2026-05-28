@@ -16,24 +16,9 @@ const securityHeaders: Record<string, string> = {
   "Referrer-Policy": "strict-origin-when-cross-origin",
 };
 
-function figmaAssetResolver() {
-  return {
-    name: "figma-asset-resolver",
-    resolveId(id: string) {
-      if (id.startsWith("figma:asset/")) {
-        const filename = id.replace("figma:asset/", "");
-        return path.resolve(__dirname, "src/assets", filename);
-      }
-    },
-  };
-}
-
 export default defineConfig({
   plugins: [
     firebaseMessagingSwPlugin(),
-    figmaAssetResolver(),
-    // The React and Tailwind plugins are both required for Make, even if
-    // Tailwind is not being actively used – do not remove them
     react(),
     babel({
       presets: [reactCompilerPreset()],

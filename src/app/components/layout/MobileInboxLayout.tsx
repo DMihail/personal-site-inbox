@@ -110,10 +110,15 @@ export function MobileInboxLayout({
       />
 
       {currentView === "settings" ? (
-        <div className={scrollPaneClass}>{settingsView}</div>
+        <main id="app-main" className={scrollPaneClass} aria-label="Settings">
+          {settingsView}
+        </main>
       ) : !mobileDetailOpen ? (
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="shrink-0 space-y-2 border-b border-glass-border p-3">
+        <main id="app-main" className="flex min-h-0 flex-1 flex-col overflow-hidden" aria-label="Inbox">
+          <section
+            className="shrink-0 space-y-2 border-b border-glass-border p-3"
+            aria-label="Search and filters"
+          >
             <SearchBar value={searchQuery} onChange={onSearchChange} />
             <FilterBar
               sortBy={sortBy}
@@ -121,10 +126,10 @@ export function MobileInboxLayout({
               filterBy={filterBy}
               onFilterChange={onFilterChange}
             />
-          </div>
+          </section>
           {filteredMessages.length > 0 ? (
             <div className={scrollPaneClass}>
-              <div className="space-y-2 p-3">
+              <ul className="m-0 list-none space-y-2 p-3" aria-label="Messages">
                 {filteredMessages.map((message) => (
                   <InboxItem
                     key={message.id}
@@ -136,7 +141,7 @@ export function MobileInboxLayout({
                     }}
                   />
                 ))}
-              </div>
+              </ul>
             </div>
           ) : (
             <div className={`${scrollPaneClass} flex items-center justify-center`}>
@@ -158,18 +163,23 @@ export function MobileInboxLayout({
               />
             </div>
           )}
-        </div>
+        </main>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <main
+          id="app-main"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
+          aria-label="Message details"
+        >
           <div className="shrink-0 border-b border-glass-border p-3 glass">
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               onClick={onCloseDetail}
               className="hover:glass-elevated"
             >
-              <X className="h-4 w-4 mr-2" />
-              Back to Inbox
+              <X className="me-2 h-4 w-4" aria-hidden="true" />
+              Back to inbox
             </Button>
           </div>
           <div className={scrollPaneClass}>
@@ -188,7 +198,7 @@ export function MobileInboxLayout({
               onReply={onReply}
             />
           </div>
-        </div>
+        </main>
       )}
     </div>
   );

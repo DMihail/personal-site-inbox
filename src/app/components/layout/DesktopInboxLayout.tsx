@@ -7,6 +7,7 @@ import { FilterBar } from "../FilterBar";
 import { scrollPaneClass } from "./scrollPane";
 import { InboxAppHeader } from "./InboxAppHeader";
 import { InboxNavDrawer } from "./InboxNavDrawer";
+import { VIEW_SECTION_HEADINGS } from "../../features/inbox/viewRouting";
 import type { View } from "../../features/inbox/types";
 import type { Message } from "../../features/inbox/types";
 import type { FilterOption, SortOption } from "../FilterBar";
@@ -76,8 +77,13 @@ export function DesktopInboxLayout({
   onDisablePush,
   onTestPush,
 }: DesktopInboxLayoutProps) {
+  const listHeading =
+    currentView === "settings"
+      ? "Settings"
+      : VIEW_SECTION_HEADINGS[currentView as keyof typeof VIEW_SECTION_HEADINGS];
+
   return (
-    <div className="hidden md:flex h-full min-h-0 flex-col overflow-hidden">
+    <div className="hidden h-full min-h-0 flex-col overflow-hidden md:flex">
       <InboxAppHeader
         isOnline={isOnline}
         unreadCount={unreadCount}
@@ -102,21 +108,29 @@ export function DesktopInboxLayout({
         showDesktopMeta
       />
 
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         {currentView === "settings" ? (
-          <div className={scrollPaneClass}>{settingsView}</div>
+          <main id="app-main" className={`${scrollPaneClass} w-full`} aria-label="Settings">
+            {settingsView}
+          </main>
         ) : (
-          <div className="flex flex-1 min-h-0 min-w-0">
-            <div className="flex w-full max-w-md shrink-0 flex-col min-h-0 border-r border-glass-border glass backdrop-blur-xl md:max-w-sm lg:w-96 lg:max-w-none">
-              <div className="shrink-0 space-y-3 border-b border-glass-border p-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-text-primary">
-                    {currentView === "inbox" && "All Messages"}
-                    {currentView === "unread" && "Unread"}
-                    {currentView === "important" && "Important"}
-                    {currentView === "archived" && "Archived"}
-                  </h3>
-                  <span className="font-mono text-xs text-text-muted">{filteredMessages.length}</span>
+          <div className="flex min-h-0 min-w-0 flex-1">
+            <aside
+              className="flex w-full max-w-md shrink-0 flex-col border-e border-glass-border glass backdrop-blur-xl md:max-w-sm lg:w-96 lg:max-w-none"
+              aria-label="Message list"
+            >
+              <section
+                className="shrink-0 space-y-3 border-b border-glass-border p-4"
+                aria-labelledby="inbox-list-heading"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <h2 id="inbox-list-heading" className="text-text-primary capitalize">
+                    {listHeading}
+                  </h2>
+                  <p className="font-mono text-meta text-text-muted" aria-live="polite">
+                    <span className="sr-only">Message count: </span>
+                    {filteredMessages.length}
+                  </p>
                 </div>
                 <SearchBar value={searchQuery} onChange={onSearchChange} />
                 <FilterBar
@@ -125,11 +139,11 @@ export function DesktopInboxLayout({
                   filterBy={filterBy}
                   onFilterChange={onFilterChange}
                 />
-              </div>
+              </section>
 
               <div className={scrollPaneClass}>
                 {filteredMessages.length > 0 ? (
-                  <div className="space-y-2 p-3">
+                  <ul className="m-0 list-none space-y-2 p-3" aria-label="Messages">
                     {filteredMessages.map((message) => (
                       <InboxItem
                         key={message.id}
@@ -141,7 +155,7 @@ export function DesktopInboxLayout({
                         showActions
                       />
                     ))}
-                  </div>
+                  </ul>
                 ) : (
                   <EmptyState
                     icon={MailX}
@@ -161,9 +175,13 @@ export function DesktopInboxLayout({
                   />
                 )}
               </div>
-            </div>
+            </aside>
 
-            <div className="flex-1 min-h-0 min-w-0 bg-background overflow-hidden">
+            <main
+              id="app-main"
+              className="min-h-0 min-w-0 flex-1 overflow-hidden bg-background"
+              aria-label="Message details"
+            >
               <MessageDetail
                 message={selectedMessage}
                 onMarkAsRead={onMarkAsRead}
@@ -172,7 +190,7 @@ export function DesktopInboxLayout({
                 onDelete={onDelete}
                 onReply={onReply}
               />
-            </div>
+            </main>
           </div>
         )}
       </div>
