@@ -2,17 +2,21 @@ import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AuthScreen } from "../components/AuthScreen";
-import { useAuth } from "../auth/AuthContext";
+import { useAuthStore } from "../store/authStore";
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const login = useAuthStore((s) => s.login);
 
   const handleLogin = useCallback(
-    (email: string, password: string) => {
-      login(email, password);
-      toast.success("Authentication successful", { description: "Welcome back!" });
-      navigate("/inbox", { replace: true });
+    async (email: string, password: string) => {
+      try {
+        await login(email, password);
+        toast.success("Authentication successful", { description: "Welcome back!" });
+        navigate("/inbox", { replace: true });
+      } catch {
+        toast.error("Authentication failed");
+      }
     },
     [login, navigate],
   );

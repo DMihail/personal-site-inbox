@@ -10,12 +10,12 @@ import { useInbox } from "../features/inbox/useInbox";
 import type { View } from "../features/inbox/types";
 import { pathToView, viewToPath } from "../features/inbox/viewRouting";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
-import { useAuth } from "../auth/AuthContext";
+import { useAuthStore } from "../store/authStore";
 
 export function InboxShell() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const logout = useAuthStore((s) => s.logout);
 
   const currentView = pathToView(location.pathname);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -56,9 +56,10 @@ export function InboxShell() {
   });
 
   const handleLogout = useCallback(() => {
-    logout();
-    toast.info("Signed out successfully");
-    navigate("/login", { replace: true });
+    void logout().finally(() => {
+      toast.info("Signed out successfully");
+      navigate("/login", { replace: true });
+    });
   }, [logout, navigate]);
 
   const handleSelectView = useCallback(
