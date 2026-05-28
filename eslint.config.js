@@ -42,5 +42,14 @@ export default [
       "react-refresh/only-export-components": "off",
     },
   },
+  {
+    files: ["**/*.{test,spec}.{ts,tsx}", "src/test/**/*.{ts,tsx}", "vitest.config.ts"],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+  },
 ];
 
