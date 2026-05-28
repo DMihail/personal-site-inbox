@@ -40,8 +40,9 @@ export const useAuthStore = create<AuthState>()(
       login: async (email, password) => {
         set({ authError: null });
         try {
-          await firebaseSignIn({ email, password });
-          // user will be set by onAuthStateChanged
+          const { user } = await firebaseSignIn({ email, password });
+          // Set immediately so RequireAuth sees user before navigate (onAuthStateChanged is async).
+          set({ user, isHydrating: false });
         } catch (e) {
           const message = e instanceof Error ? e.message : "Authentication failed";
           set({ authError: message });

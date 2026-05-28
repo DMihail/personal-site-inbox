@@ -11,12 +11,19 @@ import { pathToView, viewToPath } from "../features/inbox/viewRouting";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { useAuthStore } from "../store/authStore";
 import { useMessagesStore } from "../store/messagesStore";
-import { ensureNotificationPermission } from "../push/notify";
+import { usePushStore } from "../store/pushStore";
 
 export function InboxShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
+  const user = useAuthStore((s) => s.user);
+
+  const pushEnabled = usePushStore((s) => s.enabled);
+  const pushRegistering = usePushStore((s) => s.isRegistering);
+  const pushError = usePushStore((s) => s.error);
+  const setPushEnabled = usePushStore((s) => s.setEnabled);
+  const syncPushWithUser = usePushStore((s) => s.syncWithUser);
 
   const currentView = pathToView(location.pathname);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -102,11 +109,6 @@ export function InboxShell() {
     return () => stopSubscription();
   }, [startSubscription, stopSubscription]);
 
-  useEffect(() => {
-    // Best-effort: ask once; browsers may require a user gesture.
-    void ensureNotificationPermission();
-  }, []);
-
   const isOnline = useOnlineStatus({
     onOnline: () => {
       setShowOfflineModal(false);
@@ -125,6 +127,28 @@ export function InboxShell() {
       navigate("/login", { replace: true });
     });
   }, [logout, navigate]);
+
+  useEffect(() => {
+    void syncPushWithUser(user?.uid ?? null);
+  }, [user?.uid, syncPushWithUser]);
+
+  const handlePushEnabledChange = useCallback(
+    (enabled: boolean) => {
+      void setPushEnabled(enabled, user?.uid ?? null);
+    },
+    [setPushEnabled, user?.uid],
+  );
+
+  const settingsView = (
+    <SettingsView
+      isOnline={isOnline}
+      onLogout={handleLogout}
+      pushEnabled={pushEnabled}
+      pushRegistering={pushRegistering}
+      pushError={pushError}
+      onPushEnabledChange={handlePushEnabledChange}
+    />
+  );
 
   const handleSelectView = useCallback(
     (view: View) => {
@@ -233,7 +257,7 @@ export function InboxShell() {
         onDelete={handleDelete}
         onMarkAsRead={markAsRead}
         onReply={handleReply}
-        onLogout={handleLogout}
+        settingsView={settingsView}
       />
 
       <MobileInboxLayout
@@ -263,7 +287,7 @@ export function InboxShell() {
         onDelete={handleDelete}
         onMarkAsRead={markAsRead}
         onReply={handleReply}
-        settingsView={<SettingsView isOnline={isOnline} onLogout={handleLogout} />}
+        settingsView={settingsView}
       />
 
       <Outlet />

@@ -1,7 +1,6 @@
 import { Archive, Inbox, Mail, Settings, MailX, Star } from "lucide-react";
 import { InboxItem } from "../InboxItem";
 import { MessageDetail } from "../MessageDetail";
-import { SettingsView } from "../SettingsView";
 import { StatusIndicator } from "../StatusIndicator";
 import { SystemMetadata } from "../SystemMetadata";
 import { TopBar } from "../TopBar";
@@ -35,7 +34,7 @@ interface DesktopInboxLayoutProps {
   onDelete: (messageId: string) => void;
   onMarkAsRead: (messageId: string) => void;
   onReply: () => void;
-  onLogout: () => void;
+  settingsView: React.ReactNode;
 }
 
 export function DesktopInboxLayout({
@@ -59,7 +58,7 @@ export function DesktopInboxLayout({
   onDelete,
   onMarkAsRead,
   onReply,
-  onLogout,
+  settingsView,
 }: DesktopInboxLayoutProps) {
   return (
     <div className="hidden md:flex h-full flex-col">
@@ -125,7 +124,7 @@ export function DesktopInboxLayout({
 
         {currentView === "settings" ? (
           <div className="flex-1">
-            <SettingsView isOnline={isOnline} onLogout={onLogout} />
+            {settingsView}
           </div>
         ) : (
           <>

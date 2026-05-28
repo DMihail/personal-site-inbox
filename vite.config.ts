@@ -5,8 +5,16 @@ import tailwindcss from "@tailwindcss/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
 import { VitePWA } from "vite-plugin-pwa";
+import { firebaseMessagingSwPlugin } from "./src/vite-plugins/firebaseMessagingSw";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const securityHeaders: Record<string, string> = {
+  "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet, noimageindex",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+};
 
 function figmaAssetResolver() {
   return {
@@ -22,6 +30,7 @@ function figmaAssetResolver() {
 
 export default defineConfig({
   plugins: [
+    firebaseMessagingSwPlugin(),
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if
     // Tailwind is not being actively used – do not remove them
@@ -32,7 +41,13 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.png", "icon.png", "site.webmanifest"],
+      includeAssets: [
+        "favicon.png",
+        "icon.png",
+        "site.webmanifest",
+        "robots.txt",
+        "firebase/firebase-messaging-sw.js",
+      ],
       manifest: {
         name: "Premium Engineering Inbox Design",
         short_name: "Inbox",
@@ -79,6 +94,13 @@ export default defineConfig({
       // Alias @ to the src directory
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+
+  server: {
+    headers: securityHeaders,
+  },
+  preview: {
+    headers: securityHeaders,
   },
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.

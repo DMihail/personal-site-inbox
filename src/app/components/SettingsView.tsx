@@ -7,9 +7,20 @@ import { Separator } from "./ui/separator";
 interface SettingsViewProps {
   isOnline: boolean;
   onLogout: () => void;
+  pushEnabled: boolean;
+  pushRegistering: boolean;
+  pushError: string | null;
+  onPushEnabledChange: (enabled: boolean) => void;
 }
 
-export function SettingsView({ isOnline, onLogout }: SettingsViewProps) {
+export function SettingsView({
+  isOnline,
+  onLogout,
+  pushEnabled,
+  pushRegistering,
+  pushError,
+  onPushEnabledChange,
+}: SettingsViewProps) {
   return (
     <div className="h-full overflow-auto p-6 space-y-6">
       <div className="space-y-1">
@@ -29,9 +40,22 @@ export function SettingsView({ isOnline, onLogout }: SettingsViewProps) {
                   <Bell className="h-4 w-4 text-cyan" />
                   <span className="text-text-primary">Push Notifications</span>
                 </div>
-                <SystemMetadata>notifications.push</SystemMetadata>
+                <SystemMetadata>notifications.push.fcm</SystemMetadata>
+                {pushError ? (
+                  <p className="text-xs text-error max-w-xs">{pushError}</p>
+                ) : pushEnabled ? (
+                  <p className="text-xs text-mint">Background push enabled (token saved to Firestore)</p>
+                ) : (
+                  <p className="text-xs text-text-muted">
+                    Works when the app is closed — requires VAPID key and a server trigger
+                  </p>
+                )}
               </div>
-              <Switch />
+              <Switch
+                checked={pushEnabled}
+                disabled={pushRegistering}
+                onCheckedChange={onPushEnabledChange}
+              />
             </div>
 
             <Separator className="bg-glass-border" />

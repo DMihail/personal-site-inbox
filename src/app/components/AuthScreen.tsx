@@ -1,25 +1,33 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Mail, Lock, Shield, ArrowRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { SystemMetadata } from "./SystemMetadata";
+import { isHoneypotTripped } from "../security/automatedClient";
 
 interface AuthScreenProps {
-  onLogin: (email: string, password: string) => void;
+  onLogin: (email: string, password: string) => Promise<void>;
 }
 
 export function AuthScreen({ onLogin }: AuthScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const honeypotRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isHoneypotTripped(honeypotRef.current?.value)) {
+      return;
+    }
+
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    onLogin(email, password);
-    setIsLoading(false);
+    try {
+      await onLogin(email, password);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -48,6 +56,18 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
         {/* Login Form */}
         <div className="glass-elevated rounded-2xl p-8 border border-glass-border space-y-6">
           <form onSubmit={handleSubmit} className="space-y-5">
+            <input
+              ref={honeypotRef}
+              type="text"
+              name="_gotcha"
+              tabIndex={-1}
+              defaultValue=""
+              autoComplete="off"
+              data-1p-ignore
+              data-lpignore="true"
+              className="absolute left-[-9999px] w-px h-px opacity-0 pointer-events-none"
+              aria-hidden="true"
+            />
             <div className="space-y-2">
               <Label htmlFor="email" className="text-text-primary">
                 Email Address
@@ -108,9 +128,9 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
             <SystemMetadata>security.features</SystemMetadata>
           </div>
           <ul className="text-sm text-text-secondary space-y-1.5 ml-6">
-            <li>• End-to-end encrypted communication</li>
-            <li>• Biometric authentication ready</li>
-            <li>• Optional 2FA available in settings</li>
+            <li>• Firebase Authentication</li>
+            <li>• Firestore data only when signed in</li>
+            <li>• Not indexed by search engines</li>
           </ul>
         </div>
       </div>

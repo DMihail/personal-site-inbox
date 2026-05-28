@@ -1,4 +1,32 @@
+import type { MessagePayload } from "firebase/messaging";
 import type { Message } from "../features/inbox/types";
+
+export async function notifyFromFcmPayload(payload: MessagePayload) {
+  const title = payload.notification?.title ?? payload.data?.title ?? "New contact message";
+  const body = payload.notification?.body ?? payload.data?.body ?? "";
+  const messageId = payload.data?.messageId;
+
+  try {
+    if (!("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
+
+    const reg = await navigator.serviceWorker.getRegistration("/firebase/");
+    if (reg?.showNotification) {
+      await reg.showNotification(title, {
+        body,
+        icon: "/favicon.png",
+        badge: "/favicon.png",
+        tag: messageId ? `message:${messageId}` : undefined,
+        data: payload.data,
+      });
+      return;
+    }
+
+    new Notification(title, { body, icon: "/favicon.png" });
+  } catch {
+    // best-effort
+  }
+}
 
 export async function ensureNotificationPermission() {
   try {
