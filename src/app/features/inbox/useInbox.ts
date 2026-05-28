@@ -42,10 +42,9 @@ function applySearch(messages: Message[], query: string) {
   );
 }
 
-export function useInbox() {
+export function useInbox(currentView: View) {
   const [messages, setMessages] = useState<Message[]>(mockMessages);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<View>("inbox");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [filterBy, setFilterBy] = useState<FilterOption>("all");
@@ -117,8 +116,6 @@ export function useInbox() {
 
   return {
     messages,
-    currentView,
-    setCurrentView,
     searchQuery,
     setSearchQuery,
     sortBy,

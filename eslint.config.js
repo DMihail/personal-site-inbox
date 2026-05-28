@@ -36,5 +36,11 @@ export default [
       "react-refresh/only-export-components": "off",
     },
   },
+  {
+    files: ["src/app/auth/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
 ];
 
