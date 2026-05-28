@@ -1,46 +1,36 @@
-import { useRef, useState } from "react";
-import { Mail, Lock, Shield, ArrowRight, Loader2 } from "lucide-react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { isHoneypotTripped } from "../security/automatedClient";
+import { type ComponentProps } from "react";
+import { Shield, ArrowRight } from "lucide-react";
 import { cn } from "./ui/utils";
 import { AppVersion } from "./AppVersion";
+import { FormPendingFieldset, FormSubmitButton } from "./form";
+import { LoginFormFields } from "./auth/LoginFormFields";
 
 interface AuthScreenProps {
-  onLogin: (email: string, password: string) => Promise<void>;
+  /** From `useActionState` — must be passed directly to `<form action>`. */
+  formAction: NonNullable<ComponentProps<"form">["action"]>;
+  errorMessage?: string | null;
+  email: string;
+  password: string;
+  onEmailChange: (value: string) => void;
+  onPasswordChange: (value: string) => void;
 }
 
-export function AuthScreen({ onLogin }: AuthScreenProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const honeypotRef = useRef<HTMLInputElement>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isHoneypotTripped(honeypotRef.current?.value)) {
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      await onLogin(email, password);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+export function AuthScreen({
+  formAction,
+  errorMessage,
+  email,
+  password,
+  onEmailChange,
+  onPasswordChange,
+}: AuthScreenProps) {
   return (
     <main className="relative flex h-dvh w-screen items-center justify-center overflow-hidden bg-background p-6 text-foreground dark">
-      {/* Background glow effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-mint/10 rounded-full blur-3xl" />
       </div>
 
       <div className="max-w-md w-full space-y-8 relative z-10">
-        {/* Header */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-elevated border border-glass-border">
             <Shield className="h-10 w-10 text-cyan" />
@@ -53,96 +43,44 @@ export function AuthScreen({ onLogin }: AuthScreenProps) {
           </div>
         </div>
 
-        {/* Login Form */}
         <div className="glass-elevated motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 rounded-2xl border border-glass-border space-y-6 p-8">
-          <form onSubmit={handleSubmit} className="space-y-5" autoComplete="on">
-            <input
-              ref={honeypotRef}
-              type="text"
-              name="_gotcha"
-              tabIndex={-1}
-              defaultValue=""
-              autoComplete="off"
-              data-1p-ignore
-              data-lpignore="true"
-              className="absolute left-[-9999px] w-px h-px opacity-0 pointer-events-none"
-              aria-hidden="true"
-            />
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-text-primary">
-                Email Address
-              </Label>
-              <div className="relative">
-                <Mail
-                  className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-text-muted"
-                  aria-hidden="true"
-                />
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  inputMode="email"
-                  spellCheck={false}
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="auth-input pl-10 shadow-none focus-visible:ring-0"
-                  required
-                />
-              </div>
-            </div>
+          <form action={formAction} className="space-y-5" autoComplete="on">
+            <FormPendingFieldset className="space-y-5">
+              <LoginFormFields
+                email={email}
+                password={password}
+                onEmailChange={onEmailChange}
+                onPasswordChange={onPasswordChange}
+              />
+            </FormPendingFieldset>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-text-primary">
-                Password
-              </Label>
-              <div className="relative">
-                <Lock
-                  className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-text-muted"
-                  aria-hidden="true"
-                />
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="auth-input pl-10 shadow-none focus-visible:ring-0"
-                  required
-                />
-              </div>
-            </div>
+            {errorMessage ? (
+              <p className="text-body-sm text-error" role="alert">
+                {errorMessage}
+              </p>
+            ) : null}
 
-            <Button
-              type="submit"
+            <FormSubmitButton
+              pendingLabel="Signing in…"
               className={cn(
                 "btn-auth-submit ui-hover-cyan h-11 w-full border-0 bg-cyan text-background",
                 "focus-visible:ring-cyan/40",
               )}
-              disabled={isLoading}
-              aria-busy={isLoading}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  Signing in…
-                </>
-              ) : (
-                <>
-                  Sign In
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </>
-              )}
-            </Button>
+              Sign In
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </FormSubmitButton>
           </form>
         </div>
 
-        {/* Security Features */}
-        <section className="glass space-y-3 rounded-xl border border-glass-border p-5" aria-labelledby="auth-security-heading">
-          <h2 id="auth-security-heading" className="flex items-center gap-2 text-body-sm font-medium text-text-primary">
+        <section
+          className="glass space-y-3 rounded-xl border border-glass-border p-5"
+          aria-labelledby="auth-security-heading"
+        >
+          <h2
+            id="auth-security-heading"
+            className="flex items-center gap-2 text-body-sm font-medium text-text-primary"
+          >
             <Shield className="h-4 w-4 text-mint" aria-hidden="true" />
             Security
           </h2>

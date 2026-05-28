@@ -1,31 +1,24 @@
 import { create } from "zustand";
-import {
-  collection,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  orderBy,
-  query,
-  Timestamp,
-  updateDoc,
-} from "firebase/firestore";
-import { firestoreDb } from "@/utils/firebase";
+import { getFirestoreDb } from "@/utils/firestore";
 import type { Message } from "../features/inbox/types";
 import type { FilterOption, SortOption } from "../components/FilterBar";
+import { shouldToastForMessageChange } from "../notifications/shouldToastForMessageChange";
+import { toastNewMessage } from "../notifications/toastNewMessage";
 import { notifyNewMessage } from "../push/notify";
 import { shouldNotifyNewMessages } from "../push/shouldNotify";
+import { shouldToastNewMessage } from "../push/shouldToastNewMessage";
 
 type FirestoreMessageDoc = {
   name: string;
   email: string;
   company: string | null;
   message: string;
-  createdAt: Timestamp | null;
+  createdAt: { toDate: () => Date } | null;
   source?: string;
   read?: boolean;
   archived?: boolean;
   important?: boolean;
-  repliedAt?: Timestamp | null;
+  repliedAt?: { toDate: () => Date } | null;
   lastReplyPreview?: string;
 };
 
@@ -62,6 +55,7 @@ interface MessagesState {
   error: string | null;
   hasLoadedOnce: boolean;
   _unsubscribe: (() => void) | null;
+  _subscribeInFlight: boolean;
 
   startSubscription: () => void;
   stopSubscription: () => void;
@@ -87,44 +81,59 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
   error: null,
   hasLoadedOnce: false,
   _unsubscribe: null,
+  _subscribeInFlight: false,
 
   startSubscription: () => {
-    const existing = get()._unsubscribe;
-    if (existing) return;
+    if (get()._unsubscribe || get()._subscribeInFlight) return;
 
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, _subscribeInFlight: true });
 
-    const q = query(collection(firestoreDb, "messages"), orderBy("createdAt", "desc"));
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const msgs: Message[] = [];
-        snap.forEach((d) => msgs.push(toAppMessage(d.id, d.data() as FirestoreMessageDoc)));
-        const { hasLoadedOnce } = get();
-        if (hasLoadedOnce) {
-          for (const ch of snap.docChanges()) {
-            if (ch.type !== "added") continue;
-            const msg = toAppMessage(ch.doc.id, ch.doc.data() as FirestoreMessageDoc);
-            if (shouldNotifyNewMessages()) {
-              void notifyNewMessage(msg);
+    void getFirestoreDb()
+      .then(async (firestoreDb) => {
+        if (get()._unsubscribe) return;
+
+        const { collection, onSnapshot, orderBy, query } = await import("firebase/firestore");
+        const q = query(collection(firestoreDb, "messages"), orderBy("createdAt", "desc"));
+        const unsub = onSnapshot(
+          q,
+          (snap) => {
+            const knownMessageIds = new Set(get().messages.map((m) => m.id));
+            const { hasLoadedOnce } = get();
+
+            for (const ch of snap.docChanges()) {
+              if (
+                !shouldToastForMessageChange(ch, { hasLoadedOnce, knownMessageIds })
+              ) {
+                continue;
+              }
+              const msg = toAppMessage(ch.doc.id, ch.doc.data() as FirestoreMessageDoc);
+              if (shouldToastNewMessage()) {
+                toastNewMessage(msg);
+              } else if (shouldNotifyNewMessages()) {
+                void notifyNewMessage(msg);
+              }
             }
-          }
-        }
 
-        set({ messages: msgs, isLoading: false, error: null, hasLoadedOnce: true });
-      },
-      (err) => {
-        set({ error: err.message, isLoading: false });
-      },
-    );
+            const msgs: Message[] = [];
+            snap.forEach((d) => msgs.push(toAppMessage(d.id, d.data() as FirestoreMessageDoc)));
+            set({ messages: msgs, isLoading: false, error: null, hasLoadedOnce: true });
+          },
+          (err) => {
+            set({ error: err.message, isLoading: false });
+          },
+        );
 
-    set({ _unsubscribe: unsub });
+        set({ _unsubscribe: unsub });
+      })
+      .finally(() => {
+        set({ _subscribeInFlight: false });
+      });
   },
 
   stopSubscription: () => {
     const unsub = get()._unsubscribe;
     if (unsub) unsub();
-    set({ _unsubscribe: null });
+    set({ _unsubscribe: null, hasLoadedOnce: false, _subscribeInFlight: false });
   },
 
   selectMessage: (id) => {
@@ -140,17 +149,25 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
   setFilterBy: (f) => set({ filterBy: f }),
 
   markAsRead: async (id) => {
+    const firestoreDb = await getFirestoreDb();
+    const { doc, updateDoc } = await import("firebase/firestore");
     await updateDoc(doc(firestoreDb, "messages", id), { read: true });
   },
   archive: async (id) => {
+    const firestoreDb = await getFirestoreDb();
+    const { doc, updateDoc } = await import("firebase/firestore");
     await updateDoc(doc(firestoreDb, "messages", id), { archived: true });
     if (get().selectedMessageId === id) set({ selectedMessageId: null });
   },
   toggleImportant: async (id) => {
     const current = get().messages.find((m) => m.id === id);
+    const firestoreDb = await getFirestoreDb();
+    const { doc, updateDoc } = await import("firebase/firestore");
     await updateDoc(doc(firestoreDb, "messages", id), { important: !current?.isImportant });
   },
   remove: async (id) => {
+    const firestoreDb = await getFirestoreDb();
+    const { deleteDoc, doc } = await import("firebase/firestore");
     await deleteDoc(doc(firestoreDb, "messages", id));
     if (get().selectedMessageId === id) set({ selectedMessageId: null });
   },

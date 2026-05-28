@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { withSecurePersist } from "./securePersist";
+import { migratePushPersist } from "./persistMigrate";
+import { isFcmConfigured } from "@/utils/firebaseConfig";
 import { registerFcmToken, subscribeForegroundMessages, unregisterFcmToken } from "../push/fcm";
 import {
   getNotificationPermission,
@@ -141,6 +143,11 @@ export const usePushStore = create<PushState>()(
           return;
         }
 
+        if (!isFcmConfigured()) {
+          set({ token: null, error: null });
+          return;
+        }
+
         const result = await registerFcmToken(uid, { requestPermission: false });
         if (result.ok) {
           await startForegroundListener();
@@ -155,7 +162,8 @@ export const usePushStore = create<PushState>()(
     withSecurePersist({
       name: "push-store",
       partialize: (s) => ({ enabled: s.enabled }),
-      version: 2,
+      version: 3,
+      migrate: migratePushPersist,
     }),
   ),
 );

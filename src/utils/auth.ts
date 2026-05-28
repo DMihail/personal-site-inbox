@@ -4,17 +4,19 @@ import {
   setPersistence,
   browserLocalPersistence,
 } from "firebase/auth";
-import { firebaseAuth } from "@/utils/firebase";
+import { firebaseAuth } from "@/utils/firebaseAuth";
 
-setPersistence(firebaseAuth, browserLocalPersistence);
+const persistenceReady = setPersistence(firebaseAuth, browserLocalPersistence);
 
 export interface LoginFormValues {
   email: string;
   password: string;
 }
 
-export const firebaseSignIn = async ({ email, password }: LoginFormValues) =>
-  signInWithEmailAndPassword(firebaseAuth, email, password);
+export const firebaseSignIn = async ({ email, password }: LoginFormValues) => {
+  await persistenceReady;
+  return signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
+};
 
 export const firebaseSignOut = async () => {
   await signOut(firebaseAuth);

@@ -14,7 +14,7 @@ Built for a **single authenticated user** — not a multi-tenant product.
 - Realtime inbox with search, filters, and sorting
 - Message detail view with read / star / archive actions
 - Email replies through a portfolio backend API
-- Push notifications (FCM) and installable PWA
+- FCM push notifications and installable PWA
 - Offline-aware UI when connectivity drops
 - React 19, TypeScript, Zustand, Tailwind CSS 4
 
@@ -26,7 +26,7 @@ Built for a **single authenticated user** — not a multi-tenant product.
 | **Search & sort** | Find messages; sort by date, unread, or importance |
 | **Message detail** | Full message body and metadata |
 | **Reply** | Send a reply from the app (handled by the portfolio backend) |
-| **Push** | Alerts for new messages in the browser |
+| **Push** | FCM alerts for new messages (background + foreground) |
 | **PWA** | Installable app with service worker support |
 
 ## Tech stack
@@ -45,8 +45,9 @@ src/
 │   ├── features/       # Inbox types, routing, selectors
 │   ├── hooks/          # App controllers and document title
 │   ├── pages/          # Shell and login
-│   ├── push/           # Notification registration
-│   └── store/          # Auth, messages, push state
+│   ├── push/           # FCM registration and notification helpers
+│   ├── notifications/  # In-app toast fallback
+│   └── store/          # Auth, messages, and push state
 ├── styles/             # Theme and typography
 └── utils/              # Firebase and API helpers
 ```
@@ -84,6 +85,25 @@ Configuration details are documented in [`.env.example`](./.env.example) (not co
 | `npm run test` | Vitest (watch) |
 | `npm run test:run` | Vitest (single run) |
 | `npm run test:coverage` | Coverage report |
+
+## Bundle (production build)
+
+Measured with `npm run build` (Vite 8 + Rolldown code splitting). Gzip sizes from the build report.
+
+| Chunk | Gzip | Loaded on |
+|-------|------|-----------|
+| `index` (router, bootstrap, providers) | ~3.5 kB | Every page |
+| `firebase-auth` | ~25 kB | Sign-in and inbox |
+| `vendor` (React, Radix, Sonner, …) | ~130 kB | Shared |
+| `LoginPage` | ~2 kB | `/login` only |
+| `firebase-firestore` | ~99 kB | Inbox route (lazy) |
+| `firebase-messaging` | ~6.6 kB | Push enable / FCM (lazy) |
+| `InboxShell` | ~14 kB | Inbox route (lazy) |
+| `DesktopInboxLayout` or `MobileInboxLayout` | ~2–3 kB | One layout per viewport (lazy) |
+
+**Sign-in critical path** (excluding shared vendor): about **29 kB gzip** for `index` + `firebase-auth`. Firestore and FCM are not preloaded on `/login`.
+
+**PWA precache** (full offline shell): about **1 MB** including Workbox, CSS, and icons.
 
 ## Tests
 

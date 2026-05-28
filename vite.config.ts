@@ -21,15 +21,14 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-      firebaseMessagingSwPlugin(),
       react(),
       babel({
         presets: [reactCompilerPreset()],
       }),
       tailwindcss(),
+      firebaseMessagingSwPlugin(),
       VitePWA({
         registerType: "autoUpdate",
-        // Inline only in production — in dev it races with Vite HMR and dev-sw.js.
         injectRegister: isProd ? "inline" : false,
         includeAssets: ["favicon.png", "icon.png", "site.webmanifest", "robots.txt"],
         devOptions: {
@@ -87,14 +86,50 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
-
+    build: {
+      modulePreload: {
+        resolveDependencies(_filename, deps) {
+          return deps.filter(
+            (dep) =>
+              !dep.includes("firebase-firestore") &&
+              !dep.includes("firebase-messaging") &&
+              !dep.includes("InboxShell") &&
+              !dep.includes("MobileInboxLayout") &&
+              !dep.includes("DesktopInboxLayout"),
+          );
+        },
+      },
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              {
+                name: "firebase-firestore",
+                test: /node_modules\/(firebase\/firestore|@firebase\/firestore)/,
+              },
+              {
+                name: "firebase-auth",
+                test: /node_modules\/(firebase\/auth|@firebase\/auth)/,
+              },
+              {
+                name: "firebase-messaging",
+                test: /node_modules\/(firebase\/messaging|@firebase\/messaging)/,
+              },
+              {
+                name: "vendor",
+                test: /node_modules/,
+              },
+            ],
+          },
+        },
+      },
+    },
     server: {
       headers: securityHeaders,
     },
     preview: {
       headers: securityHeaders,
     },
-
     assetsInclude: ["**/*.svg", "**/*.csv"],
   };
 });

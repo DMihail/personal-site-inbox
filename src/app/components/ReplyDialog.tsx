@@ -1,8 +1,6 @@
-import { useId, useState } from "react";
-import { Send, ExternalLink, Loader2 } from "lucide-react";
+import { useActionState, useRef } from "react";
+import { Send, ExternalLink } from "lucide-react";
 import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea";
-import { Label } from "./ui/label";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +11,8 @@ import {
 } from "./ui/dialog";
 import type { Message } from "../features/inbox/types";
 import { isPortfolioApiConfigured } from "@/utils/reply-api";
-import { cn } from "./ui/utils";
+import { FormPendingFieldset, FormSubmitButton } from "./form";
+import { ReplyFormFields } from "./reply/ReplyFormFields";
 
 const MIN_REPLY_LENGTH = 2;
 
@@ -26,31 +25,23 @@ interface ReplyDialogProps {
 }
 
 export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClient }: ReplyDialogProps) {
-  const bodyId = useId();
-  const [content, setContent] = useState("");
-  const [isSending, setIsSending] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   const apiConfigured = isPortfolioApiConfigured();
-  const trimmed = content.trim();
-  const tooShort = trimmed.length > 0 && trimmed.length < MIN_REPLY_LENGTH;
-  const canSend = apiConfigured && trimmed.length >= MIN_REPLY_LENGTH && !isSending;
 
-  const resetForm = () => {
-    setContent("");
-    setIsSending(false);
-  };
+  const [, sendReplyAction] = useActionState(
+    async (_previous: null, formData: FormData) => {
+      if (!message || !apiConfigured) return null;
 
-  const handleSend = async () => {
-    if (!canSend) return;
+      const trimmed = String(formData.get("reply-body") ?? "").trim();
+      if (trimmed.length < MIN_REPLY_LENGTH) return null;
 
-    setIsSending(true);
-    try {
       await onSend(trimmed);
-      resetForm();
+      formRef.current?.reset();
       onClose();
-    } finally {
-      setIsSending(false);
-    }
-  };
+      return null;
+    },
+    null,
+  );
 
   if (!message) return null;
 
@@ -59,7 +50,7 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
-          resetForm();
+          formRef.current?.reset();
           onClose();
         }
       }}
@@ -96,61 +87,36 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
           <p className="text-body-sm line-clamp-4 text-text-secondary">{message.preview}</p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor={bodyId} className="text-text-primary">
-            Your reply
-          </Label>
-          <Textarea
-            id={bodyId}
-            name="reply-body"
-            placeholder="Write your reply…"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            disabled={!apiConfigured || isSending}
-            aria-invalid={tooShort}
-            aria-describedby={`${bodyId}-hint`}
-            className="reply-composer min-h-[12rem] resize-none focus-visible:ring-0"
-          />
-          <p
-            id={`${bodyId}-hint`}
-            className={cn("text-meta", tooShort ? "text-error" : "text-text-muted")}
-          >
-            {tooShort
-              ? `At least ${MIN_REPLY_LENGTH} characters required.`
-              : "Sent via your portfolio contact API."}
-          </p>
-        </div>
+        <form
+          ref={formRef}
+          key={message.id}
+          action={sendReplyAction}
+          className="flex flex-col gap-5"
+        >
+          <FormPendingFieldset>
+            <ReplyFormFields apiConfigured={apiConfigured} />
+          </FormPendingFieldset>
 
-        <DialogFooter className="gap-2 sm:justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onOpenInMailClient}
-            className="glass ui-hover-glass border-glass-border"
-          >
-            <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            Open in Mail
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSend}
-            disabled={!canSend}
-            className="ui-hover-cyan border-0 bg-cyan text-background"
-            aria-busy={isSending}
-          >
-            {isSending ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                Sending…
-              </>
-            ) : (
-              <>
-                <Send className="h-4 w-4" aria-hidden="true" />
-                Send Reply
-              </>
-            )}
-          </Button>
-        </DialogFooter>
+          <DialogFooter className="gap-2 sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onOpenInMailClient}
+              className="glass ui-hover-glass border-glass-border"
+            >
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              Open in Mail
+            </Button>
+            <FormSubmitButton
+              pendingLabel="Sending…"
+              disabled={!apiConfigured}
+              className="ui-hover-cyan border-0 bg-cyan text-background"
+            >
+              <Send className="h-4 w-4" aria-hidden="true" />
+              Send Reply
+            </FormSubmitButton>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

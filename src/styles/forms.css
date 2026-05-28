@@ -1,8 +1,10 @@
 /* Login fields and browser autofill on dark glass UI */
 @layer components {
   .auth-input {
-    height: 2.75rem;
-    padding-left: 2.5rem;
+    height: 2.75rem !important;
+    min-height: 2.75rem;
+    padding-left: 2.5rem !important;
+    padding-right: 0.75rem;
     background-color: var(--glass-bg) !important;
     color: var(--text-primary);
     border: 1px solid var(--glass-border);

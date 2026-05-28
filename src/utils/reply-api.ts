@@ -1,4 +1,4 @@
-import { firebaseAuth } from "@/utils/firebase";
+import { firebaseAuth } from "@/utils/firebaseAuth";
 
 const MIN_REPLY_LENGTH = 2;
 

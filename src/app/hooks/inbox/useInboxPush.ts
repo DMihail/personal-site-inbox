@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { getNotificationPermission } from "@/app/push/notificationPermission";
 import { usePushStore } from "@/app/store/pushStore";
+import { isFcmConfigured } from "@/utils/firebaseConfig";
 import type { InboxPushHandlers } from "./inbox-layout.types";
 
 export function useInboxPush(userId: string | null | undefined) {
@@ -10,6 +11,11 @@ export function useInboxPush(userId: string | null | undefined) {
   const setPushEnabled = usePushStore((s) => s.setEnabled);
   const syncPushWithUser = usePushStore((s) => s.syncWithUser);
   const sendTestNotification = usePushStore((s) => s.sendTestNotification);
+
+  useEffect(() => {
+    if (!userId || !isFcmConfigured() || !("serviceWorker" in navigator)) return;
+    void import("@/app/push/fcm").then((m) => m.registerMessagingServiceWorker());
+  }, [userId]);
 
   useEffect(() => {
     if (getNotificationPermission() === "denied" && usePushStore.getState().enabled) {

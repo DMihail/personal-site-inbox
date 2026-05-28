@@ -9,9 +9,8 @@
 /dist/
 /dev-dist/
 
-# Generated FCM handler (imported by Workbox SW; contains Firebase config from .env)
-/public/firebase-messaging-sw.js
 /public/firebase/
+/public/firebase-messaging-sw.js
 
 # Env files (never commit secrets)
 .env

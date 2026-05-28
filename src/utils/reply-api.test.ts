@@ -4,7 +4,7 @@ const mockFirebaseAuth = vi.hoisted(() => ({
   currentUser: null as { getIdToken: () => Promise<string> } | null,
 }));
 
-vi.mock("@/utils/firebase", () => ({
+vi.mock("@/utils/firebaseAuth", () => ({
   firebaseAuth: mockFirebaseAuth,
 }));
 
