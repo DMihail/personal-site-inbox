@@ -26,6 +26,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: "inline",
       includeAssets: ["favicon.png", "icon.png", "site.webmanifest", "robots.txt"],
       devOptions: {
         enabled: true,
@@ -46,6 +47,8 @@ export default defineConfig({
         ],
       },
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
         importScripts: ["firebase-messaging-sw.js"],
         navigateFallback: "/index.html",
         globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest,woff2}"],

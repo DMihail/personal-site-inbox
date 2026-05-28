@@ -1,6 +1,7 @@
 import { Toaster } from "sonner";
 import { ReplyDialog } from "../components/ReplyDialog";
 import { OfflineModal } from "../components/OfflineModal";
+import { PwaUpdateBanner } from "../components/PwaUpdateBanner";
 import { SettingsView } from "../components/SettingsView";
 import { DesktopInboxLayout } from "../components/layout/DesktopInboxLayout";
 import { MobileInboxLayout } from "../components/layout/MobileInboxLayout";
@@ -69,6 +70,8 @@ export function InboxShell() {
         onSend={c.handleSendReply}
         onOpenInMailClient={c.handleOpenInMailClient}
       />
+
+      <PwaUpdateBanner />
 
       <DesktopInboxLayout {...layoutProps} onSelectMessage={c.selectMessage} />
 
