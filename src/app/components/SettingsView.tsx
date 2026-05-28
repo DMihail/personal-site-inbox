@@ -22,7 +22,7 @@ export function SettingsView({
   onPushEnabledChange,
 }: SettingsViewProps) {
   return (
-    <div className="h-full overflow-auto p-6 space-y-6">
+    <div className="h-full min-h-0 overflow-y-auto overscroll-y-contain p-4 md:p-6 space-y-6">
       <div className="space-y-1">
         <h1 className="text-3xl text-text-primary">Settings</h1>
         <SystemMetadata>system.config.v1</SystemMetadata>

@@ -7,10 +7,10 @@ import { MessageDetail } from "../MessageDetail";
 import { EmptyState } from "../EmptyState";
 import { FilterBar } from "../FilterBar";
 import { NavItem } from "../NavItem";
-import { ScrollArea } from "../ui/scroll-area";
 import { SearchBar } from "../SearchBar";
 import { Separator } from "../ui/separator";
 import { StatusIndicator } from "../StatusIndicator";
+import { scrollPaneClass } from "./scrollPane";
 import type { FilterOption, SortOption } from "../FilterBar";
 import type { Message, View } from "../../features/inbox/types";
 
@@ -74,8 +74,8 @@ export function MobileInboxLayout({
   settingsView,
 }: MobileInboxLayoutProps) {
   return (
-    <div className="md:hidden h-full flex flex-col">
-      <div className="border-b border-glass-border glass backdrop-blur-xl p-4">
+    <div className="md:hidden relative flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="shrink-0 border-b border-glass-border glass backdrop-blur-xl p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
@@ -100,8 +100,8 @@ export function MobileInboxLayout({
       </div>
 
       {mobileMenuOpen && (
-        <div className="absolute inset-0 z-50 bg-background">
-          <div className="border-b border-glass-border glass backdrop-blur-xl p-4">
+        <div className="absolute inset-0 z-50 flex flex-col bg-background">
+          <div className="shrink-0 border-b border-glass-border glass backdrop-blur-xl p-4">
             <div className="flex items-center justify-between">
               <h2 className="text-text-primary">Menu</h2>
               <Button
@@ -114,55 +114,57 @@ export function MobileInboxLayout({
               </Button>
             </div>
           </div>
-          <div className="p-4 space-y-1">
-            <NavItem
-              icon={Inbox}
-              label="Inbox"
-              view="inbox"
-              currentView={currentView}
-              count={inboxCount}
-              onSelect={onSelectView}
-            />
-            <NavItem
-              icon={Mail}
-              label="Unread"
-              view="unread"
-              currentView={currentView}
-              count={unreadCount}
-              onSelect={onSelectView}
-            />
-            <NavItem
-              icon={Star}
-              label="Important"
-              view="important"
-              currentView={currentView}
-              count={importantCount}
-              onSelect={onSelectView}
-            />
-            <NavItem
-              icon={Archive}
-              label="Archived"
-              view="archived"
-              currentView={currentView}
-              onSelect={onSelectView}
-            />
-            <Separator className="my-3 bg-glass-border" />
-            <NavItem
-              icon={Settings}
-              label="Settings"
-              view="settings"
-              currentView={currentView}
-              onSelect={onSelectView}
-            />
+          <div className={scrollPaneClass}>
+            <div className="p-4 space-y-1">
+              <NavItem
+                icon={Inbox}
+                label="Inbox"
+                view="inbox"
+                currentView={currentView}
+                count={inboxCount}
+                onSelect={onSelectView}
+              />
+              <NavItem
+                icon={Mail}
+                label="Unread"
+                view="unread"
+                currentView={currentView}
+                count={unreadCount}
+                onSelect={onSelectView}
+              />
+              <NavItem
+                icon={Star}
+                label="Important"
+                view="important"
+                currentView={currentView}
+                count={importantCount}
+                onSelect={onSelectView}
+              />
+              <NavItem
+                icon={Archive}
+                label="Archived"
+                view="archived"
+                currentView={currentView}
+                onSelect={onSelectView}
+              />
+              <Separator className="my-3 bg-glass-border" />
+              <NavItem
+                icon={Settings}
+                label="Settings"
+                view="settings"
+                currentView={currentView}
+                onSelect={onSelectView}
+              />
+            </div>
           </div>
         </div>
       )}
 
       {currentView === "settings" ? (
-        settingsView
+        <div className={scrollPaneClass}>{settingsView}</div>
       ) : !mobileDetailOpen ? (
-        <div className="flex-1 flex flex-col min-h-0">
-          <div className="p-3 border-b border-glass-border space-y-2">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="shrink-0 space-y-2 border-b border-glass-border p-3">
             <SearchBar value={searchQuery} onChange={onSearchChange} />
             <FilterBar
               sortBy={sortBy}
@@ -172,8 +174,8 @@ export function MobileInboxLayout({
             />
           </div>
           {filteredMessages.length > 0 ? (
-            <ScrollArea className="flex-1 min-h-0">
-              <div className="p-3 space-y-2">
+            <div className={scrollPaneClass}>
+              <div className="space-y-2 p-3">
                 {filteredMessages.map((message) => (
                   <InboxItem
                     key={message.id}
@@ -186,29 +188,31 @@ export function MobileInboxLayout({
                   />
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           ) : (
-            <EmptyState
-              icon={MailX}
-              title="No messages"
-              description={
-                searchQuery
-                  ? "No results found"
-                  : currentView === "unread"
-                    ? "All caught up!"
-                    : currentView === "important"
-                      ? "No important messages"
-                      : currentView === "archived"
-                        ? "No archived messages"
-                        : "Your inbox is empty"
-              }
-              metadata="inbox.empty"
-            />
+            <div className={`${scrollPaneClass} flex items-center justify-center`}>
+              <EmptyState
+                icon={MailX}
+                title="No messages"
+                description={
+                  searchQuery
+                    ? "No results found"
+                    : currentView === "unread"
+                      ? "All caught up!"
+                      : currentView === "important"
+                        ? "No important messages"
+                        : currentView === "archived"
+                          ? "No archived messages"
+                          : "Your inbox is empty"
+                }
+                metadata="inbox.empty"
+              />
+            </div>
           )}
         </div>
       ) : (
-        <div className="flex-1 flex flex-col">
-          <div className="border-b border-glass-border p-3 glass">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="shrink-0 border-b border-glass-border p-3 glass">
             <Button
               variant="ghost"
               size="sm"
@@ -219,7 +223,7 @@ export function MobileInboxLayout({
               Back to Inbox
             </Button>
           </div>
-          <div className="flex-1 overflow-hidden">
+          <div className={scrollPaneClass}>
             <MessageDetail
               message={selectedMessage}
               onMarkAsRead={onMarkAsRead}
@@ -240,4 +244,3 @@ export function MobileInboxLayout({
     </div>
   );
 }
-

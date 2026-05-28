@@ -10,7 +10,7 @@ interface ReplyDialogProps {
   isOpen: boolean;
   onClose: () => void;
   message: Message | null;
-  onSend: (content: string) => void;
+  onSend: (content: string) => void | Promise<void>;
   onOpenInMailClient: () => void;
 }
 
@@ -19,21 +19,23 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
   const [isSending, setIsSending] = useState(false);
 
   const handleSend = async () => {
-    if (!content.trim()) return;
+    if (!content.trim() || isSending) return;
 
     setIsSending(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    onSend(content);
-    setContent("");
-    setIsSending(false);
-    onClose();
+    try {
+      await onSend(content.trim());
+      setContent("");
+      onClose();
+    } finally {
+      setIsSending(false);
+    }
   };
 
   if (!message) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="glass-elevated border-glass-border max-w-2xl">
+      <DialogContent className="glass-elevated border-glass-border max-w-2xl max-h-[min(90dvh,100%)] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-start justify-between">
             <div>

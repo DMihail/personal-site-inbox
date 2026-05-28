@@ -8,7 +8,7 @@ import { EmptyState } from "../EmptyState";
 import { SearchBar } from "../SearchBar";
 import { FilterBar } from "../FilterBar";
 import { NavItem } from "../NavItem";
-import { ScrollArea } from "../ui/scroll-area";
+import { scrollPaneClass } from "./scrollPane";
 import type { View } from "../../features/inbox/types";
 import type { Message } from "../../features/inbox/types";
 import type { FilterOption, SortOption } from "../FilterBar";
@@ -64,7 +64,7 @@ export function DesktopInboxLayout({
     <div className="hidden md:flex h-full flex-col">
       <TopBar unreadCount={unreadCount} isOnline={isOnline} />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex min-h-0 overflow-hidden">
         <div className="w-64 border-r border-glass-border glass backdrop-blur-xl flex flex-col">
           <div className="p-4 border-b border-glass-border space-y-3">
             <div className="space-y-1">
@@ -123,12 +123,10 @@ export function DesktopInboxLayout({
         </div>
 
         {currentView === "settings" ? (
-          <div className="flex-1">
-            {settingsView}
-          </div>
+          <div className={scrollPaneClass}>{settingsView}</div>
         ) : (
-          <>
-            <div className="w-96 border-r border-glass-border glass backdrop-blur-xl flex flex-col min-h-0">
+          <div className="flex flex-1 min-h-0 min-w-0">
+            <div className="w-96 shrink-0 border-r border-glass-border glass backdrop-blur-xl flex flex-col min-h-0">
               <div className="p-4 border-b border-glass-border space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-text-primary">
@@ -148,9 +146,9 @@ export function DesktopInboxLayout({
                 />
               </div>
 
-              <ScrollArea className="flex-1 min-h-0">
+              <div className={scrollPaneClass}>
                 {filteredMessages.length > 0 ? (
-                  <div className="p-3 space-y-2">
+                  <div className="space-y-2 p-3">
                     {filteredMessages.map((message) => (
                       <InboxItem
                         key={message.id}
@@ -181,10 +179,10 @@ export function DesktopInboxLayout({
                     metadata="inbox.empty"
                   />
                 )}
-              </ScrollArea>
+              </div>
             </div>
 
-            <div className="flex-1 bg-background">
+            <div className="flex-1 min-h-0 min-w-0 bg-background overflow-hidden">
               <MessageDetail
                 message={selectedMessage}
                 onMarkAsRead={onMarkAsRead}
@@ -194,7 +192,7 @@ export function DesktopInboxLayout({
                 onReply={onReply}
               />
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

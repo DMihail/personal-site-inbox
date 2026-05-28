@@ -35,13 +35,13 @@ export function MessageDetail({
   }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="border-b border-glass-border p-6 space-y-4 glass">
+    <div className="flex flex-col md:h-full md:min-h-0">
+      <div className="shrink-0 border-b border-glass-border p-4 md:p-6 space-y-3 md:space-y-4 glass">
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <h2 className="text-2xl text-text-primary">{message.senderName}</h2>
+                <h2 className="text-xl md:text-2xl text-text-primary">{message.senderName}</h2>
                 {message.isImportant && (
                   <Star className="h-5 w-5 text-mint fill-mint" />
                 )}
@@ -124,8 +124,8 @@ export function MessageDetail({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
-        <div className="p-6 space-y-6">
+      <div className="md:flex-1 md:min-h-0 md:overflow-y-auto md:overscroll-y-contain">
+        <div className="p-4 md:p-6 space-y-6">
           <div className="space-y-3">
             <SystemMetadata>message.body</SystemMetadata>
             <div className="glass-elevated rounded-xl p-6 border border-glass-border">
@@ -141,30 +141,30 @@ export function MessageDetail({
             <SystemMetadata>metadata</SystemMetadata>
             <div className="glass rounded-xl p-4 border border-glass-border space-y-3">
               <div className="grid gap-3 text-sm">
-                <div className="flex">
-                  <span className="text-text-muted w-32">From:</span>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
+                  <span className="text-text-muted sm:w-32 shrink-0">From:</span>
                   <span className="text-text-primary">{message.senderName}</span>
                 </div>
-                <div className="flex">
-                  <span className="text-text-muted w-32">Email:</span>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
+                  <span className="text-text-muted sm:w-32 shrink-0">Email:</span>
                   <span className="text-text-secondary font-mono text-xs">{message.senderEmail}</span>
                 </div>
-                <div className="flex">
-                  <span className="text-text-muted w-32">Company:</span>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
+                  <span className="text-text-muted sm:w-32 shrink-0">Company:</span>
                   <span className="text-text-primary">{message.company}</span>
                 </div>
-                <div className="flex">
-                  <span className="text-text-muted w-32">Source:</span>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
+                  <span className="text-text-muted sm:w-32 shrink-0">Source:</span>
                   <span className="text-text-secondary">{message.source}</span>
                 </div>
-                <div className="flex">
-                  <span className="text-text-muted w-32">Received:</span>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
+                  <span className="text-text-muted sm:w-32 shrink-0">Received:</span>
                   <span className="text-text-secondary">
                     {format(message.timestamp, "PPpp")}
                   </span>
                 </div>
-                <div className="flex items-center">
-                  <span className="text-text-muted w-32">Status:</span>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center">
+                  <span className="text-text-muted sm:w-32 shrink-0">Status:</span>
                   <div className="flex items-center gap-2">
                     <span className={message.isRead ? "text-text-muted" : "text-cyan"}>
                       {message.isRead ? "read" : "unread"}
@@ -184,8 +184,8 @@ export function MessageDetail({
                   </div>
                 </div>
                 {message.tags && message.tags.length > 0 && (
-                  <div className="flex">
-                    <span className="text-text-muted w-32">Tags:</span>
+                  <div className="flex flex-col gap-0.5 sm:flex-row sm:items-start">
+                    <span className="text-text-muted sm:w-32 shrink-0">Tags:</span>
                     <div className="flex gap-2 flex-wrap">
                       {message.tags.map((tag) => (
                         <span

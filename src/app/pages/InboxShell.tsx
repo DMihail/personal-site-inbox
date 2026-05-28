@@ -12,6 +12,7 @@ import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { useAuthStore } from "../store/authStore";
 import { useMessagesStore } from "../store/messagesStore";
 import { usePushStore } from "../store/pushStore";
+import { sendInboxReply } from "@/utils/reply-api";
 
 export function InboxShell() {
   const location = useLocation();
@@ -190,9 +191,20 @@ export function InboxShell() {
 
   const handleReply = useCallback(() => setReplyDialogOpen(true), []);
 
-  const handleSendReply = useCallback((_content: string) => {
-    toast.success("Reply sent successfully", { description: "Your message has been delivered" });
-  }, []);
+  const handleSendReply = useCallback(
+    async (content: string) => {
+      if (!selectedMessage) return;
+      try {
+        await sendInboxReply(selectedMessage.id, content);
+        toast.success("Reply sent", { description: `Email sent to ${selectedMessage.senderEmail}` });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to send reply";
+        toast.error("Could not send reply", { description: message });
+        throw err;
+      }
+    },
+    [selectedMessage],
+  );
 
   const handleOpenInMailClient = useCallback(() => {
     if (!selectedMessage) return;
