@@ -1,1 +1,30 @@
+# IDE / OS
 /.idea/
+.DS_Store
+
+# Dependencies
+/node_modules/
+
+# Build output
+/dist/
+
+# Env files (never commit secrets)
+.env
+.env.*
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Testing / coverage
+/coverage/
+
+# Misc caches
+.eslintcache
+*.tsbuildinfo
+
+# Vercel
+.vercel
