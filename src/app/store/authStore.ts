@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { withSecurePersist } from "./securePersist";
 import type { User } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
 import { firebaseAuth } from "@/utils/firebase";
@@ -56,11 +57,11 @@ export const useAuthStore = create<AuthState>()(
         // user will be cleared by onAuthStateChanged
       },
     }),
-    {
+    withSecurePersist({
       name: "auth-store",
       partialize: (s) => ({ lastKnownUid: s.lastKnownUid }),
-      version: 1,
-    },
+      version: 2,
+    }),
   ),
 );
 

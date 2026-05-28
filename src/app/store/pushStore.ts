@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { withSecurePersist } from "./securePersist";
 import { registerFcmToken, subscribeForegroundMessages, unregisterFcmToken } from "../push/fcm";
 import { notifyFromFcmPayload } from "../push/notify";
 
@@ -85,10 +86,10 @@ export const usePushStore = create<PushState>()(
         }
       },
     }),
-    {
+    withSecurePersist({
       name: "push-store",
       partialize: (s) => ({ enabled: s.enabled }),
-      version: 1,
-    },
+      version: 2,
+    }),
   ),
 );
