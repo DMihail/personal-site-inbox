@@ -31,7 +31,7 @@ export function SlideDrawer({
   const fallbackTitleId = useId();
   const titleId = labelledBy ?? fallbackTitleId;
   const panelRef = useRef<HTMLElement>(null);
-  const [mounted, setMounted] = useState(open || persistent);
+  const [mounted, setMounted] = useState(() => open || persistent);
 
   if ((open || persistent) && !mounted) {
     setMounted(true);
@@ -49,10 +49,10 @@ export function SlideDrawer({
   });
 
   useEffect(() => {
-    if (persistent || open) return;
+    if (open || persistent || !mounted) return;
     const timer = window.setTimeout(() => setMounted(false), CLOSE_MS);
     return () => window.clearTimeout(timer);
-  }, [open, persistent]);
+  }, [open, persistent, mounted]);
 
   useEffect(() => {
     if (!open) return;

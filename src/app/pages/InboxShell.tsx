@@ -1,11 +1,10 @@
-import { Toaster } from "sonner";
 import { ReplyDialog } from "../components/ReplyDialog";
 import { OfflineModal } from "../components/OfflineModal";
 import { PwaUpdateBanner } from "../components/PwaUpdateBanner";
 import { SettingsView } from "../components/SettingsView";
 import { DesktopInboxLayout } from "../components/layout/DesktopInboxLayout";
 import { MobileInboxLayout } from "../components/layout/MobileInboxLayout";
-import { useInboxController } from "../hooks/useInboxController";
+import { useInboxController } from "../hooks/inbox";
 
 export function InboxShell() {
   const c = useInboxController();
@@ -26,6 +25,7 @@ export function InboxShell() {
     isOnline: c.isOnline,
     currentView: c.currentView,
     selectedMessage: c.selectedMessage,
+    selectedMessageId: c.selectedMessageId,
     filteredMessages: c.filteredMessages,
     inboxCount: c.inboxCount,
     unreadCount: c.unreadCount,
@@ -35,7 +35,6 @@ export function InboxShell() {
     filterBy: c.filterBy,
     navMenuOpen: c.navMenuOpen,
     messagesListOpen: c.messagesListOpen,
-    selectedMessageId: c.selectedMessageId,
     onOpenNavMenu: c.onOpenNavMenu,
     onCloseNavMenu: c.onCloseNavMenu,
     onOpenMessagesList: c.onOpenMessagesList,
@@ -55,11 +54,6 @@ export function InboxShell() {
 
   return (
     <div className="flex h-dvh w-screen flex-col overflow-hidden bg-background text-foreground dark">
-      <Toaster
-        position="top-right"
-        toastOptions={{ className: "glass-elevated border-glass-border" }}
-      />
-
       <OfflineModal
         isOpen={c.showOfflineModal}
         onRetry={c.onRetryReconnect}

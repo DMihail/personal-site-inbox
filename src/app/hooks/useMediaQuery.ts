@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MEDIA_QUERIES } from "@/shared/constants/media-queries";
 
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => {
@@ -19,5 +20,5 @@ export function useMediaQuery(query: string): boolean {
 
 /** md ≤ width < lg — tablet layout with message-list drawer */
 export function useIsTabletLayout(): boolean {
-  return useMediaQuery("(min-width: 768px) and (max-width: 1023px)");
+  return useMediaQuery(MEDIA_QUERIES.tablet);
 }

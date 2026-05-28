@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { MailX, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { InboxItem } from "../InboxItem";
@@ -9,43 +8,13 @@ import { SearchBar } from "../SearchBar";
 import { scrollPaneClass } from "./scrollPane";
 import { InboxAppHeader } from "./InboxAppHeader";
 import { InboxNavDrawer } from "./InboxNavDrawer";
-import type { FilterOption, SortOption } from "../FilterBar";
-import type { Message, View } from "../../features/inbox/types";
+import type { InboxLayoutBaseProps } from "@/app/hooks/inbox/inbox-layout.types";
 
-interface MobileInboxLayoutProps {
-  isOnline: boolean;
-  currentView: View;
-  selectedMessage: Message | null;
-  filteredMessages: Message[];
-  inboxCount: number;
-  unreadCount: number;
-  importantCount: number;
-  searchQuery: string;
-  sortBy: SortOption;
-  filterBy: FilterOption;
-  navMenuOpen: boolean;
+interface MobileInboxLayoutProps extends InboxLayoutBaseProps {
   mobileDetailOpen: boolean;
-  onOpenNavMenu: () => void;
-  onCloseNavMenu: () => void;
-  onSelectView: (view: View) => void;
   onOpenDetail: () => void;
   onCloseDetail: () => void;
-  onSearchChange: (value: string) => void;
-  onSortChange: (value: SortOption) => void;
-  onFilterChange: (value: FilterOption) => void;
   onSelectMessage: (messageId: string) => void;
-  onArchive: (messageId: string) => void;
-  onToggleImportant: (messageId: string) => void;
-  onDelete: (messageId: string) => void;
-  onMarkAsRead: (messageId: string) => void;
-  onReply: () => void;
-  settingsView: ReactNode;
-  pushEnabled: boolean;
-  pushRegistering: boolean;
-  pushError: string | null;
-  onEnablePush: () => void;
-  onDisablePush: () => void;
-  onTestPush: () => void;
 }
 
 export function MobileInboxLayout({

@@ -6,7 +6,13 @@ import reactRefresh from "eslint-plugin-react-refresh";
 
 export default [
   {
-    ignores: ["dist/**", "node_modules/**", "public/firebase/**", "public/firebase-messaging-sw.js"],
+    ignores: [
+      "dist/**",
+      "dev-dist/**",
+      "node_modules/**",
+      "public/firebase/**",
+      "public/firebase-messaging-sw.js",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
