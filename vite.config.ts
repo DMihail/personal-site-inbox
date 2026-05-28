@@ -26,13 +26,10 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: [
-        "favicon.png",
-        "icon.png",
-        "site.webmanifest",
-        "robots.txt",
-        "firebase/firebase-messaging-sw.js",
-      ],
+      includeAssets: ["favicon.png", "icon.png", "site.webmanifest", "robots.txt"],
+      devOptions: {
+        enabled: true,
+      },
       manifest: {
         name: "Premium Engineering Inbox Design",
         short_name: "Inbox",
@@ -49,8 +46,8 @@ export default defineConfig({
         ],
       },
       workbox: {
+        importScripts: ["firebase-messaging-sw.js"],
         navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/firebase\//],
         globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest,woff2}"],
         runtimeCaching: [
           {

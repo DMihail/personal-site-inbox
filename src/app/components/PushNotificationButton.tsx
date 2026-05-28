@@ -54,8 +54,8 @@ export function PushNotificationButton({
           {isDenied
             ? "Blocked in browser settings — allow notifications for this site."
             : isActive
-              ? "Enabled: new messages while the tab is open, and in background if FCM is configured."
-              : "Enable to get alerts for new contact messages on desktop."}
+              ? "Enabled: alerts while the app is open and when it is installed in the background."
+              : "Enable to get alerts for new contact messages (open tab or installed app)."}
         </p>
         {error ? <p className="px-2 pb-2 text-xs text-error">{error}</p> : null}
         <DropdownMenuSeparator className="bg-glass-border" />
