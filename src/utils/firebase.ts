@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager } from "firebase/firestore";
 
 const app = initializeApp({
   apiKey: import.meta.env.VITE_FIREBASE_APIKEY,
@@ -12,4 +13,9 @@ const app = initializeApp({
 });
 
 export const firebaseAuth = getAuth(app);
+export const firestoreDb = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentSingleTabManager({}),
+  }),
+});
 export default app;

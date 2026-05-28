@@ -161,7 +161,7 @@ export function MobileInboxLayout({
       {currentView === "settings" ? (
         settingsView
       ) : !mobileDetailOpen ? (
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-0">
           <div className="p-3 border-b border-glass-border space-y-2">
             <SearchBar value={searchQuery} onChange={onSearchChange} />
             <FilterBar
@@ -172,7 +172,7 @@ export function MobileInboxLayout({
             />
           </div>
           {filteredMessages.length > 0 ? (
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 min-h-0">
               <div className="p-3 space-y-2">
                 {filteredMessages.map((message) => (
                   <InboxItem

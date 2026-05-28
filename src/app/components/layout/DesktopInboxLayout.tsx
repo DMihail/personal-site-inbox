@@ -1,7 +1,6 @@
 import { Archive, Inbox, Mail, Settings, MailX, Star } from "lucide-react";
 import { InboxItem } from "../InboxItem";
 import { MessageDetail } from "../MessageDetail";
-import { SettingsView } from "../SettingsView";
 import { StatusIndicator } from "../StatusIndicator";
 import { SystemMetadata } from "../SystemMetadata";
 import { TopBar } from "../TopBar";
@@ -35,7 +34,7 @@ interface DesktopInboxLayoutProps {
   onDelete: (messageId: string) => void;
   onMarkAsRead: (messageId: string) => void;
   onReply: () => void;
-  onLogout: () => void;
+  settingsView: React.ReactNode;
 }
 
 export function DesktopInboxLayout({
@@ -59,7 +58,7 @@ export function DesktopInboxLayout({
   onDelete,
   onMarkAsRead,
   onReply,
-  onLogout,
+  settingsView,
 }: DesktopInboxLayoutProps) {
   return (
     <div className="hidden md:flex h-full flex-col">
@@ -125,11 +124,11 @@ export function DesktopInboxLayout({
 
         {currentView === "settings" ? (
           <div className="flex-1">
-            <SettingsView isOnline={isOnline} onLogout={onLogout} />
+            {settingsView}
           </div>
         ) : (
           <>
-            <div className="w-96 border-r border-glass-border glass backdrop-blur-xl flex flex-col">
+            <div className="w-96 border-r border-glass-border glass backdrop-blur-xl flex flex-col min-h-0">
               <div className="p-4 border-b border-glass-border space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-text-primary">
@@ -149,7 +148,7 @@ export function DesktopInboxLayout({
                 />
               </div>
 
-              <ScrollArea className="flex-1">
+              <ScrollArea className="flex-1 min-h-0">
                 {filteredMessages.length > 0 ? (
                   <div className="p-3 space-y-2">
                     {filteredMessages.map((message) => (

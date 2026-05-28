@@ -22,8 +22,17 @@ export function InboxItem({
   showActions = false
 }: InboxItemProps) {
   return (
-    <button
+    <div
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isActive}
       className={`group w-full text-left p-4 rounded-xl border transition-all duration-200 hover:scale-[1.01] ${
         isActive
           ? "glass-elevated border-cyan/40 shadow-lg shadow-cyan/5"
@@ -113,6 +122,6 @@ export function InboxItem({
           </div>
         )}
       </div>
-    </button>
+    </div>
   );
 }

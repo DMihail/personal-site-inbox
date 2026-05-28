@@ -8,6 +8,9 @@
 # Build output
 /dist/
 
+# Generated FCM service worker (contains Firebase config from .env)
+/public/firebase/
+
 # Env files (never commit secrets)
 .env
 .env.*
