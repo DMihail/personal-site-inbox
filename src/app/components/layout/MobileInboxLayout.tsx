@@ -1,16 +1,14 @@
 import type { ReactNode } from "react";
-import { Archive, Inbox, Mail, Menu, Settings, Star, X, MailX } from "lucide-react";
-import { Badge } from "../ui/badge";
+import { MailX, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { InboxItem } from "../InboxItem";
 import { MessageDetail } from "../MessageDetail";
 import { EmptyState } from "../EmptyState";
 import { FilterBar } from "../FilterBar";
-import { NavItem } from "../NavItem";
 import { SearchBar } from "../SearchBar";
-import { Separator } from "../ui/separator";
-import { StatusIndicator } from "../StatusIndicator";
 import { scrollPaneClass } from "./scrollPane";
+import { InboxAppHeader } from "./InboxAppHeader";
+import { InboxNavDrawer } from "./InboxNavDrawer";
 import type { FilterOption, SortOption } from "../FilterBar";
 import type { Message, View } from "../../features/inbox/types";
 
@@ -25,10 +23,10 @@ interface MobileInboxLayoutProps {
   searchQuery: string;
   sortBy: SortOption;
   filterBy: FilterOption;
-  mobileMenuOpen: boolean;
+  navMenuOpen: boolean;
   mobileDetailOpen: boolean;
-  onToggleMobileMenu: () => void;
-  onCloseMobileMenu: () => void;
+  onOpenNavMenu: () => void;
+  onCloseNavMenu: () => void;
   onSelectView: (view: View) => void;
   onOpenDetail: () => void;
   onCloseDetail: () => void;
@@ -42,6 +40,12 @@ interface MobileInboxLayoutProps {
   onMarkAsRead: (messageId: string) => void;
   onReply: () => void;
   settingsView: ReactNode;
+  pushEnabled: boolean;
+  pushRegistering: boolean;
+  pushError: string | null;
+  onEnablePush: () => void;
+  onDisablePush: () => void;
+  onTestPush: () => void;
 }
 
 export function MobileInboxLayout({
@@ -55,10 +59,10 @@ export function MobileInboxLayout({
   searchQuery,
   sortBy,
   filterBy,
-  mobileMenuOpen,
+  navMenuOpen,
   mobileDetailOpen,
-  onToggleMobileMenu,
-  onCloseMobileMenu,
+  onOpenNavMenu,
+  onCloseNavMenu,
   onSelectView,
   onOpenDetail,
   onCloseDetail,
@@ -72,93 +76,38 @@ export function MobileInboxLayout({
   onMarkAsRead,
   onReply,
   settingsView,
+  pushEnabled,
+  pushRegistering,
+  pushError,
+  onEnablePush,
+  onDisablePush,
+  onTestPush,
 }: MobileInboxLayoutProps) {
   return (
-    <div className="md:hidden relative flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="shrink-0 border-b border-glass-border glass backdrop-blur-xl p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggleMobileMenu}
-              className="hover:glass-elevated"
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
-            <div className="space-y-0.5">
-              <h2 className="text-base text-text-primary">Developer Inbox</h2>
-              <StatusIndicator label="sync.online" status={isOnline ? "online" : "offline"} />
-            </div>
-          </div>
-          {unreadCount > 0 && (
-            <Badge variant="secondary" className="bg-cyan/20 text-cyan border border-cyan/30">
-              {unreadCount}
-            </Badge>
-          )}
-        </div>
-      </div>
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden md:hidden">
+      <InboxAppHeader
+        isOnline={isOnline}
+        unreadCount={unreadCount}
+        onOpenNav={onOpenNavMenu}
+        compact
+        pushEnabled={pushEnabled}
+        pushRegistering={pushRegistering}
+        pushError={pushError}
+        onEnablePush={onEnablePush}
+        onDisablePush={onDisablePush}
+        onTestPush={onTestPush}
+      />
 
-      {mobileMenuOpen && (
-        <div className="absolute inset-0 z-50 flex flex-col bg-background">
-          <div className="shrink-0 border-b border-glass-border glass backdrop-blur-xl p-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-text-primary">Menu</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onCloseMobileMenu}
-                className="hover:glass-elevated"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-          <div className={scrollPaneClass}>
-            <div className="p-4 space-y-1">
-              <NavItem
-                icon={Inbox}
-                label="Inbox"
-                view="inbox"
-                currentView={currentView}
-                count={inboxCount}
-                onSelect={onSelectView}
-              />
-              <NavItem
-                icon={Mail}
-                label="Unread"
-                view="unread"
-                currentView={currentView}
-                count={unreadCount}
-                onSelect={onSelectView}
-              />
-              <NavItem
-                icon={Star}
-                label="Important"
-                view="important"
-                currentView={currentView}
-                count={importantCount}
-                onSelect={onSelectView}
-              />
-              <NavItem
-                icon={Archive}
-                label="Archived"
-                view="archived"
-                currentView={currentView}
-                onSelect={onSelectView}
-              />
-              <Separator className="my-3 bg-glass-border" />
-              <NavItem
-                icon={Settings}
-                label="Settings"
-                view="settings"
-                currentView={currentView}
-                onSelect={onSelectView}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <InboxNavDrawer
+        open={navMenuOpen}
+        isOnline={isOnline}
+        currentView={currentView}
+        inboxCount={inboxCount}
+        unreadCount={unreadCount}
+        importantCount={importantCount}
+        onSelectView={onSelectView}
+        onClose={onCloseNavMenu}
+      />
 
       {currentView === "settings" ? (
         <div className={scrollPaneClass}>{settingsView}</div>

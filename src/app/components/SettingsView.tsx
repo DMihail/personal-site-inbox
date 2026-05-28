@@ -1,4 +1,5 @@
-import { Bell, CheckCircle2, Database, Wifi, Shield, Lock, LogOut } from "lucide-react";
+import { Bell, CheckCircle2, Database, Wifi, Shield, Lock, LogOut, Mail } from "lucide-react";
+import { getPortfolioApiLabel, isPortfolioApiConfigured } from "@/utils/reply-api";
 import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
 import { SystemMetadata } from "./SystemMetadata";
@@ -11,6 +12,7 @@ interface SettingsViewProps {
   pushRegistering: boolean;
   pushError: string | null;
   onPushEnabledChange: (enabled: boolean) => void;
+  onTestPush?: () => void;
 }
 
 export function SettingsView({
@@ -20,6 +22,7 @@ export function SettingsView({
   pushRegistering,
   pushError,
   onPushEnabledChange,
+  onTestPush,
 }: SettingsViewProps) {
   return (
     <div className="h-full min-h-0 overflow-y-auto overscroll-y-contain p-4 md:p-6 space-y-6">
@@ -44,10 +47,14 @@ export function SettingsView({
                 {pushError ? (
                   <p className="text-xs text-error max-w-xs">{pushError}</p>
                 ) : pushEnabled ? (
-                  <p className="text-xs text-mint">Background push enabled (token saved to Firestore)</p>
+                  <p className="text-xs text-mint">
+                    Enabled — alerts for new messages in this browser. Use the bell icon in the header
+                    for a test.
+                  </p>
                 ) : (
                   <p className="text-xs text-text-muted">
-                    Works when the app is closed — requires VAPID key and a server trigger
+                    Use the bell in the header. New messages from the portfolio contact form trigger
+                    push via engineering-profile → FCM (same Firebase project, fcmTokens collection).
                   </p>
                 )}
               </div>
@@ -58,25 +65,37 @@ export function SettingsView({
               />
             </div>
 
-            <Separator className="bg-glass-border" />
+            {pushEnabled && onTestPush ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full glass border-glass-border"
+                onClick={onTestPush}
+              >
+                Send test notification
+              </Button>
+            ) : null}
+          </div>
+        </div>
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <span className="text-text-primary">Email Alerts</span>
-                <SystemMetadata>notifications.email</SystemMetadata>
-              </div>
-              <Switch defaultChecked />
+        <div className="space-y-3">
+          <h3 className="text-text-primary">Reply API</h3>
+          <div className="glass-elevated rounded-xl p-5 border border-glass-border space-y-2">
+            <div className="flex items-center gap-2">
+              <Mail className={`h-4 w-4 ${isPortfolioApiConfigured() ? "text-mint" : "text-error"}`} />
+              <span className="text-text-primary">Portfolio backend</span>
             </div>
-
-            <Separator className="bg-glass-border" />
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <span className="text-text-primary">Desktop Notifications</span>
-                <SystemMetadata>notifications.desktop</SystemMetadata>
-              </div>
-              <Switch defaultChecked />
-            </div>
+            <SystemMetadata>engineering-profile /api/inbox/reply</SystemMetadata>
+            <p className={`text-sm ${isPortfolioApiConfigured() ? "text-mint" : "text-error"}`}>
+              {isPortfolioApiConfigured()
+                ? `Connected — ${getPortfolioApiLabel()}`
+                : "Not configured — set VITE_PORTFOLIO_API_URL"}
+            </p>
+            <p className="text-xs text-text-muted">
+              Replies send email via SMTP on the portfolio server. Requires Firebase Admin, SMTP_* env,
+              and INBOX_APP_URL matching this app origin for CORS.
+            </p>
           </div>
         </div>
 

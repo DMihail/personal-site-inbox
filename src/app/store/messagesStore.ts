@@ -13,6 +13,7 @@ import { firestoreDb } from "@/utils/firebase";
 import type { Message, View } from "../features/inbox/types";
 import type { FilterOption, SortOption } from "../components/FilterBar";
 import { notifyNewMessage } from "../push/notify";
+import { shouldNotifyNewMessages } from "../push/shouldNotify";
 
 type FirestoreMessageDoc = {
   name: string;
@@ -24,6 +25,8 @@ type FirestoreMessageDoc = {
   read?: boolean;
   archived?: boolean;
   important?: boolean;
+  repliedAt?: Timestamp | null;
+  lastReplyPreview?: string;
 };
 
 function toAppMessage(id: string, d: FirestoreMessageDoc): Message {
@@ -42,6 +45,9 @@ function toAppMessage(id: string, d: FirestoreMessageDoc): Message {
     isImportant: Boolean(d.important),
     isArchived: Boolean(d.archived),
     source: d.source ?? "portfolio",
+    repliedAt: d.repliedAt ? d.repliedAt.toDate() : undefined,
+    lastReplyPreview:
+      typeof d.lastReplyPreview === "string" ? d.lastReplyPreview : undefined,
     tags: d.source ? [d.source] : undefined,
   };
 }
@@ -142,7 +148,9 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
           for (const ch of snap.docChanges()) {
             if (ch.type !== "added") continue;
             const msg = toAppMessage(ch.doc.id, ch.doc.data() as FirestoreMessageDoc);
-            void notifyNewMessage(msg);
+            if (shouldNotifyNewMessages()) {
+              void notifyNewMessage(msg);
+            }
           }
         }
 

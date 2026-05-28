@@ -46,7 +46,8 @@ messaging.onBackgroundMessage((payload) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || "/";
+  const rawUrl = event.notification.data?.url || "/";
+  const targetUrl = rawUrl.startsWith("http") ? rawUrl : self.location.origin + rawUrl;
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {

@@ -12,6 +12,8 @@ export interface Message {
   isImportant: boolean;
   isArchived: boolean;
   source: string;
+  repliedAt?: Date;
+  lastReplyPreview?: string;
   tags?: string[];
 }
 

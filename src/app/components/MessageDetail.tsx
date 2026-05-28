@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Archive, CheckCheck, Mail, Star, Trash2, Reply, ExternalLink } from "lucide-react";
+import { Archive, CheckCheck, Mail, Star, Trash2, Reply, ExternalLink, MailCheck } from "lucide-react";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { SystemMetadata } from "./SystemMetadata";
@@ -40,11 +40,17 @@ export function MessageDetail({
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-xl md:text-2xl text-text-primary">{message.senderName}</h2>
                 {message.isImportant && (
                   <Star className="h-5 w-5 text-mint fill-mint" />
                 )}
+                {message.repliedAt ? (
+                  <span className="inline-flex items-center gap-1 text-xs text-mint border border-mint/30 rounded-full px-2 py-0.5">
+                    <MailCheck className="h-3 w-3" />
+                    Replied {format(message.repliedAt, "MMM d")}
+                  </span>
+                ) : null}
               </div>
               <div className="space-y-1">
                 <SystemMetadata className="text-text-secondary">
@@ -134,6 +140,22 @@ export function MessageDetail({
               </p>
             </div>
           </div>
+
+          {message.lastReplyPreview ? (
+            <div className="space-y-3">
+              <SystemMetadata>your.last.reply</SystemMetadata>
+              <div className="glass rounded-xl p-4 border border-mint/20">
+                <p className="text-sm text-text-secondary whitespace-pre-wrap line-clamp-6">
+                  {message.lastReplyPreview}
+                </p>
+                {message.repliedAt ? (
+                  <SystemMetadata className="mt-2">
+                    {format(message.repliedAt, "PPpp")}
+                  </SystemMetadata>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
 
           <Separator className="bg-glass-border" />
 

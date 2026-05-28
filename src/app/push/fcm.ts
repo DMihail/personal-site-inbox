@@ -27,23 +27,57 @@ async function getMessagingIfSupported(): Promise<Messaging | null> {
   return messaging;
 }
 
+async function waitForMessagingServiceWorker(
+  reg: ServiceWorkerRegistration,
+): Promise<ServiceWorkerRegistration> {
+  if (reg.active) return reg;
+
+  const installing = reg.installing ?? reg.waiting;
+  if (installing) {
+    await new Promise<void>((resolve, reject) => {
+      const timeout = window.setTimeout(
+        () => reject(new Error("FCM service worker activation timed out")),
+        15_000,
+      );
+      installing.addEventListener("statechange", () => {
+        if (reg.active) {
+          window.clearTimeout(timeout);
+          resolve();
+        }
+      });
+    });
+    return reg;
+  }
+
+  await navigator.serviceWorker.ready;
+  return reg;
+}
+
 export async function registerMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
 
   const existing = await navigator.serviceWorker.getRegistration(MESSAGING_SW_SCOPE);
-  if (existing?.active) return existing;
+  const reg =
+    existing ?? (await navigator.serviceWorker.register(MESSAGING_SW_URL, { scope: MESSAGING_SW_SCOPE }));
 
-  return navigator.serviceWorker.register(MESSAGING_SW_URL, { scope: MESSAGING_SW_SCOPE });
+  return waitForMessagingServiceWorker(reg);
 }
 
-export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> {
+export async function registerFcmToken(
+  uid: string,
+  options?: { requestPermission?: boolean },
+): Promise<FcmRegisterResult> {
   const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
   if (!vapidKey) {
     return { ok: false, reason: "no-vapid" };
   }
 
-  const permission = await Notification.requestPermission();
-  if (permission !== "granted") {
+  if (options?.requestPermission !== false) {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      return { ok: false, reason: "permission-denied" };
+    }
+  } else if (Notification.permission !== "granted") {
     return { ok: false, reason: "permission-denied" };
   }
 

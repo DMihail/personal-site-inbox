@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { withSecurePersist } from "./securePersist";
 import { registerFcmToken, subscribeForegroundMessages, unregisterFcmToken } from "../push/fcm";
-import { notifyFromFcmPayload } from "../push/notify";
+import { ensureNotificationPermission, notifyFromFcmPayload, notifyNewMessage } from "../push/notify";
 
 interface PushState {
   enabled: boolean;
@@ -11,6 +11,7 @@ interface PushState {
   isRegistering: boolean;
   setEnabled: (enabled: boolean, uid: string | null) => Promise<void>;
   syncWithUser: (uid: string | null) => Promise<void>;
+  sendTestNotification: () => Promise<void>;
 }
 
 let unsubscribeForeground: (() => void) | null = null;
@@ -50,21 +51,68 @@ export const usePushStore = create<PushState>()(
         }
 
         set({ isRegistering: true, error: null });
-        const result = await registerFcmToken(uid);
 
-        if (!result.ok) {
-          const error =
-            result.reason === "no-vapid"
-              ? "Add VITE_FIREBASE_VAPID_KEY to .env (Firebase Console → Cloud Messaging → Web Push certificates)"
-              : result.reason === "permission-denied"
-                ? "Notification permission denied"
-                : result.message ?? "Could not enable push notifications";
-          set({ enabled: false, token: null, isRegistering: false, error });
+        const permission = await ensureNotificationPermission();
+        if (permission !== "granted") {
+          set({
+            enabled: false,
+            token: null,
+            isRegistering: false,
+            error: "Notification permission denied",
+          });
           return;
         }
 
-        await startForegroundListener();
-        set({ enabled: true, token: result.token, isRegistering: false, error: null });
+        const result = await registerFcmToken(uid, { requestPermission: false });
+        let fcmWarning: string | null = null;
+        let token: string | null = null;
+
+        if (result.ok) {
+          token = result.token;
+        } else if (result.reason === "no-vapid") {
+          fcmWarning =
+            "In-tab alerts only. Add VITE_FIREBASE_VAPID_KEY (Firebase → Cloud Messaging) for desktop push from portfolio.";
+        } else if (result.reason !== "permission-denied") {
+          fcmWarning =
+            result.message ??
+            "FCM token not saved — in-tab Firestore alerts still work. Check console and Firestore rules for fcmTokens.";
+        } else {
+          set({
+            enabled: false,
+            token: null,
+            isRegistering: false,
+            error: "Notification permission denied",
+          });
+          return;
+        }
+
+        if (token) {
+          await startForegroundListener();
+        }
+
+        set({
+          enabled: true,
+          token,
+          isRegistering: false,
+          error: fcmWarning,
+        });
+      },
+
+      sendTestNotification: async () => {
+        if (!get().enabled) return;
+        await notifyNewMessage({
+          id: "test",
+          senderName: "Test",
+          senderEmail: "test@example.com",
+          company: "Developer Inbox",
+          subject: "Test notification",
+          preview: "If you see this, desktop notifications work.",
+          timestamp: new Date(),
+          isRead: false,
+          isImportant: false,
+          isArchived: false,
+          source: "test",
+        });
       },
 
       syncWithUser: async (uid) => {
@@ -77,10 +125,12 @@ export const usePushStore = create<PushState>()(
           return;
         }
 
-        const result = await registerFcmToken(uid);
+        const result = await registerFcmToken(uid, { requestPermission: false });
         if (result.ok) {
           await startForegroundListener();
           set({ token: result.token, error: null });
+        } else if (result.reason === "no-vapid") {
+          set({ token: null, error: null });
         } else if (result.reason !== "permission-denied") {
           set({ error: result.message ?? "Push token refresh failed" });
         }

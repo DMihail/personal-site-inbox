@@ -12,7 +12,7 @@ import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { useAuthStore } from "../store/authStore";
 import { useMessagesStore } from "../store/messagesStore";
 import { usePushStore } from "../store/pushStore";
-import { sendInboxReply } from "@/utils/reply-api";
+import { isPortfolioApiConfigured, sendInboxReply } from "@/utils/reply-api";
 
 export function InboxShell() {
   const location = useLocation();
@@ -25,9 +25,10 @@ export function InboxShell() {
   const pushError = usePushStore((s) => s.error);
   const setPushEnabled = usePushStore((s) => s.setEnabled);
   const syncPushWithUser = usePushStore((s) => s.syncWithUser);
+  const sendTestNotification = usePushStore((s) => s.sendTestNotification);
 
   const currentView = pathToView(location.pathname);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [navMenuOpen, setNavMenuOpen] = useState(false);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [showOfflineModal, setShowOfflineModal] = useState(false);
@@ -140,6 +141,27 @@ export function InboxShell() {
     [setPushEnabled, user?.uid],
   );
 
+  const handleEnablePush = useCallback(() => {
+    void setPushEnabled(true, user?.uid ?? null);
+  }, [setPushEnabled, user?.uid]);
+
+  const handleDisablePush = useCallback(() => {
+    void setPushEnabled(false, user?.uid ?? null);
+  }, [setPushEnabled, user?.uid]);
+
+  const handleTestPush = useCallback(() => {
+    void sendTestNotification();
+  }, [sendTestNotification]);
+
+  const pushHandlers = {
+    pushEnabled,
+    pushRegistering,
+    pushError,
+    onEnablePush: handleEnablePush,
+    onDisablePush: handleDisablePush,
+    onTestPush: handleTestPush,
+  };
+
   const settingsView = (
     <SettingsView
       isOnline={isOnline}
@@ -148,13 +170,14 @@ export function InboxShell() {
       pushRegistering={pushRegistering}
       pushError={pushError}
       onPushEnabledChange={handlePushEnabledChange}
+      onTestPush={handleTestPush}
     />
   );
 
   const handleSelectView = useCallback(
     (view: View) => {
       navigate(viewToPath(view));
-      setMobileMenuOpen(false);
+      setNavMenuOpen(false);
       setMobileDetailOpen(false);
     },
     [navigate],
@@ -189,7 +212,15 @@ export function InboxShell() {
     [toggleImportant],
   );
 
-  const handleReply = useCallback(() => setReplyDialogOpen(true), []);
+  const handleReply = useCallback(() => {
+    if (!isPortfolioApiConfigured()) {
+      toast.error("Reply API not configured", {
+        description: "Set VITE_PORTFOLIO_API_URL in .env (engineering-profile URL)",
+      });
+      return;
+    }
+    setReplyDialogOpen(true);
+  }, []);
 
   const handleSendReply = useCallback(
     async (content: string) => {
@@ -221,8 +252,8 @@ export function InboxShell() {
 
   const handleOpenMobileDetail = useCallback(() => setMobileDetailOpen(true), []);
   const handleCloseMobileDetail = useCallback(() => setMobileDetailOpen(false), []);
-  const handleToggleMobileMenu = useCallback(() => setMobileMenuOpen((v) => !v), []);
-  const handleCloseMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+  const handleOpenNavMenu = useCallback(() => setNavMenuOpen(true), []);
+  const handleCloseNavMenu = useCallback(() => setNavMenuOpen(false), []);
 
   return (
     <div className="h-screen w-screen bg-background text-foreground dark overflow-hidden">
@@ -259,6 +290,9 @@ export function InboxShell() {
         searchQuery={searchQuery}
         sortBy={sortBy}
         filterBy={filterBy}
+        navMenuOpen={navMenuOpen}
+        onOpenNavMenu={handleOpenNavMenu}
+        onCloseNavMenu={handleCloseNavMenu}
         onSelectView={handleSelectView}
         onSearchChange={setSearchQuery}
         onSortChange={setSortBy}
@@ -270,6 +304,7 @@ export function InboxShell() {
         onMarkAsRead={markAsRead}
         onReply={handleReply}
         settingsView={settingsView}
+        {...pushHandlers}
       />
 
       <MobileInboxLayout
@@ -283,10 +318,10 @@ export function InboxShell() {
         searchQuery={searchQuery}
         sortBy={sortBy}
         filterBy={filterBy}
-        mobileMenuOpen={mobileMenuOpen}
+        navMenuOpen={navMenuOpen}
         mobileDetailOpen={mobileDetailOpen}
-        onToggleMobileMenu={handleToggleMobileMenu}
-        onCloseMobileMenu={handleCloseMobileMenu}
+        onOpenNavMenu={handleOpenNavMenu}
+        onCloseNavMenu={handleCloseNavMenu}
         onSelectView={handleSelectView}
         onOpenDetail={handleOpenMobileDetail}
         onCloseDetail={handleCloseMobileDetail}
@@ -300,6 +335,7 @@ export function InboxShell() {
         onMarkAsRead={markAsRead}
         onReply={handleReply}
         settingsView={settingsView}
+        {...pushHandlers}
       />
 
       <Outlet />

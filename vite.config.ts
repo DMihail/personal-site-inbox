@@ -65,6 +65,7 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/firebase\//],
         globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest,woff2}"],
         runtimeCaching: [
           {
