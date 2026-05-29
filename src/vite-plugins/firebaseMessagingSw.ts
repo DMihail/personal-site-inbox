@@ -31,19 +31,20 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
   const data = payload.data || {};
-  const title = payload.notification?.title || data.title || "New contact message";
-  const body =
-    payload.notification?.body || data.body || data.preview || "";
+  const title = data.title || payload.notification?.title || "New contact message";
+  const body = data.body || payload.notification?.body || data.preview || "";
   const messageId = data.messageId;
   const url = data.url || "/";
 
-  return self.registration.showNotification(title, {
+  const options = {
     body,
     icon: payload.notification?.icon || "/favicon.png",
     badge: "/favicon.png",
     tag: messageId ? "message:" + messageId : undefined,
     data: { ...data, url },
-  });
+  };
+
+  return self.registration.showNotification(title, options);
 });
 
 self.addEventListener("notificationclick", (event) => {
