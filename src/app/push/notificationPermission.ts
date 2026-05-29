@@ -1,3 +1,5 @@
+import { isIosLikeDevice, isStandaloneDisplayMode } from "@/pwa/runtime";
+
 export type NotificationPermissionState = "unsupported" | "default" | "granted" | "denied";
 
 export function getNotificationPermission(): NotificationPermissionState {
@@ -10,8 +12,6 @@ export function getNotificationPermission(): NotificationPermissionState {
 export function canShowBrowserNotifications(): boolean {
   return getNotificationPermission() === "granted";
 }
-
-import { isIosLikeDevice, isStandaloneDisplayMode } from "@/pwa/runtime";
 
 export type PushNotificationSupport =
   | { ok: true }

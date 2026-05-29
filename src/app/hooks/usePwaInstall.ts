@@ -62,11 +62,7 @@ export function usePwaInstall() {
     return outcome === "accepted";
   }, [deferredPrompt]);
 
-  const visible =
-    !installed &&
-    !dismissed &&
-    platform !== null &&
-    (platform === "ios" || deferredPrompt !== null);
+  const visible = !installed && !dismissed && platform !== null;
 
   return {
     platform,
