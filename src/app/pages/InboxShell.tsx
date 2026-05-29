@@ -1,14 +1,34 @@
-import { Toaster } from "sonner";
+import { lazy, Suspense } from "react";
 import { ReplyDialog } from "../components/ReplyDialog";
 import { OfflineModal } from "../components/OfflineModal";
 import { PwaUpdateBanner } from "../components/PwaUpdateBanner";
 import { SettingsView } from "../components/SettingsView";
-import { DesktopInboxLayout } from "../components/layout/DesktopInboxLayout";
-import { MobileInboxLayout } from "../components/layout/MobileInboxLayout";
-import { useInboxController } from "../hooks/useInboxController";
+import { useInboxController } from "../hooks/inbox";
+import { useMediaQuery } from "../hooks/useMediaQuery";
+import { MEDIA_QUERIES } from "@/shared/constants/media-queries";
+
+const DesktopInboxLayout = lazy(() =>
+  import("../components/layout/DesktopInboxLayout").then((m) => ({
+    default: m.DesktopInboxLayout,
+  })),
+);
+const MobileInboxLayout = lazy(() =>
+  import("../components/layout/MobileInboxLayout").then((m) => ({
+    default: m.MobileInboxLayout,
+  })),
+);
+
+function InboxLayoutFallback() {
+  return (
+    <div className="flex min-h-0 flex-1 items-center justify-center text-text-muted">
+      Loading inbox…
+    </div>
+  );
+}
 
 export function InboxShell() {
   const c = useInboxController();
+  const isMdUp = useMediaQuery(MEDIA_QUERIES.mdUp);
 
   const settingsView = (
     <SettingsView
@@ -26,6 +46,7 @@ export function InboxShell() {
     isOnline: c.isOnline,
     currentView: c.currentView,
     selectedMessage: c.selectedMessage,
+    selectedMessageId: c.selectedMessageId,
     filteredMessages: c.filteredMessages,
     inboxCount: c.inboxCount,
     unreadCount: c.unreadCount,
@@ -34,8 +55,11 @@ export function InboxShell() {
     sortBy: c.sortBy,
     filterBy: c.filterBy,
     navMenuOpen: c.navMenuOpen,
+    messagesListOpen: c.messagesListOpen,
     onOpenNavMenu: c.onOpenNavMenu,
     onCloseNavMenu: c.onCloseNavMenu,
+    onOpenMessagesList: c.onOpenMessagesList,
+    onCloseMessagesList: c.onCloseMessagesList,
     onSelectView: c.handleSelectView,
     onSearchChange: c.setSearchQuery,
     onSortChange: c.setSortBy,
@@ -51,11 +75,6 @@ export function InboxShell() {
 
   return (
     <div className="flex h-dvh w-screen flex-col overflow-hidden bg-background text-foreground dark">
-      <Toaster
-        position="top-right"
-        toastOptions={{ className: "glass-elevated border-glass-border" }}
-      />
-
       <OfflineModal
         isOpen={c.showOfflineModal}
         onRetry={c.onRetryReconnect}
@@ -73,15 +92,19 @@ export function InboxShell() {
 
       <PwaUpdateBanner />
 
-      <DesktopInboxLayout {...layoutProps} onSelectMessage={c.selectMessage} />
-
-      <MobileInboxLayout
-        {...layoutProps}
-        mobileDetailOpen={c.mobileDetailOpen}
-        onOpenDetail={c.onOpenMobileDetail}
-        onCloseDetail={c.onCloseMobileDetail}
-        onSelectMessage={c.handleSelectMessage}
-      />
+      <Suspense fallback={<InboxLayoutFallback />}>
+        {isMdUp ? (
+          <DesktopInboxLayout {...layoutProps} onSelectMessage={c.handleSelectMessage} />
+        ) : (
+          <MobileInboxLayout
+            {...layoutProps}
+            mobileDetailOpen={c.mobileDetailOpen}
+            onOpenDetail={c.onOpenMobileDetail}
+            onCloseDetail={c.onCloseMobileDetail}
+            onSelectMessage={c.handleSelectMessage}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

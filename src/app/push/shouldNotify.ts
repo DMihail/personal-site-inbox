@@ -3,7 +3,7 @@ import { canShowBrowserNotifications } from "./notificationPermission";
 
 /**
  * Firestore realtime fallback when FCM token is not registered (e.g. no VAPID).
- * When FCM token exists, portfolio push + onMessage / background SW handle alerts.
+ * When FCM token exists, server push + onMessage / background SW handle alerts.
  */
 export function shouldNotifyNewMessages(): boolean {
   if (!canShowBrowserNotifications()) return false;

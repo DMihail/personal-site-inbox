@@ -1,8 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { withSecurePersist } from "./securePersist";
+import { migratePushPersist } from "./persistMigrate";
+import { isFcmConfigured } from "@/utils/firebaseConfig";
 import { registerFcmToken, subscribeForegroundMessages, unregisterFcmToken } from "../push/fcm";
-import { ensureNotificationPermission, notifyFromFcmPayload, notifyNewMessage } from "../push/notify";
+import {
+  getNotificationPermission,
+  getNotificationPermissionError,
+  getPushNotificationSupport,
+} from "../push/notificationPermission";
+import { notifyFromFcmPayload, notifyNewMessage } from "../push/notify";
 
 interface PushState {
   enabled: boolean;
@@ -52,13 +59,24 @@ export const usePushStore = create<PushState>()(
 
         set({ isRegistering: true, error: null });
 
-        const permission = await ensureNotificationPermission();
+        const support = getPushNotificationSupport();
+        if (!support.ok) {
+          set({
+            enabled: false,
+            token: null,
+            isRegistering: false,
+            error: support.message,
+          });
+          return;
+        }
+
+        const permission = getNotificationPermission();
         if (permission !== "granted") {
           set({
             enabled: false,
             token: null,
             isRegistering: false,
-            error: "Notification permission denied",
+            error: getNotificationPermissionError(permission),
           });
           return;
         }
@@ -71,17 +89,17 @@ export const usePushStore = create<PushState>()(
           token = result.token;
         } else if (result.reason === "no-vapid") {
           fcmWarning =
-            "In-tab alerts only. Add VITE_FIREBASE_VAPID_KEY (Firebase → Cloud Messaging) for desktop push from portfolio.";
+            "In-tab alerts only. Add VITE_FIREBASE_VAPID_KEY (Firebase → Cloud Messaging) for background push.";
         } else if (result.reason !== "permission-denied") {
           fcmWarning =
             result.message ??
-            "FCM token not saved — in-tab Firestore alerts still work. Check console and Firestore rules for fcmTokens.";
-        } else {
+            "FCM token not saved — in-tab Firestore alerts still work. Check the browser console and Firestore rules.";
+        } else if (result.reason === "permission-denied") {
           set({
             enabled: false,
             token: null,
             isRegistering: false,
-            error: "Notification permission denied",
+            error: getNotificationPermissionError("denied"),
           });
           return;
         }
@@ -125,6 +143,11 @@ export const usePushStore = create<PushState>()(
           return;
         }
 
+        if (!isFcmConfigured()) {
+          set({ token: null, error: null });
+          return;
+        }
+
         const result = await registerFcmToken(uid, { requestPermission: false });
         if (result.ok) {
           await startForegroundListener();
@@ -139,7 +162,8 @@ export const usePushStore = create<PushState>()(
     withSecurePersist({
       name: "push-store",
       partialize: (s) => ({ enabled: s.enabled }),
-      version: 2,
+      version: 3,
+      migrate: migratePushPersist,
     }),
   ),
 );

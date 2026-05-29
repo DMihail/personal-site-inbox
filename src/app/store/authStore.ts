@@ -1,10 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { withSecurePersist } from "./securePersist";
+import { migrateAuthPersist } from "./persistMigrate";
 import type { User } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
-import { firebaseAuth } from "@/utils/firebase";
+import { firebaseAuth } from "@/utils/firebaseAuth";
 import { firebaseSignIn, firebaseSignOut } from "@/utils/auth";
+import { getFirebaseAuthErrorMessage } from "@/utils/firebaseAuthErrors";
 
 interface AuthState {
   user: User | null;
@@ -27,12 +29,14 @@ export const useAuthStore = create<AuthState>()(
       startAuthListener: () => {
         const unsub = onAuthStateChanged(
           firebaseAuth,
-          (user) =>
-            set({
+          (user) => {
+            set((state) => ({
               user,
-              lastKnownUid: user?.uid ?? null,
+              lastKnownUid: user?.uid ?? state.lastKnownUid ?? null,
               isHydrating: false,
-            }),
+              authError: user ? null : state.authError,
+            }));
+          },
           (err) => set({ authError: err.message, isHydrating: false }),
         );
         return unsub;
@@ -41,12 +45,15 @@ export const useAuthStore = create<AuthState>()(
       login: async (email, password) => {
         set({ authError: null });
         try {
-          const { user } = await firebaseSignIn({ email, password });
+          const { user } = await firebaseSignIn({
+            email: email.trim(),
+            password,
+          });
           // Set immediately so RequireAuth sees user before navigate (onAuthStateChanged is async).
           set({ user, isHydrating: false });
         } catch (e) {
-          const message = e instanceof Error ? e.message : "Authentication failed";
-          set({ authError: message });
+          const message = getFirebaseAuthErrorMessage(e);
+          set({ authError: message, user: null });
           throw e;
         }
       },
@@ -60,7 +67,8 @@ export const useAuthStore = create<AuthState>()(
     withSecurePersist({
       name: "auth-store",
       partialize: (s) => ({ lastKnownUid: s.lastKnownUid }),
-      version: 2,
+      version: 3,
+      migrate: migrateAuthPersist,
     }),
   ),
 );

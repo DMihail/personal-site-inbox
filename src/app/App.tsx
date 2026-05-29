@@ -1,21 +1,40 @@
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { RequireAuth } from "./auth/RequireAuth";
-import { InboxShell } from "./pages/InboxShell";
-import { LoginPage } from "./pages/LoginPage";
+import { RouteLoadingScreen } from "./components/RouteLoadingScreen";
+
+const LoginPage = lazy(() =>
+  import("./pages/LoginPage").then((m) => ({ default: m.LoginPage })),
+);
+const InboxShell = lazy(() =>
+  import("./pages/InboxShell").then((m) => ({ default: m.InboxShell })),
+);
+const TabletDrawerPreviewPage = import.meta.env.DEV
+  ? lazy(() =>
+      import("./pages/dev/TabletDrawerPreviewPage").then((m) => ({
+        default: m.TabletDrawerPreviewPage,
+      })),
+    )
+  : null;
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route element={<RequireAuth />}>
-        <Route path="/" element={<Navigate to="/inbox" replace />} />
-        <Route path="/inbox" element={<InboxShell />} />
-        <Route path="/unread" element={<InboxShell />} />
-        <Route path="/important" element={<InboxShell />} />
-        <Route path="/archived" element={<InboxShell />} />
-        <Route path="/settings" element={<InboxShell />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/inbox" replace />} />
-    </Routes>
+    <Suspense fallback={<RouteLoadingScreen />}>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        {TabletDrawerPreviewPage ? (
+          <Route path="/dev/tablet-drawer" element={<TabletDrawerPreviewPage />} />
+        ) : null}
+        <Route element={<RequireAuth />}>
+          <Route path="/" element={<Navigate to="/inbox" replace />} />
+          <Route path="/inbox" element={<InboxShell />} />
+          <Route path="/unread" element={<InboxShell />} />
+          <Route path="/important" element={<InboxShell />} />
+          <Route path="/archived" element={<InboxShell />} />
+          <Route path="/settings" element={<InboxShell />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/inbox" replace />} />
+      </Routes>
+    </Suspense>
   );
 }

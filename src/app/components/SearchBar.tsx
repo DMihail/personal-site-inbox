@@ -17,7 +17,7 @@ export function SearchBar({
   const inputId = useId();
 
   return (
-    <search className="relative" role="search">
+    <search className="relative">
       <label htmlFor={inputId} className="sr-only">
         Search messages
       </label>
@@ -31,7 +31,7 @@ export function SearchBar({
         onChange={(e) => onChange(e.target.value)}
         autoComplete="off"
         enterKeyHint="search"
-        className="border-glass-border glass ps-10 pe-10 transition-colors focus:border-cyan"
+        className="glass border-glass-border ps-10 pe-10 ui-transition focus:border-cyan"
       />
       {value ? (
         <Button
@@ -39,7 +39,7 @@ export function SearchBar({
           variant="ghost"
           size="sm"
           onClick={() => onChange("")}
-          className="absolute end-1 top-1/2 h-7 w-7 -translate-y-1/2 p-0 hover:bg-glass-elevated"
+          className="ui-hover-ghost absolute end-1 top-1/2 h-7 w-7 -translate-y-1/2 p-0"
           aria-label="Clear search"
         >
           <X className="h-3 w-3" />

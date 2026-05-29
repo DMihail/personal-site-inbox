@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { RouteLoadingScreen } from "../components/RouteLoadingScreen";
 import { useAuthStore } from "../store/authStore";
 
 export function RequireAuth() {
@@ -6,7 +7,9 @@ export function RequireAuth() {
   const isHydrating = useAuthStore((s) => s.isHydrating);
   const location = useLocation();
 
-  if (isHydrating) return null;
+  if (isHydrating) {
+    return <RouteLoadingScreen />;
+  }
 
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location }} />;
@@ -14,4 +17,3 @@ export function RequireAuth() {
 
   return <Outlet />;
 }
-

@@ -34,14 +34,15 @@ export function FilterBar({ sortBy, onSortChange, filterBy, onFilterChange }: Fi
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Sort and filter messages">
+    <fieldset className="m-0 flex min-w-0 flex-wrap items-center gap-2 border-0 p-0">
+      <legend className="sr-only">Sort and filter messages</legend>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="glass border-glass-border hover:bg-glass-elevated"
+            className="glass ui-hover-glass border-glass-border"
             aria-label={`Sort: ${sortLabels[sortBy]}`}
           >
             <ArrowUpDown className="h-4 w-4 mr-2" />
@@ -49,29 +50,17 @@ export function FilterBar({ sortBy, onSortChange, filterBy, onFilterChange }: Fi
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="glass-elevated border-glass-border">
-          <DropdownMenuItem
-            onClick={() => onSortChange("newest")}
-            className="hover:bg-glass-elevated"
-          >
+          <DropdownMenuItem onClick={() => onSortChange("newest")}>
             Newest First
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onSortChange("oldest")}
-            className="hover:bg-glass-elevated"
-          >
+          <DropdownMenuItem onClick={() => onSortChange("oldest")}>
             Oldest First
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-glass-border" />
-          <DropdownMenuItem
-            onClick={() => onSortChange("unread")}
-            className="hover:bg-glass-elevated"
-          >
+          <DropdownMenuItem onClick={() => onSortChange("unread")}>
             Unread First
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onSortChange("important")}
-            className="hover:bg-glass-elevated"
-          >
+          <DropdownMenuItem onClick={() => onSortChange("important")}>
             Important First
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -83,7 +72,7 @@ export function FilterBar({ sortBy, onSortChange, filterBy, onFilterChange }: Fi
             type="button"
             variant="outline"
             size="sm"
-            className="glass border-glass-border hover:bg-glass-elevated"
+            className="glass ui-hover-glass border-glass-border"
             aria-label={`Filter: ${filterLabels[filterBy]}`}
           >
             <SlidersHorizontal className="h-4 w-4 mr-2" aria-hidden="true" />
@@ -91,33 +80,21 @@ export function FilterBar({ sortBy, onSortChange, filterBy, onFilterChange }: Fi
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="glass-elevated border-glass-border">
-          <DropdownMenuItem
-            onClick={() => onFilterChange("all")}
-            className="hover:bg-glass-elevated"
-          >
+          <DropdownMenuItem onClick={() => onFilterChange("all")}>
             All Messages
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onFilterChange("unread")}
-            className="hover:bg-glass-elevated"
-          >
+          <DropdownMenuItem onClick={() => onFilterChange("unread")}>
             Unread Only
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onFilterChange("important")}
-            className="hover:bg-glass-elevated"
-          >
+          <DropdownMenuItem onClick={() => onFilterChange("important")}>
             Important Only
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-glass-border" />
-          <DropdownMenuItem
-            onClick={() => onFilterChange("archived")}
-            className="hover:bg-glass-elevated"
-          >
+          <DropdownMenuItem onClick={() => onFilterChange("archived")}>
             Archived
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
+    </fieldset>
   );
 }

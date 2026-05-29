@@ -1,10 +1,10 @@
 import { Archive, Inbox, Mail, Settings, Star, X } from "lucide-react";
 import { NavItem } from "../NavItem";
 import { StatusIndicator } from "../StatusIndicator";
-import { SystemMetadata } from "../SystemMetadata";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
 import { scrollPaneClass } from "./scrollPane";
+import { AppVersion } from "../AppVersion";
 import type { View } from "../../features/inbox/types";
 
 interface DeveloperInboxNavPanelProps {
@@ -35,26 +35,33 @@ export function DeveloperInboxNavPanel({
       <header className="shrink-0 space-y-3 border-b border-glass-border glass p-4 backdrop-blur-xl">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
-            <h2 id={titleId} className="truncate text-lg text-text-primary">
+            <h2 id={titleId} className="truncate text-lg text-text-primary md:text-heading-sm">
               Developer Inbox
             </h2>
-            <SystemMetadata>inbox.v1</SystemMetadata>
+            <p className="text-meta text-text-muted">Contact messages</p>
           </div>
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="shrink-0 hover:glass-elevated"
+            className="ui-hover-ghost shrink-0"
             aria-label="Close navigation menu"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </Button>
         </div>
         <div className="flex flex-col gap-1">
-          <StatusIndicator label="sync.online" status={isOnline ? "online" : "offline"} />
+          <StatusIndicator
+            label={isOnline ? "Connected" : "Offline"}
+            status={isOnline ? "online" : "offline"}
+          />
           {showDesktopMeta ? (
-            <StatusIndicator label="firestore.live" status="online" showPulse={false} />
+            <StatusIndicator
+              label="Live sync"
+              status={isOnline ? "online" : "offline"}
+              showPulse={false}
+            />
           ) : null}
         </div>
       </header>
@@ -101,6 +108,8 @@ export function DeveloperInboxNavPanel({
             onSelect={onSelectView}
           />
         </nav>
+
+        {showDesktopMeta ? <AppVersion className="mt-6 px-1" /> : null}
       </div>
     </>
   );

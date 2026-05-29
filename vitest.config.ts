@@ -10,23 +10,23 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@tests": path.resolve(__dirname, "./tests"),
     },
   },
   test: {
     environment: "jsdom",
     globals: true,
-    setupFiles: ["./src/test/setup.ts"],
-    include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    setupFiles: ["./tests/setup.ts"],
+    include: ["tests/**/*.{test,spec}.{ts,tsx}"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
       include: ["src/**/*.{ts,tsx}"],
       exclude: [
-        "src/**/*.test.{ts,tsx}",
-        "src/test/**",
+        "tests/**",
         "src/main.tsx",
         "src/vite-plugins/**",
-        "src/pwa/**",
+        "src/app/pages/dev/**",
       ],
     },
   },

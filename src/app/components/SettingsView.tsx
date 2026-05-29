@@ -1,13 +1,19 @@
-import { Bell, CheckCircle2, Database, Wifi, LogOut, Mail } from "lucide-react";
+import { useId, useState } from "react";
+import { Bell, CheckCircle2, Database, Wifi, LogOut, Mail, Loader2 } from "lucide-react";
 import { getPortfolioApiLabel, isPortfolioApiConfigured } from "@/utils/reply-api";
+import { useNotificationPermission } from "../hooks/useNotificationPermission";
+import { useRecheckPushPermission } from "../hooks/useRecheckPushPermission";
+import { useRequestPushPermission } from "../hooks/useRequestPushPermission";
+import { NotificationPermissionHelp } from "./NotificationPermissionHelp";
 import { Button } from "./ui/button";
+import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
-import { SystemMetadata } from "./SystemMetadata";
 import { Separator } from "./ui/separator";
+import { AppVersion } from "./AppVersion";
 
 interface SettingsViewProps {
   isOnline: boolean;
-  onLogout: () => void;
+  onLogout: () => void | Promise<void>;
   pushEnabled: boolean;
   pushRegistering: boolean;
   pushError: string | null;
@@ -24,11 +30,33 @@ export function SettingsView({
   onPushEnabledChange,
   onTestPush,
 }: SettingsViewProps) {
+  const { permission, refresh } = useNotificationPermission();
+  const requestPermissionAndEnable = useRequestPushPermission(() => onPushEnabledChange(true));
+  const recheckPermission = useRecheckPushPermission(refresh);
+  const isDenied = permission === "denied";
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const pushSwitchId = useId();
+
+  const handleSignOut = () => {
+    setIsSigningOut(true);
+    void Promise.resolve(onLogout()).finally(() => {
+      setIsSigningOut(false);
+    });
+  };
+
+  const handlePushSwitchChange = (checked: boolean) => {
+    if (!checked) {
+      onPushEnabledChange(false);
+      return;
+    }
+    void requestPermissionAndEnable();
+  };
+
   return (
     <div className="h-full min-h-0 space-y-6 overflow-y-auto overscroll-y-contain p-4 md:p-6">
       <header className="space-y-1">
         <h2 className="text-3xl text-text-primary">Settings</h2>
-        <SystemMetadata>system.config.v1</SystemMetadata>
+        <p className="text-meta text-text-muted">Notifications, connection, and account</p>
       </header>
 
       <Separator className="bg-glass-border" />
@@ -39,14 +67,16 @@ export function SettingsView({
             Notifications
           </h3>
           <div className="glass-elevated space-y-4 rounded-xl border border-glass-border p-5">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <Bell className="h-4 w-4 text-cyan" aria-hidden="true" />
-                  <span className="text-body text-text-primary">Push notifications</span>
+                  <Label htmlFor={pushSwitchId} className="text-body text-text-primary">
+                    Push notifications
+                  </Label>
                 </div>
-                <SystemMetadata>notifications.push.fcm</SystemMetadata>
-                {pushError ? (
+                <p className="text-meta text-text-muted">Browser alerts for new messages</p>
+                {isDenied ? null : pushError ? (
                   <p className="text-meta max-w-xs text-error">{pushError}</p>
                 ) : pushEnabled ? (
                   <p className="text-meta text-mint">
@@ -59,19 +89,23 @@ export function SettingsView({
                 )}
               </div>
               <Switch
-                checked={pushEnabled}
-                disabled={pushRegistering}
-                onCheckedChange={onPushEnabledChange}
-                aria-label="Push notifications"
+                id={pushSwitchId}
+                checked={pushEnabled && !isDenied}
+                disabled={pushRegistering || isDenied}
+                onCheckedChange={handlePushSwitchChange}
               />
             </div>
+
+            {isDenied ? (
+              <NotificationPermissionHelp onRecheck={recheckPermission} />
+            ) : null}
 
             {pushEnabled && onTestPush ? (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="w-full glass border-glass-border"
+                className="glass ui-hover-glass w-full border-glass-border"
                 onClick={onTestPush}
               >
                 Send test notification
@@ -82,7 +116,7 @@ export function SettingsView({
 
         <section className="space-y-3" aria-labelledby="settings-reply-api">
           <h3 id="settings-reply-api" className="text-body text-text-primary">
-            Reply API
+            Email replies
           </h3>
           <div className="glass-elevated space-y-2 rounded-xl border border-glass-border p-5">
             <div className="flex items-center gap-2">
@@ -90,9 +124,9 @@ export function SettingsView({
                 className={`h-4 w-4 ${isPortfolioApiConfigured() ? "text-mint" : "text-error"}`}
                 aria-hidden="true"
               />
-              <span className="text-body text-text-primary">Portfolio backend</span>
+              <span className="text-body text-text-primary">Reply API</span>
             </div>
-            <SystemMetadata>engineering-profile /api/inbox/reply</SystemMetadata>
+            <p className="text-meta text-text-muted">Sends replies through the configured backend</p>
             <p
               className={`text-body-sm ${isPortfolioApiConfigured() ? "text-mint" : "text-error"}`}
             >
@@ -101,14 +135,14 @@ export function SettingsView({
                 : "Not configured — set VITE_PORTFOLIO_API_URL"}
             </p>
             <p className="text-meta text-text-muted">
-              Replies are sent by email from the portfolio server (SMTP + Firebase Admin).
+              Replies are delivered by email from the backend (SMTP or provider).
             </p>
           </div>
         </section>
 
         <section className="space-y-3" aria-labelledby="settings-status">
           <h3 id="settings-status" className="text-body text-text-primary">
-            System status
+            Service status
           </h3>
           <div className="glass-elevated space-y-4 rounded-xl border border-glass-border p-5">
             <div className="space-y-1">
@@ -119,7 +153,6 @@ export function SettingsView({
                 />
                 <span className="text-body text-text-primary">Connection</span>
               </div>
-              <SystemMetadata>firestore.connection</SystemMetadata>
               <p className={`text-body-sm ${isOnline ? "text-mint" : "text-error"}`}>
                 {isOnline ? "Connected" : "Disconnected"}
               </p>
@@ -130,9 +163,9 @@ export function SettingsView({
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Database className="h-4 w-4 text-cyan" aria-hidden="true" />
-                <span className="text-body text-text-primary">Realtime sync</span>
+                <span className="text-body text-text-primary">Live updates</span>
               </div>
-              <SystemMetadata>sync.realtime</SystemMetadata>
+              <p className="text-meta text-text-muted">Messages refresh automatically while you are signed in</p>
               <p className="text-body-sm text-cyan">Active</p>
             </div>
 
@@ -141,10 +174,10 @@ export function SettingsView({
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-mint" aria-hidden="true" />
-                <span className="text-body text-text-primary">PWA</span>
+                <span className="text-body text-text-primary">Installed app</span>
               </div>
-              <SystemMetadata>pwa.installed</SystemMetadata>
-              <p className="text-body-sm text-mint">Installed</p>
+              <p className="text-meta text-text-muted">Works from your home screen like a native app</p>
+              <p className="text-body-sm text-mint">Ready</p>
             </div>
           </div>
         </section>
@@ -156,15 +189,28 @@ export function SettingsView({
           <div className="glass-elevated rounded-xl border border-glass-border p-5">
             <Button
               type="button"
-              onClick={onLogout}
+              onClick={handleSignOut}
               variant="outline"
-              className="w-full glass border-error/30 text-error hover:bg-error/10"
+              disabled={isSigningOut}
+              aria-busy={isSigningOut}
+              className="btn-sign-out h-11 w-full shadow-none"
             >
-              <LogOut className="me-2 h-4 w-4" aria-hidden="true" />
-              Sign out
+              {isSigningOut ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  Signing out…
+                </>
+              ) : (
+                <>
+                  <LogOut className="h-4 w-4" aria-hidden="true" />
+                  Sign out
+                </>
+              )}
             </Button>
           </div>
         </section>
+
+        <AppVersion className="pb-2 pt-4" />
       </div>
     </div>
   );

@@ -16,79 +16,122 @@ const securityHeaders: Record<string, string> = {
   "Referrer-Policy": "strict-origin-when-cross-origin",
 };
 
-export default defineConfig({
-  plugins: [
-    firebaseMessagingSwPlugin(),
-    react(),
-    babel({
-      presets: [reactCompilerPreset()],
-    }),
-    tailwindcss(),
-    VitePWA({
-      registerType: "autoUpdate",
-      injectRegister: "inline",
-      includeAssets: ["favicon.png", "icon.png", "site.webmanifest", "robots.txt"],
-      devOptions: {
-        enabled: true,
-      },
-      manifest: {
-        name: "Premium Engineering Inbox Design",
-        short_name: "Inbox",
-        start_url: "/",
-        display: "standalone",
-        background_color: "#0a0a0a",
-        theme_color: "#00d9ff",
-        icons: [
-          {
-            src: "/icon.png",
-            sizes: "512x512",
-            type: "image/png",
-          },
-        ],
-      },
-      workbox: {
-        skipWaiting: true,
-        clientsClaim: true,
-        importScripts: ["firebase-messaging-sw.js"],
-        navigateFallback: "/index.html",
-        globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest,woff2}"],
-        runtimeCaching: [
-          {
-            urlPattern: ({ request }) =>
-              request.destination === "document" ||
-              request.destination === "script" ||
-              request.destination === "style",
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "app-shell",
+export default defineConfig(({ mode }) => {
+  const isProd = mode === "production";
+
+  return {
+    plugins: [
+      react(),
+      babel({
+        presets: [reactCompilerPreset()],
+      }),
+      tailwindcss(),
+      firebaseMessagingSwPlugin(),
+      VitePWA({
+        registerType: "autoUpdate",
+        injectRegister: isProd ? "inline" : false,
+        includeAssets: ["favicon.png", "icon.png", "site.webmanifest", "robots.txt"],
+        devOptions: {
+          enabled: false,
+        },
+        manifest: {
+          name: "Developer Inbox",
+          short_name: "Inbox",
+          start_url: "/",
+          display: "standalone",
+          background_color: "#0a0a0a",
+          theme_color: "#00d9ff",
+          icons: [
+            {
+              src: "/icon.png",
+              sizes: "512x512",
+              type: "image/png",
             },
-          },
-          {
-            urlPattern: ({ request }) => request.destination === "image" || request.destination === "font",
-            handler: "CacheFirst",
-            options: {
-              cacheName: "assets",
-              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+          ],
+        },
+        workbox: {
+          skipWaiting: true,
+          clientsClaim: true,
+          importScripts: ["firebase-messaging-sw.js"],
+          navigateFallback: "/index.html",
+          globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest,woff2}"],
+          runtimeCaching: [
+            {
+              urlPattern: ({ request }) =>
+                request.destination === "document" ||
+                request.destination === "script" ||
+                request.destination === "style",
+              handler: "StaleWhileRevalidate",
+              options: {
+                cacheName: "app-shell",
+                matchOptions: { ignoreVary: true },
+              },
             },
-          },
-        ],
+            {
+              urlPattern: ({ request }) =>
+                request.destination === "image" || request.destination === "font",
+              handler: "CacheFirst",
+              options: {
+                cacheName: "assets",
+                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                matchOptions: { ignoreVary: true },
+              },
+            },
+          ],
+        },
+      }),
+    ],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
       },
-    }),
-  ],
-  resolve: {
-    alias: {
-      // Alias @ to the src directory
-      "@": path.resolve(__dirname, "./src"),
     },
-  },
-
-  server: {
-    headers: securityHeaders,
-  },
-  preview: {
-    headers: securityHeaders,
-  },
-
-  // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
-  assetsInclude: ["**/*.svg", "**/*.csv"],
+    build: {
+      target: "es2022",
+      cssMinify: true,
+      modulePreload: {
+        resolveDependencies(_filename, deps) {
+          return deps.filter(
+            (dep) =>
+              !dep.includes("firebase-firestore") &&
+              !dep.includes("firebase-messaging") &&
+              !dep.includes("InboxShell") &&
+              !dep.includes("MobileInboxLayout") &&
+              !dep.includes("DesktopInboxLayout"),
+          );
+        },
+      },
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              {
+                name: "firebase-firestore",
+                test: /node_modules\/(firebase\/firestore|@firebase\/firestore)/,
+              },
+              {
+                name: "firebase-auth",
+                test: /node_modules\/(firebase\/auth|@firebase\/auth)/,
+              },
+              {
+                name: "firebase-messaging",
+                test: /node_modules\/(firebase\/messaging|@firebase\/messaging)/,
+              },
+              {
+                name: "vendor",
+                test: /node_modules/,
+              },
+            ],
+          },
+        },
+      },
+    },
+    server: {
+      headers: securityHeaders,
+    },
+    preview: {
+      headers: securityHeaders,
+    },
+    assetsInclude: ["**/*.svg", "**/*.csv"],
+  };
 });

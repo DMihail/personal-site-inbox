@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useActionState, useRef } from "react";
 import { Send, ExternalLink } from "lucide-react";
 import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +9,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "./ui/dialog";
-import { SystemMetadata } from "./SystemMetadata";
 import type { Message } from "../features/inbox/types";
 import { isPortfolioApiConfigured } from "@/utils/reply-api";
+import { FormPendingFieldset, FormSubmitButton } from "./form";
+import { ReplyFormFields } from "./reply/ReplyFormFields";
 
 const MIN_REPLY_LENGTH = 2;
 
@@ -25,94 +25,110 @@ interface ReplyDialogProps {
 }
 
 export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClient }: ReplyDialogProps) {
-  const [content, setContent] = useState("");
-  const [isSending, setIsSending] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   const apiConfigured = isPortfolioApiConfigured();
-  const trimmed = content.trim();
-  const tooShort = trimmed.length > 0 && trimmed.length < MIN_REPLY_LENGTH;
-  const canSend = apiConfigured && trimmed.length >= MIN_REPLY_LENGTH && !isSending;
 
-  const handleSend = async () => {
-    if (!canSend) return;
+  const [replyState, sendReplyAction] = useActionState(
+    async (_previous: { error?: string } | null, formData: FormData) => {
+      if (!message || !apiConfigured) return null;
 
-    setIsSending(true);
-    try {
-      await onSend(trimmed);
-      setContent("");
-      onClose();
-    } finally {
-      setIsSending(false);
-    }
-  };
+      const trimmed = String(formData.get("reply-body") ?? "").trim();
+      if (trimmed.length < MIN_REPLY_LENGTH) {
+        return { error: `Reply must be at least ${MIN_REPLY_LENGTH} characters.` };
+      }
+
+      try {
+        await onSend(trimmed);
+        formRef.current?.reset();
+        onClose();
+        return null;
+      } catch (error) {
+        const messageText = error instanceof Error ? error.message : "Failed to send reply.";
+        return { error: messageText };
+      }
+    },
+    null,
+  );
 
   if (!message) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="glass-elevated border-glass-border max-w-2xl max-h-[min(90dvh,100%)] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <DialogTitle>Reply to {message.senderName}</DialogTitle>
-              <DialogDescription className="text-body-sm text-text-secondary">
-                Your reply will be sent by email to {message.senderEmail} through the portfolio API.
-              </DialogDescription>
-              <SystemMetadata className="mt-1">
-                {message.company} • portfolio.api/inbox/reply
-              </SystemMetadata>
-            </div>
-          </div>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          formRef.current?.reset();
+          onClose();
+        }
+      }}
+    >
+      <DialogContent className="glass-elevated border-glass-border gap-5 p-6 sm:max-w-2xl">
+        <DialogHeader className="gap-1.5 space-y-0 text-left">
+          <DialogTitle className="pe-8 text-heading-sm text-text-primary">
+            Reply to {message.senderName}
+          </DialogTitle>
+          <DialogDescription className="text-body-sm text-text-secondary">
+            Your reply will be emailed to{" "}
+            <span className="text-text-primary">{message.senderEmail}</span>
+            {message.company ? (
+              <>
+                {" "}
+                <span className="text-text-muted">· {message.company}</span>
+              </>
+            ) : null}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {!apiConfigured ? (
-            <p className="text-body-sm rounded-lg border border-error/30 bg-error/10 p-3 text-error">
-              Set <code className="text-meta">VITE_PORTFOLIO_API_URL</code> in <code className="text-meta">.env</code>{" "}
-              (engineering-profile origin, e.g. http://localhost:3000 or https://dzhezhelo.dev).
-            </p>
-          ) : null}
+        {!apiConfigured ? (
+          <p
+            className="rounded-lg border border-error/30 bg-error/10 p-3 text-body-sm text-error"
+            role="alert"
+          >
+            Set <code className="text-meta">VITE_PORTFOLIO_API_URL</code> in{" "}
+            <code className="text-meta">.env</code> (backend origin).
+          </p>
+        ) : null}
 
-          <div className="glass rounded-lg p-4 border border-glass-border">
-            <p className="text-body-sm mb-2 text-text-muted">Replying to:</p>
-            <p className="text-body-sm line-clamp-3 text-text-secondary">{message.preview}</p>
-          </div>
-
-          <div className="space-y-2">
-            <Textarea
-              placeholder="Write your reply..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              disabled={!apiConfigured || isSending}
-              className="min-h-[200px] glass border-glass-border focus:border-cyan resize-none"
-            />
-            {tooShort ? (
-              <p className="text-meta text-error">
-                Reply must be at least {MIN_REPLY_LENGTH} characters.
-              </p>
-            ) : (
-              <SystemMetadata>Sent via engineering-profile → SMTP to {message.senderEmail}</SystemMetadata>
-            )}
-          </div>
+        <div className="glass rounded-xl border border-glass-border p-4">
+          <p className="text-meta mb-2 text-text-muted">Original message</p>
+          <p className="text-body-sm line-clamp-4 text-text-secondary">{message.preview}</p>
         </div>
 
-        <DialogFooter className="flex gap-2 sm:gap-2">
-          <Button
-            variant="outline"
-            onClick={onOpenInMailClient}
-            className="glass border-glass-border hover:bg-glass-elevated"
-          >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            Open in Mail Client
-          </Button>
-          <Button
-            onClick={handleSend}
-            disabled={!canSend}
-            className="bg-cyan hover:bg-cyan/90 text-background"
-          >
-            <Send className="h-4 w-4 mr-2" />
-            {isSending ? "Sending..." : "Send Reply"}
-          </Button>
-        </DialogFooter>
+        <form
+          ref={formRef}
+          key={message.id}
+          action={sendReplyAction}
+          className="flex flex-col gap-5"
+        >
+          <FormPendingFieldset>
+            <ReplyFormFields apiConfigured={apiConfigured} />
+            {replyState?.error ? (
+              <p className="text-body-sm text-error" role="alert">
+                {replyState.error}
+              </p>
+            ) : null}
+          </FormPendingFieldset>
+
+          <DialogFooter className="gap-2 sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onOpenInMailClient}
+              className="glass ui-hover-glass border-glass-border"
+            >
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              Open in Mail
+            </Button>
+            <FormSubmitButton
+              pendingLabel="Sending…"
+              disabled={!apiConfigured}
+              className="ui-hover-cyan border-0 bg-cyan text-background"
+            >
+              <Send className="h-4 w-4" aria-hidden="true" />
+              Send Reply
+            </FormSubmitButton>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

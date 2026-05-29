@@ -1,0 +1,172 @@
+/* Login fields and browser autofill on dark glass UI */
+@layer components {
+  .auth-input {
+    height: 2.75rem !important;
+    min-height: 2.75rem;
+    padding-left: 2.5rem !important;
+    padding-right: 0.75rem;
+    background-color: var(--glass-bg) !important;
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    box-shadow: none;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .auth-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .auth-input:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--glass-border) 70%, var(--cyan) 30%);
+  }
+
+  .auth-input:focus-visible {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px var(--glow-cyan);
+    outline: none;
+  }
+
+  .auth-input:-webkit-autofill,
+  .auth-input:-webkit-autofill:hover,
+  .auth-input:-webkit-autofill:focus,
+  .auth-input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--text-primary) !important;
+    caret-color: var(--text-primary);
+    border: 1px solid var(--glass-border) !important;
+    transition:
+      background-color 99999s ease-out 0s,
+      color 99999s ease-out 0s,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+    -webkit-box-shadow: 0 0 0 1000px #141414 inset !important;
+    box-shadow: 0 0 0 1000px #141414 inset !important;
+  }
+
+  .auth-input:-webkit-autofill:focus {
+    border-color: var(--cyan) !important;
+    -webkit-box-shadow:
+      0 0 0 1000px #141414 inset,
+      0 0 0 3px var(--glow-cyan) !important;
+    box-shadow:
+      0 0 0 1000px #141414 inset,
+      0 0 0 3px var(--glow-cyan) !important;
+  }
+
+  .auth-input:autofill {
+    box-shadow: 0 0 0 1000px #141414 inset;
+    -webkit-text-fill-color: var(--text-primary);
+    caret-color: var(--text-primary);
+  }
+
+  .btn-auth-submit:not(:disabled) {
+    cursor: pointer;
+  }
+
+  .btn-auth-submit {
+    transition:
+      background-color 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.15s ease,
+      opacity 0.2s ease;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .btn-auth-submit:not(:disabled):hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-auth-submit:not(:disabled):active {
+      transform: translateY(0) scale(0.99);
+    }
+  }
+
+  .btn-sign-out:not(:disabled) {
+    cursor: pointer;
+  }
+
+  .btn-sign-out {
+    border: 1px solid color-mix(in srgb, var(--error) 35%, transparent) !important;
+    background-color: transparent !important;
+    color: var(--error) !important;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.15s ease,
+      opacity 0.2s ease;
+  }
+
+  .btn-sign-out:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--error) 12%, transparent) !important;
+    border-color: color-mix(in srgb, var(--error) 55%, transparent) !important;
+    color: var(--error) !important;
+  }
+
+  .btn-sign-out:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--error) 45%, transparent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .btn-sign-out:not(:disabled):active {
+      transform: scale(0.99);
+    }
+  }
+
+  .btn-sign-out:disabled {
+    opacity: 0.75;
+    cursor: wait;
+  }
+
+  /* Reply textarea — matches auth-input focus on dark glass */
+  .reply-composer {
+    border: 1px solid var(--glass-border);
+    background-color: var(--glass-bg) !important;
+    color: var(--text-primary);
+    box-shadow: none;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .reply-composer::placeholder {
+    color: var(--text-muted);
+  }
+
+  .reply-composer:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--glass-border) 70%, var(--cyan) 30%);
+  }
+
+  .reply-composer:focus-visible {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px var(--glow-cyan);
+    outline: none;
+  }
+
+  .reply-composer[aria-invalid="true"] {
+    border-color: color-mix(in srgb, var(--error) 55%, var(--glass-border));
+  }
+
+  .reply-composer:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+/* Generic dark inputs (reply composer, etc.) */
+@layer base {
+  .dark [data-slot="input"]:-webkit-autofill,
+  .dark [data-slot="input"]:-webkit-autofill:hover,
+  .dark [data-slot="input"]:-webkit-autofill:focus,
+  .dark [data-slot="input"]:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--text-primary) !important;
+    caret-color: var(--text-primary);
+    transition: background-color 99999s ease-out 0s;
+    -webkit-box-shadow: 0 0 0 1000px #141414 inset !important;
+    box-shadow: 0 0 0 1000px #141414 inset !important;
+  }
+}

@@ -1,0 +1,39 @@
+/* Tablet (md–lg) layout tuning */
+@layer components {
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .tablet-panel-header {
+      padding-inline: 1.25rem;
+    }
+
+    .tablet-detail-toolbar {
+      padding: 0.875rem 1.25rem;
+    }
+
+    .tablet-messages-toggle {
+      min-height: 2.875rem;
+      padding-inline: 1.25rem;
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: var(--line-height-normal);
+    }
+
+    .tablet-messages-toggle svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    .tablet-detail-scroll {
+      padding: 1.25rem;
+    }
+  }
+
+  .slide-drawer-panel {
+    will-change: transform;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide-drawer-panel {
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
