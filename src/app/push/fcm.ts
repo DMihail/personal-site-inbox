@@ -1,10 +1,10 @@
 import { firebaseApp } from "@/utils/firebaseApp";
 import { isFcmConfigured } from "@/utils/firebaseConfig";
 import { getFirestoreDb } from "@/utils/firestore";
-import { isPwaRuntime } from "@/pwa/config";
 import {
   getActiveServiceWorkerRegistration,
   isMessagingServiceWorker,
+  isWorkboxServiceWorker,
   waitForServiceWorkerActive,
 } from "@/pwa/waitForServiceWorker";
 
@@ -94,16 +94,18 @@ async function registerDevMessagingServiceWorker(): Promise<ServiceWorkerRegistr
   }
 }
 
+/** Production: Vite PWA registers `/sw.js` (imports firebase-messaging handler). Wait for it — do not register a second worker. */
 async function registerProdMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
-  const active = await getActiveServiceWorkerRegistration("/");
-  if (active) return active;
-
   try {
-    const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
-    return await waitForServiceWorkerActive(reg);
+    const ready = await navigator.serviceWorker.ready;
+    if (isWorkboxServiceWorker(ready) || isMessagingServiceWorker(ready)) {
+      return ready;
+    }
   } catch {
-    return getActiveServiceWorkerRegistration("/");
+    // fall through
   }
+
+  return getActiveServiceWorkerRegistration("/");
 }
 
 export async function registerMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
@@ -111,7 +113,7 @@ export async function registerMessagingServiceWorker(): Promise<ServiceWorkerReg
 
   await unregisterLegacyMessagingServiceWorker();
 
-  if (!isPwaRuntime) {
+  if (import.meta.env.DEV) {
     return registerDevMessagingServiceWorker();
   }
 

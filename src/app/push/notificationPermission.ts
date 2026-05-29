@@ -11,20 +11,7 @@ export function canShowBrowserNotifications(): boolean {
   return getNotificationPermission() === "granted";
 }
 
-function isIosDevice(): boolean {
-  if (typeof navigator === "undefined") return false;
-  return /iPad|iPhone|iPod/.test(navigator.userAgent);
-}
-
-function isStandaloneDisplayMode(): boolean {
-  if (typeof window === "undefined") return false;
-  const nav = navigator as Navigator & { standalone?: boolean };
-  return (
-    nav.standalone === true ||
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.matchMedia("(display-mode: fullscreen)").matches
-  );
-}
+import { isIosLikeDevice, isStandaloneDisplayMode } from "@/pwa/runtime";
 
 export type PushNotificationSupport =
   | { ok: true }
@@ -52,7 +39,7 @@ export function getPushNotificationSupport(): PushNotificationSupport {
     };
   }
 
-  if (isIosDevice() && !isStandaloneDisplayMode()) {
+  if (isIosLikeDevice() && !isStandaloneDisplayMode()) {
     return {
       ok: false,
       message:

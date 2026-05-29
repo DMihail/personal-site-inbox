@@ -10,6 +10,8 @@ import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 import { Separator } from "./ui/separator";
 import { AppVersion } from "./AppVersion";
+import { PwaInstallPrompt } from "./PwaInstallPrompt";
+import { isStandaloneDisplayMode } from "@/pwa/runtime";
 
 interface SettingsViewProps {
   isOnline: boolean;
@@ -62,6 +64,8 @@ export function SettingsView({
       <Separator className="bg-glass-border" />
 
       <div className="space-y-6">
+        <PwaInstallPrompt />
+
         <section className="space-y-3" aria-labelledby="settings-notifications">
           <h3 id="settings-notifications" className="text-body text-text-primary">
             Notifications
@@ -173,11 +177,22 @@ export function SettingsView({
 
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-mint" aria-hidden="true" />
+                <CheckCircle2
+                  className={`h-4 w-4 ${isStandaloneDisplayMode() ? "text-mint" : "text-text-muted"}`}
+                  aria-hidden="true"
+                />
                 <span className="text-body text-text-primary">Installed app</span>
               </div>
-              <p className="text-meta text-text-muted">Works from your home screen like a native app</p>
-              <p className="text-body-sm text-mint">Ready</p>
+              <p className="text-meta text-text-muted">
+                {isStandaloneDisplayMode()
+                  ? "Running from your home screen"
+                  : "Add to Home Screen for background push (especially on iOS)"}
+              </p>
+              <p
+                className={`text-body-sm ${isStandaloneDisplayMode() ? "text-mint" : "text-text-muted"}`}
+              >
+                {isStandaloneDisplayMode() ? "Installed" : "Browser tab"}
+              </p>
             </div>
           </div>
         </section>

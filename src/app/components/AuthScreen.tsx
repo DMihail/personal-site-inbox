@@ -2,6 +2,7 @@ import { type ComponentProps } from "react";
 import { Shield, ArrowRight } from "lucide-react";
 import { cn } from "./ui/utils";
 import { AppVersion } from "./AppVersion";
+import { PwaInstallPrompt } from "./PwaInstallPrompt";
 import { FormPendingFieldset, FormSubmitButton } from "./form";
 import { LoginFormFields } from "./auth/LoginFormFields";
 
@@ -42,6 +43,8 @@ export function AuthScreen({
             </p>
           </div>
         </div>
+
+        <PwaInstallPrompt />
 
         <div className="glass-elevated motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 rounded-2xl border border-glass-border space-y-6 p-8">
           <form action={formAction} className="space-y-5" autoComplete="on">

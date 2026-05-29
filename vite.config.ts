@@ -37,15 +37,31 @@ export default defineConfig(({ mode }) => {
         manifest: {
           name: "Developer Inbox",
           short_name: "Inbox",
+          description: "Contact message inbox with push notifications",
           start_url: "/",
+          scope: "/",
           display: "standalone",
+          orientation: "portrait",
           background_color: "#0a0a0a",
-          theme_color: "#00d9ff",
+          theme_color: "#0a0a0a",
           icons: [
+            {
+              src: "/icon.png",
+              sizes: "192x192",
+              type: "image/png",
+              purpose: "any",
+            },
             {
               src: "/icon.png",
               sizes: "512x512",
               type: "image/png",
+              purpose: "any",
+            },
+            {
+              src: "/icon.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable",
             },
           ],
         },
