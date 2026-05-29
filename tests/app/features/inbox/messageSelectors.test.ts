@@ -1,12 +1,12 @@
 import { describe, expect, it, beforeEach } from "vitest";
-import { createMessage, resetMessageIds } from "@/test/fixtures/messages";
+import { createMessage, resetMessageIds } from "@tests/fixtures/messages";
 import {
   selectFilteredMessages,
   selectImportantCount,
   selectInboxCount,
   selectSelectedMessage,
   selectUnreadCount,
-} from "./messageSelectors";
+} from "@/app/features/inbox/messageSelectors";
 
 describe("messageSelectors", () => {
   beforeEach(() => {

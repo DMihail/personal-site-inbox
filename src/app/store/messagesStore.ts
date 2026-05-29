@@ -37,7 +37,7 @@ function toAppMessage(id: string, d: FirestoreMessageDoc): Message {
     isRead: Boolean(d.read),
     isImportant: Boolean(d.important),
     isArchived: Boolean(d.archived),
-    source: d.source ?? "portfolio",
+    source: d.source ?? "contact",
     repliedAt: d.repliedAt ? d.repliedAt.toDate() : undefined,
     lastReplyPreview:
       typeof d.lastReplyPreview === "string" ? d.lastReplyPreview : undefined,

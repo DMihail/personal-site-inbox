@@ -1,13 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { RouteLoadingScreen } from "../components/RouteLoadingScreen";
 import { useAuthStore } from "../store/authStore";
-
-function AuthLoadingScreen() {
-  return (
-    <div className="flex h-dvh items-center justify-center bg-background text-text-muted">
-      Loading…
-    </div>
-  );
-}
 
 export function RequireAuth() {
   const user = useAuthStore((s) => s.user);
@@ -15,7 +8,7 @@ export function RequireAuth() {
   const location = useLocation();
 
   if (isHydrating) {
-    return <AuthLoadingScreen />;
+    return <RouteLoadingScreen />;
   }
 
   if (!user) {

@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // Deploy: firebase deploy --only firestore:rules
-// Inbox app: authenticated users only. Portfolio contact form writes via Admin SDK / server.
+// Client: authenticated read/update on messages; message create is server-only.
 service cloud.firestore {
   match /databases/{database}/documents {
     match /messages/{messageId} {

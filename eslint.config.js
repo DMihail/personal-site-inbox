@@ -49,7 +49,7 @@ export default [
     },
   },
   {
-    files: ["**/*.{test,spec}.{ts,tsx}", "src/test/**/*.{ts,tsx}", "vitest.config.ts"],
+    files: ["tests/**/*.{test,spec}.{ts,tsx}", "vitest.config.ts"],
     languageOptions: {
       globals: {
         ...globals.browser,

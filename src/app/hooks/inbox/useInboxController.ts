@@ -114,7 +114,7 @@ export function useInboxController() {
   const handleReply = useCallback(() => {
     if (!isPortfolioApiConfigured()) {
       toast.error("Reply API not configured", {
-        description: "Set VITE_PORTFOLIO_API_URL in .env (engineering-profile URL)",
+        description: "Set VITE_PORTFOLIO_API_URL in .env to your backend origin",
       });
       return;
     }

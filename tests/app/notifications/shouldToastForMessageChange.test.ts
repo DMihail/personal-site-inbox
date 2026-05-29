@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldToastForMessageChange } from "./shouldToastForMessageChange";
+import { shouldToastForMessageChange } from "@/app/notifications/shouldToastForMessageChange";
 
 describe("shouldToastForMessageChange", () => {
   const known = new Set(["existing"]);

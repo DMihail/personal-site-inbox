@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_VIEW, pathToView, viewToPath } from "./viewRouting";
+import { DEFAULT_VIEW, pathToView, viewToPath } from "@/app/features/inbox/viewRouting";
 
 describe("viewRouting", () => {
   describe("viewToPath", () => {

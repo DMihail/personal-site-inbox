@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Inbox } from "lucide-react";
-import { NavItem } from "./NavItem";
+import { NavItem } from "@/app/components/NavItem";
 
 describe("NavItem", () => {
   it("marks current page with aria-current", () => {

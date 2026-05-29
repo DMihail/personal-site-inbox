@@ -8,7 +8,7 @@ vi.mock("@/utils/firebaseAuth", () => ({
   firebaseAuth: mockFirebaseAuth,
 }));
 
-import { getPortfolioApiLabel, isPortfolioApiConfigured, sendInboxReply } from "./reply-api";
+import { getPortfolioApiLabel, isPortfolioApiConfigured, sendInboxReply } from "@/utils/reply-api";
 
 describe("reply-api", () => {
   beforeEach(() => {
@@ -35,8 +35,8 @@ describe("reply-api", () => {
     });
 
     it("returns origin for valid URL", () => {
-      vi.stubEnv("VITE_PORTFOLIO_API_URL", "https://dzhezhelo.dev/");
-      expect(getPortfolioApiLabel()).toBe("https://dzhezhelo.dev");
+      vi.stubEnv("VITE_PORTFOLIO_API_URL", "https://api.example.com/");
+      expect(getPortfolioApiLabel()).toBe("https://api.example.com");
     });
 
     it("returns Invalid URL for malformed value", () => {

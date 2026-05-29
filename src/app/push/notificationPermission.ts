@@ -84,7 +84,7 @@ export function getNotificationPermissionError(
  * Call directly from a click / tap handler (Settings switch, menu item).
  * Do not await other work before this runs — user activation may expire.
  */
-export async function requestNotificationPermission(): Promise<NotificationPermissionState> {
+async function requestNotificationPermission(): Promise<NotificationPermissionState> {
   const support = getPushNotificationSupport();
   if (!support.ok) {
     return support.permission === "granted" ? "granted" : support.permission;
@@ -103,7 +103,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
   }
 }
 
-export type PushPermissionRequestResult =
+type PushPermissionRequestResult =
   | { ok: true; permission: "granted" }
   | { ok: false; error: string; permission: NotificationPermissionState };
 

@@ -87,7 +87,7 @@ export function AuthScreen({
           <ul className="list-disc space-y-1.5 ps-5 text-body-sm text-text-secondary">
             <li>Sign in with email and password</li>
             <li>Messages load only after you sign in</li>
-            <li>Private — not listed in search engines</li>
+            <li>Not intended for public indexing</li>
           </ul>
         </section>
 

@@ -2,20 +2,13 @@ import { useActionState, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AuthScreen } from "../components/AuthScreen";
+import { RouteLoadingScreen } from "../components/RouteLoadingScreen";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useAuthStore } from "../store/authStore";
 import { getFirebaseAuthErrorMessage } from "@/utils/firebaseAuthErrors";
 import { isFirebaseConfigured } from "@/utils/firebaseConfig";
 
 type LoginFormState = { error?: string } | null;
-
-function AuthLoadingScreen() {
-  return (
-    <div className="flex h-dvh items-center justify-center bg-background text-text-muted">
-      Loading…
-    </div>
-  );
-}
 
 export function LoginPage() {
   useDocumentTitle("Sign in");
@@ -65,7 +58,7 @@ export function LoginPage() {
   }, [user, isHydrating, navigate]);
 
   if (isHydrating) {
-    return <AuthLoadingScreen />;
+    return <RouteLoadingScreen />;
   }
 
   return (

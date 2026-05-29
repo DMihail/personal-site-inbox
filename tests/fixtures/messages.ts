@@ -16,7 +16,7 @@ export function createMessage(overrides: Partial<Message> = {}): Message {
     isRead: false,
     isImportant: false,
     isArchived: false,
-    source: "portfolio",
+    source: "contact",
     ...overrides,
   };
 }

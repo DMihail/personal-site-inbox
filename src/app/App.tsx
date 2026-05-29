@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { RequireAuth } from "./auth/RequireAuth";
+import { RouteLoadingScreen } from "./components/RouteLoadingScreen";
 
 const LoginPage = lazy(() =>
   import("./pages/LoginPage").then((m) => ({ default: m.LoginPage })),
@@ -16,17 +17,9 @@ const TabletDrawerPreviewPage = import.meta.env.DEV
     )
   : null;
 
-function RouteFallback() {
-  return (
-    <div className="flex h-dvh items-center justify-center bg-background text-text-muted">
-      Loading…
-    </div>
-  );
-}
-
 export default function App() {
   return (
-    <Suspense fallback={<RouteFallback />}>
+    <Suspense fallback={<RouteLoadingScreen />}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         {TabletDrawerPreviewPage ? (

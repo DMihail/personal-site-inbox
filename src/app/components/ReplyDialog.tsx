@@ -28,17 +28,24 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
   const formRef = useRef<HTMLFormElement>(null);
   const apiConfigured = isPortfolioApiConfigured();
 
-  const [, sendReplyAction] = useActionState(
-    async (_previous: null, formData: FormData) => {
+  const [replyState, sendReplyAction] = useActionState(
+    async (_previous: { error?: string } | null, formData: FormData) => {
       if (!message || !apiConfigured) return null;
 
       const trimmed = String(formData.get("reply-body") ?? "").trim();
-      if (trimmed.length < MIN_REPLY_LENGTH) return null;
+      if (trimmed.length < MIN_REPLY_LENGTH) {
+        return { error: `Reply must be at least ${MIN_REPLY_LENGTH} characters.` };
+      }
 
-      await onSend(trimmed);
-      formRef.current?.reset();
-      onClose();
-      return null;
+      try {
+        await onSend(trimmed);
+        formRef.current?.reset();
+        onClose();
+        return null;
+      } catch (error) {
+        const messageText = error instanceof Error ? error.message : "Failed to send reply.";
+        return { error: messageText };
+      }
     },
     null,
   );
@@ -78,7 +85,7 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
             role="alert"
           >
             Set <code className="text-meta">VITE_PORTFOLIO_API_URL</code> in{" "}
-            <code className="text-meta">.env</code> (portfolio site origin).
+            <code className="text-meta">.env</code> (backend origin).
           </p>
         ) : null}
 
@@ -95,6 +102,11 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
         >
           <FormPendingFieldset>
             <ReplyFormFields apiConfigured={apiConfigured} />
+            {replyState?.error ? (
+              <p className="text-body-sm text-error" role="alert">
+                {replyState.error}
+              </p>
+            ) : null}
           </FormPendingFieldset>
 
           <DialogFooter className="gap-2 sm:justify-end">

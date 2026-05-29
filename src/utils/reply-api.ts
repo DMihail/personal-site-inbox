@@ -34,7 +34,7 @@ function replyErrorMessage(status: number, serverMessage?: string): string {
     case 404:
       return "Message not found";
     case 503:
-      return "Email is not configured on the portfolio server (SMTP)";
+      return "Email is not configured on the server (SMTP)";
     case 502:
       return "Email delivery failed — try again later";
     default:
@@ -65,7 +65,7 @@ export async function sendInboxReply(messageId: string, body: string): Promise<v
       body: JSON.stringify({ messageId, body: trimmed }),
     });
   } catch {
-    throw new Error("Could not reach portfolio API — check VITE_PORTFOLIO_API_URL and CORS (INBOX_APP_URL)");
+    throw new Error("Could not reach reply API — check VITE_PORTFOLIO_API_URL and CORS");
   }
 
   let payload: { error?: string; success?: boolean } = {};

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderHook } from "@testing-library/react";
-import { useDocumentTitle } from "./useDocumentTitle";
+import { useDocumentTitle } from "@/app/hooks/useDocumentTitle";
 
 describe("useDocumentTitle", () => {
   it("sets document title with app name suffix", () => {

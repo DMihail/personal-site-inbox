@@ -28,7 +28,7 @@
 }
 
 .dark {
-  /* Portfolio-Matched Design System */
+  /* App design system */
   --background: #0a0a0a;
   --foreground: #ffffff;
   --card: rgba(18, 18, 18, 0.6);
@@ -50,7 +50,7 @@
   --ring: #00d9ff;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  /* Portfolio color system */
+  /* Accent color system */
   --glass-bg: rgba(18, 18, 18, 0.6);
   --glass-border: rgba(255, 255, 255, 0.12);
   --glass-elevated: rgba(24, 24, 24, 0.7);

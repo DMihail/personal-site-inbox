@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isHoneypotTripped } from "./automatedClient";
+import { isHoneypotTripped } from "@/app/security/automatedClient";
 
 describe("automatedClient", () => {
   describe("isHoneypotTripped", () => {

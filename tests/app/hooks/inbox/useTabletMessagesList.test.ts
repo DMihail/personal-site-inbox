@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useTabletMessagesList } from "./useTabletMessagesList";
+import { useTabletMessagesList } from "@/app/hooks/inbox/useTabletMessagesList";
 
 describe("useTabletMessagesList", () => {
   it("auto-opens on tablet when no message is selected", () => {

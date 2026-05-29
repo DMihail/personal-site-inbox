@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FirebaseError } from "firebase/app";
-import { getFirebaseAuthErrorMessage } from "./firebaseAuthErrors";
+import { getFirebaseAuthErrorMessage } from "@/utils/firebaseAuthErrors";
 
 describe("getFirebaseAuthErrorMessage", () => {
   it("maps invalid credential", () => {

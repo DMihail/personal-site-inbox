@@ -28,7 +28,7 @@ export function ReplyFormFields({ apiConfigured }: ReplyFormFieldsProps) {
         className="reply-composer min-h-[12rem] resize-none focus-visible:ring-0"
       />
       <p id={`${bodyId}-hint`} className="text-meta text-text-muted">
-        Sent via your portfolio contact API.
+        Sent via the configured reply API.
       </p>
     </div>
   );

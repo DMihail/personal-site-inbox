@@ -124,9 +124,9 @@ export function SettingsView({
                 className={`h-4 w-4 ${isPortfolioApiConfigured() ? "text-mint" : "text-error"}`}
                 aria-hidden="true"
               />
-              <span className="text-body text-text-primary">Portfolio backend</span>
+              <span className="text-body text-text-primary">Reply API</span>
             </div>
-            <p className="text-meta text-text-muted">Sends replies through your portfolio website</p>
+            <p className="text-meta text-text-muted">Sends replies through the configured backend</p>
             <p
               className={`text-body-sm ${isPortfolioApiConfigured() ? "text-mint" : "text-error"}`}
             >
@@ -135,7 +135,7 @@ export function SettingsView({
                 : "Not configured — set VITE_PORTFOLIO_API_URL"}
             </p>
             <p className="text-meta text-text-muted">
-              Replies are sent by email from the portfolio server (SMTP + Firebase Admin).
+              Replies are delivered by email from the backend (SMTP or provider).
             </p>
           </div>
         </section>

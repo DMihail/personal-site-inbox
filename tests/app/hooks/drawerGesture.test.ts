@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clampOffset, getClosedOffset, resolveDrawerOpen } from "./drawerGesture";
+import { clampOffset, getClosedOffset, resolveDrawerOpen } from "@/app/hooks/drawerGesture";
 
 describe("drawerGesture", () => {
   it("computes closed offset for start side", () => {

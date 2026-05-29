@@ -38,7 +38,7 @@ export function DeveloperInboxNavPanel({
             <h2 id={titleId} className="truncate text-lg text-text-primary md:text-heading-sm">
               Developer Inbox
             </h2>
-            <p className="text-meta text-text-muted">Portfolio contact messages</p>
+            <p className="text-meta text-text-muted">Contact messages</p>
           </div>
           <Button
             type="button"

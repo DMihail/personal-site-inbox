@@ -89,11 +89,11 @@ export const usePushStore = create<PushState>()(
           token = result.token;
         } else if (result.reason === "no-vapid") {
           fcmWarning =
-            "In-tab alerts only. Add VITE_FIREBASE_VAPID_KEY (Firebase → Cloud Messaging) for desktop push from portfolio.";
+            "In-tab alerts only. Add VITE_FIREBASE_VAPID_KEY (Firebase → Cloud Messaging) for background push.";
         } else if (result.reason !== "permission-denied") {
           fcmWarning =
             result.message ??
-            "FCM token not saved — in-tab Firestore alerts still work. Check console and Firestore rules for fcmTokens.";
+            "FCM token not saved — in-tab Firestore alerts still work. Check the browser console and Firestore rules.";
         } else if (result.reason === "permission-denied") {
           set({
             enabled: false,

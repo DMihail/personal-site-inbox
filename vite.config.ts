@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
           enabled: false,
         },
         manifest: {
-          name: "Premium Engineering Inbox Design",
+          name: "Developer Inbox",
           short_name: "Inbox",
           start_url: "/",
           display: "standalone",
@@ -87,6 +87,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
+      target: "es2022",
+      cssMinify: true,
       modulePreload: {
         resolveDependencies(_filename, deps) {
           return deps.filter(

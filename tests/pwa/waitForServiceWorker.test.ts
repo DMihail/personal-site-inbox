@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isWorkboxServiceWorker } from "./waitForServiceWorker";
+import { isWorkboxServiceWorker } from "@/pwa/waitForServiceWorker";
 
 describe("waitForServiceWorker helpers", () => {
   it("detects workbox service worker script", () => {

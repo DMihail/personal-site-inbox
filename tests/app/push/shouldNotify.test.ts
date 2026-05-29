@@ -5,18 +5,18 @@ const pushState = vi.hoisted(() => ({
   token: null as string | null,
 }));
 
-vi.mock("../store/pushStore", () => ({
+vi.mock("@/app/store/pushStore", () => ({
   usePushStore: {
     getState: () => pushState,
   },
 }));
 
-vi.mock("./notificationPermission", () => ({
+vi.mock("@/app/push/notificationPermission", () => ({
   canShowBrowserNotifications: vi.fn(),
 }));
 
-import { canShowBrowserNotifications } from "./notificationPermission";
-import { shouldNotifyNewMessages } from "./shouldNotify";
+import { canShowBrowserNotifications } from "@/app/push/notificationPermission";
+import { shouldNotifyNewMessages } from "@/app/push/shouldNotify";
 
 describe("shouldNotifyNewMessages", () => {
   beforeEach(() => {

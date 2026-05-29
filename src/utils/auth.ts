@@ -8,12 +8,7 @@ import { firebaseAuth } from "@/utils/firebaseAuth";
 
 const persistenceReady = setPersistence(firebaseAuth, browserLocalPersistence);
 
-export interface LoginFormValues {
-  email: string;
-  password: string;
-}
-
-export const firebaseSignIn = async ({ email, password }: LoginFormValues) => {
+export const firebaseSignIn = async ({ email, password }: { email: string; password: string }) => {
   await persistenceReady;
   return signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
 };

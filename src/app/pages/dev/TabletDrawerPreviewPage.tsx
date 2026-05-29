@@ -3,14 +3,14 @@ import { DesktopInboxLayout } from "@/app/components/layout/DesktopInboxLayout";
 import { useTabletMessagesList } from "@/app/hooks/inbox/useTabletMessagesList";
 import { useIsTabletLayout } from "@/app/hooks/useMediaQuery";
 import type { View } from "@/app/features/inbox/types";
-import { createMessage, resetMessageIds } from "@/test/fixtures/messages";
+import { createMessage, resetMessageIds } from "@tests/fixtures/messages";
 
 const MOCK_MESSAGES = (() => {
   resetMessageIds();
   return [
     createMessage({ id: "msg-1", senderName: "Alex Rivera", subject: "Senior role — backend", isRead: false }),
     createMessage({ id: "msg-2", senderName: "Sam Chen", subject: "Contract opportunity", isRead: true }),
-    createMessage({ id: "msg-3", senderName: "Jordan Lee", subject: "Follow-up from portfolio", isRead: false, isImportant: true }),
+    createMessage({ id: "msg-3", senderName: "Jordan Lee", subject: "Follow-up from contact form", isRead: false, isImportant: true }),
     createMessage({ id: "msg-4", senderName: "Taylor Kim", subject: "Quick question", isRead: true }),
     createMessage({ id: "msg-5", senderName: "Morgan Blake", subject: "Interview scheduling", isRead: false }),
   ];

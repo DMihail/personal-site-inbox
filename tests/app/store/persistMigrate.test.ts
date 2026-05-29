@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { migrateAuthPersist, migratePushPersist } from "./persistMigrate";
+import { migrateAuthPersist, migratePushPersist } from "@/app/store/persistMigrate";
 
 describe("persistMigrate", () => {
   it("migrates auth store legacy payloads", () => {
