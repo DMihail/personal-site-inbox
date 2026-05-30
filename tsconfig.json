@@ -16,7 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@tests/*": ["tests/*"]
+      "@tests/*": ["tests/*"],
+      "@security/headers": ["security-headers.ts"]
     }
   },
   "include": ["src", "tests", "security-headers.ts"]

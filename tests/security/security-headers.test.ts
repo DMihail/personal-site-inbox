@@ -3,7 +3,7 @@ import {
   buildContentSecurityPolicy,
   devSecurityHeaders,
   productionSecurityHeaders,
-} from "../../security-headers";
+} from "@security/headers";
 
 describe("security headers", () => {
   it("includes baseline hardening headers in dev and production", () => {

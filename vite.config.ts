@@ -1,17 +1,14 @@
 import { defineConfig } from "vite";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
 import { VitePWA } from "vite-plugin-pwa";
 import { firebaseMessagingSwPlugin } from "./src/vite-plugins/firebaseMessagingSw";
+import { createAliases } from "./alias.config";
 import {
   devSecurityHeaders,
   productionSecurityHeaders,
 } from "./security-headers";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(() => {
   return {
@@ -70,9 +67,7 @@ export default defineConfig(() => {
       }),
     ],
     resolve: {
-      alias: {
-        "@": path.resolve(__dirname, "./src"),
-      },
+      alias: createAliases(),
     },
     build: {
       target: "es2022",

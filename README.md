@@ -27,7 +27,7 @@ tests/         Vitest specs (mirror src layout)
 public/        Static assets and generated messaging service worker
 ```
 
-Path aliases: `@/` → `src/`, `@tests/` → `tests/`.
+Path aliases: `@/` → `src/`, `@tests/` → `tests/`, `@security/headers` → `security-headers.ts` (see `alias.config.ts`).
 
 ## Setup
 
