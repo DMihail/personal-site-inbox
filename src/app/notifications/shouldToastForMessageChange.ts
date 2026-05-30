@@ -1,5 +1,5 @@
 /** Firestore doc change shape we care about for inbox toasts. */
-export interface MessageDocChange {
+interface MessageDocChange {
   type: "added" | "modified" | "removed";
   doc: { id: string };
 }

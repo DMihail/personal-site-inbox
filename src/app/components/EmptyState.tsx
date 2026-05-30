@@ -6,9 +6,18 @@ interface EmptyStateProps {
   title: string;
   description?: string;
   metadata?: string;
+  titleLevel?: "h2" | "h3";
 }
 
-export function EmptyState({ icon: Icon, title, description, metadata }: EmptyStateProps) {
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  metadata,
+  titleLevel = "h3",
+}: EmptyStateProps) {
+  const TitleTag = titleLevel === "h2" ? "h2" : "h3";
+
   return (
     <div className="flex h-full items-center justify-center p-6" role="status" aria-live="polite">
       <div className="max-w-md space-y-4 text-center">
@@ -19,7 +28,7 @@ export function EmptyState({ icon: Icon, title, description, metadata }: EmptySt
           <Icon className="h-10 w-10 text-text-muted" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-heading text-text-primary">{title}</h3>
+          <TitleTag className="text-heading text-text-primary">{title}</TitleTag>
           {description ? <p className="text-body-sm text-text-secondary">{description}</p> : null}
         </div>
         {metadata ? <SystemMetadata>{metadata}</SystemMetadata> : null}

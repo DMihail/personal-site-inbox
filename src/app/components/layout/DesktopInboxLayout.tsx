@@ -104,7 +104,6 @@ export function DesktopInboxLayout({
       <InboxNavDrawer
         open={navMenuOpen}
         isOnline={isOnline}
-        currentView={currentView}
         inboxCount={inboxCount}
         unreadCount={unreadCount}
         importantCount={importantCount}

@@ -13,30 +13,6 @@ export function useInboxPush(userId: string | null | undefined) {
   const sendTestNotification = usePushStore((s) => s.sendTestNotification);
 
   useEffect(() => {
-    if (!userId || !isFcmConfigured() || !("serviceWorker" in navigator)) return;
-
-    let cancelled = false;
-
-    void import("@/app/push/fcm").then(async (m) => {
-      await m.registerMessagingServiceWorker();
-      if (!cancelled) {
-        await syncPushWithUser(userId);
-      }
-    });
-
-    const onControllerChange = () => {
-      void syncPushWithUser(userId);
-    };
-
-    navigator.serviceWorker?.addEventListener("controllerchange", onControllerChange);
-
-    return () => {
-      cancelled = true;
-      navigator.serviceWorker?.removeEventListener("controllerchange", onControllerChange);
-    };
-  }, [userId, syncPushWithUser]);
-
-  useEffect(() => {
     if (getNotificationPermission() === "denied" && usePushStore.getState().enabled) {
       usePushStore.setState({ enabled: false, error: null });
     }

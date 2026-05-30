@@ -3,6 +3,7 @@ import { ReplyDialog } from "../components/ReplyDialog";
 import { OfflineModal } from "../components/OfflineModal";
 import { PwaUpdateBanner } from "../components/PwaUpdateBanner";
 import { SettingsView } from "../components/SettingsView";
+import { SkipLink } from "../components/SkipLink";
 import { useInboxController } from "../hooks/inbox";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { MEDIA_QUERIES } from "@/shared/constants/media-queries";
@@ -20,7 +21,12 @@ const MobileInboxLayout = lazy(() =>
 
 function InboxLayoutFallback() {
   return (
-    <div className="flex min-h-0 flex-1 items-center justify-center text-text-muted">
+    <div
+      className="flex min-h-0 flex-1 items-center justify-center text-text-muted"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
       Loading inbox…
     </div>
   );
@@ -75,6 +81,7 @@ export function InboxShell() {
 
   return (
     <div className="flex h-dvh w-screen flex-col overflow-hidden bg-background text-foreground dark">
+      <SkipLink />
       <OfflineModal
         isOpen={c.showOfflineModal}
         onRetry={c.onRetryReconnect}

@@ -3,6 +3,7 @@ import tseslint from "typescript-eslint";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
+import jsxA11y from "eslint-plugin-jsx-a11y";
 
 export default [
   {
@@ -37,6 +38,10 @@ export default [
     },
   },
   {
+    files: ["**/*.{tsx,jsx}"],
+    ...jsxA11y.flatConfigs.recommended,
+  },
+  {
     files: ["src/app/components/ui/**/*.{ts,tsx}"],
     rules: {
       "react-refresh/only-export-components": "off",
@@ -49,7 +54,18 @@ export default [
     },
   },
   {
-    files: ["tests/**/*.{test,spec}.{ts,tsx}", "vitest.config.ts"],
+    files: ["src/sw.js"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "script",
+      globals: {
+        ...globals.serviceworker,
+        workbox: "readonly",
+      },
+    },
+  },
+  {
+    files: ["tests/**/*.{test,spec}.{ts,tsx}", "tests/vitest.config.ts"],
     languageOptions: {
       globals: {
         ...globals.browser,

@@ -1,6 +1,6 @@
 import { isFcmConfigured } from "@/utils/firebaseConfig";
 
-export interface PushEnvironmentStatus {
+interface PushEnvironmentStatus {
   messagingSupported: boolean;
   hasMessagingSenderId: boolean;
   hasVapidKey: boolean;
