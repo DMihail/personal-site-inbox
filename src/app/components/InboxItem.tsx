@@ -23,7 +23,7 @@ export function InboxItem({
   const itemLabel = `${message.isRead ? "" : "Unread: "}${message.senderName}, ${message.company}`;
 
   return (
-    <li className="list-none" role="presentation">
+    <li className="list-none">
       <div
         className={`group ui-transition flex w-full items-start gap-1 rounded-xl border ${
           isActive
@@ -35,9 +35,8 @@ export function InboxItem({
       >
         <button
           type="button"
-          role="option"
           onClick={onClick}
-          aria-selected={isActive}
+          aria-current={isActive ? "true" : undefined}
           aria-label={itemLabel}
           className="min-w-0 flex-1 cursor-pointer rounded-xl p-4 text-left"
         >

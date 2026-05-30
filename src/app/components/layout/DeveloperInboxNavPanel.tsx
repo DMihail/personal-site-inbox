@@ -10,7 +10,6 @@ import type { View } from "../../features/inbox/types";
 interface DeveloperInboxNavPanelProps {
   titleId: string;
   isOnline: boolean;
-  currentView: View;
   inboxCount: number;
   unreadCount: number;
   importantCount: number;
@@ -22,7 +21,6 @@ interface DeveloperInboxNavPanelProps {
 export function DeveloperInboxNavPanel({
   titleId,
   isOnline,
-  currentView,
   inboxCount,
   unreadCount,
   importantCount,
@@ -72,7 +70,6 @@ export function DeveloperInboxNavPanel({
             icon={Inbox}
             label="Inbox"
             view="inbox"
-            currentView={currentView}
             count={inboxCount}
             onSelect={onSelectView}
           />
@@ -80,7 +77,6 @@ export function DeveloperInboxNavPanel({
             icon={Mail}
             label="Unread"
             view="unread"
-            currentView={currentView}
             count={unreadCount}
             onSelect={onSelectView}
           />
@@ -88,7 +84,6 @@ export function DeveloperInboxNavPanel({
             icon={Star}
             label="Important"
             view="important"
-            currentView={currentView}
             count={importantCount}
             onSelect={onSelectView}
           />
@@ -96,7 +91,6 @@ export function DeveloperInboxNavPanel({
             icon={Archive}
             label="Archived"
             view="archived"
-            currentView={currentView}
             onSelect={onSelectView}
           />
           <Separator className="my-3 bg-glass-border" />
@@ -104,7 +98,6 @@ export function DeveloperInboxNavPanel({
             icon={Settings}
             label="Settings"
             view="settings"
-            currentView={currentView}
             onSelect={onSelectView}
           />
         </nav>

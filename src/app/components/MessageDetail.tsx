@@ -28,6 +28,7 @@ export function MessageDetail({
         icon={Mail}
         title="No message selected"
         description="Select a message from the inbox to view details"
+        titleLevel="h2"
       />
     );
   }

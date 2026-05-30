@@ -79,7 +79,7 @@ export function InboxMessagesPanel({
 
       <div className={scrollPaneClass}>
         {filteredMessages.length > 0 ? (
-          <ul className="m-0 list-none space-y-2 p-3 md:p-4" role="listbox" aria-label="Messages">
+          <ul className="m-0 list-none space-y-2 p-3 md:p-4" aria-labelledby={headingId}>
             {filteredMessages.map((message) => (
               <InboxItem
                 key={message.id}

@@ -17,6 +17,9 @@ interface SlideDrawerProps {
 
 const CLOSE_MS = 320;
 
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function SlideDrawer({
   open,
   onClose,
@@ -95,6 +98,48 @@ export function SlideDrawer({
     }
   }, [open]);
 
+  useLayoutEffect(() => {
+    if (!open) return;
+
+    const root = rootRef.current;
+    const panel = panelRef.current;
+    if (!root || !panel) return;
+
+    const getFocusables = () =>
+      Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+        (element) => element.tabIndex !== -1 && !element.closest("[inert]"),
+      );
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      const panelFirst = panel.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+      (panelFirst ?? getFocusables()[0])?.focus();
+    });
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const items = getFocusables();
+      if (items.length === 0) return;
+
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    root.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      root.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
   if (!mounted) return null;
 
   const sideClass =
@@ -128,7 +173,6 @@ export function SlideDrawer({
       />
       <aside
         ref={panelRef}
-        id={titleId}
         style={panelStyle}
         inert={!open ? true : undefined}
         className={`slide-drawer-panel pointer-events-auto absolute flex flex-col border-glass-border bg-background shadow-2xl ${sideClass} ${panelClassName}`.trim()}

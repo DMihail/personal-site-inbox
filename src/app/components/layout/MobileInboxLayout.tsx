@@ -70,7 +70,6 @@ export function MobileInboxLayout({
       <InboxNavDrawer
         open={navMenuOpen}
         isOnline={isOnline}
-        currentView={currentView}
         inboxCount={inboxCount}
         unreadCount={unreadCount}
         importantCount={importantCount}
@@ -98,7 +97,7 @@ export function MobileInboxLayout({
           </section>
           {filteredMessages.length > 0 ? (
             <div className={scrollPaneClass}>
-              <ul className="m-0 list-none space-y-2 p-3" role="listbox" aria-label="Messages">
+              <ul className="m-0 list-none space-y-2 p-3" aria-label="Messages">
                 {filteredMessages.map((message) => (
                   <InboxItem
                     key={message.id}
