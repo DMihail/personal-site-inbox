@@ -12,7 +12,8 @@
     "start": "vite",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "sync:security-headers": "node --experimental-strip-types scripts/sync-vercel-security-headers.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "1.1.6",

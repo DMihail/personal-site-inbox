@@ -49,6 +49,17 @@ export default [
     },
   },
   {
+    files: ["src/sw.js"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "script",
+      globals: {
+        ...globals.serviceworker,
+        workbox: "readonly",
+      },
+    },
+  },
+  {
     files: ["tests/**/*.{test,spec}.{ts,tsx}", "vitest.config.ts"],
     languageOptions: {
       globals: {

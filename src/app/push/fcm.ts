@@ -94,8 +94,12 @@ async function registerDevMessagingServiceWorker(): Promise<ServiceWorkerRegistr
   }
 }
 
-/** Production: Vite PWA registers `/sw.js` (imports firebase-messaging handler). Wait for it — do not register a second worker. */
+/** Production: app bootstrap registers `/sw.js`; ensure it is active before FCM token refresh. */
 async function registerProdMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  const { registerAppServiceWorker } = await import("@/pwa/registerServiceWorker");
+  const registered = await registerAppServiceWorker();
+  if (registered) return registered;
+
   try {
     const ready = await navigator.serviceWorker.ready;
     if (isWorkboxServiceWorker(ready) || isMessagingServiceWorker(ready)) {
