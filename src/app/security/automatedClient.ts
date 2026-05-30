@@ -11,17 +11,11 @@ export function isLikelyAutomatedClient(): boolean {
 
   const nav = navigator as Navigator & { webdriver?: boolean };
 
-  if (nav.webdriver === true) return true;
+  if (nav.webdriver) return true;
 
   const ua = nav.userAgent ?? "";
   if (BOT_USER_AGENT.test(ua)) return true;
 
-  if (/HeadlessChrome/i.test(ua)) return true;
+  return /HeadlessChrome/i.test(ua);
 
-  return false;
-}
-
-/** Honeypot field must stay empty (bots often fill hidden inputs). */
-export function isHoneypotTripped(value: string | undefined): boolean {
-  return Boolean(value && value.trim().length > 0);
 }

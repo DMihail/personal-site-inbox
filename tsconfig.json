@@ -12,7 +12,7 @@
     "jsx": "react-jsx",
     "strict": true,
     "ignoreDeprecations": "6.0",
-    "types": ["vite/client", "vitest/globals", "node"],
+    "types": ["vite/client", "node"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -20,6 +20,6 @@
       "@security/headers": ["security-headers.ts"]
     }
   },
-  "include": ["src", "tests", "security-headers.ts"]
+  "include": ["src", "security-headers.ts"]
 }
 

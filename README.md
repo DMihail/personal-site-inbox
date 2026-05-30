@@ -23,8 +23,10 @@ React 19 (React Compiler, `useActionState`, `useFormStatus`), React Router 7, Ta
 
 ```
 src/           Application code
-tests/         Vitest specs (mirror src layout)
+tests/         Vitest specs, fixtures, setup, and test config (isolated from src/)
 public/        Static assets and generated messaging service worker
+.github/       CI — tests run on every push and pull request
+.githooks/     Optional local pre-push hook (see Tests)
 ```
 
 Path aliases: `@/` → `src/`, `@tests/` → `tests/`, `@security/headers` → `security-headers.ts` (see `alias.config.ts`).
@@ -61,11 +63,22 @@ firebase deploy --only firestore:rules
 
 ## Tests
 
+All specs live under `tests/` (mirrors `src/` layout). Application code in `src/` has no `*.test.*` files.
+
 ```bash
 npm run test:run
 ```
 
-Specs live under `tests/` (not beside source files).
+**On push (GitHub):** workflow `.github/workflows/ci.yml` runs typecheck, lint, tests, and build.
+
+**Local pre-push hook (optional):**
+
+```bash
+chmod +x .githooks/pre-push
+git config core.hooksPath .githooks
+```
+
+After that, `git push` runs `npm run test:run` locally before the push completes.
 
 ## UI
 

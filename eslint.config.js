@@ -60,7 +60,7 @@ export default [
     },
   },
   {
-    files: ["tests/**/*.{test,spec}.{ts,tsx}", "vitest.config.ts"],
+    files: ["tests/**/*.{test,spec}.{ts,tsx}", "tests/vitest.config.ts"],
     languageOptions: {
       globals: {
         ...globals.browser,

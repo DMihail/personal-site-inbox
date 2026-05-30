@@ -25,7 +25,7 @@ export default defineConfig(() => {
         filename: "sw.js",
         registerType: "autoUpdate",
         injectRegister: false,
-        includeAssets: ["favicon.png", "icon.png", "site.webmanifest", "robots.txt"],
+        includeAssets: ["favicon.png", "icon.png", "robots.txt"],
         devOptions: {
           enabled: false,
         },

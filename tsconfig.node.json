@@ -18,6 +18,6 @@
       "@security/headers": ["security-headers.ts"]
     }
   },
-  "include": ["vite.config.ts", "vitest.config.ts", "alias.config.ts", "security-headers.ts", "src/vite-plugins"]
+  "include": ["vite.config.ts", "alias.config.ts", "security-headers.ts", "src/vite-plugins"]
 }
 

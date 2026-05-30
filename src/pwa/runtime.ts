@@ -9,7 +9,7 @@ export function isStandaloneDisplayMode(): boolean {
   );
 }
 
-export function isIosDevice(): boolean {
+function isIosDevice(): boolean {
   if (typeof navigator === "undefined") return false;
   return /iPad|iPhone|iPod/.test(navigator.userAgent);
 }
@@ -21,7 +21,7 @@ export function isIosLikeDevice(): boolean {
   return navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
 }
 
-export function isAndroidDevice(): boolean {
+function isAndroidDevice(): boolean {
   if (typeof navigator === "undefined") return false;
   return /Android/i.test(navigator.userAgent);
 }
@@ -33,8 +33,4 @@ export function getPwaInstallPlatform(): PwaInstallPlatform {
   if (isIosLikeDevice()) return "ios";
   if (isAndroidDevice()) return "android";
   return null;
-}
-
-export function shouldOfferPwaInstall(): boolean {
-  return getPwaInstallPlatform() !== null;
 }

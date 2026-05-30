@@ -19,7 +19,7 @@ let messagingModule: MessagingModule | null = null;
 let messaging: MessagingInstance | null = null;
 let foregroundUnsub: (() => void) | null = null;
 
-export type FcmRegisterResult =
+type FcmRegisterResult =
   | { ok: true; token: string }
   | {
       ok: false;
