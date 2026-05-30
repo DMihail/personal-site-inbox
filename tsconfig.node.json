@@ -9,8 +9,15 @@
     "isolatedModules": true,
     "noEmit": true,
     "strict": true,
-    "types": ["node"]
+    "ignoreDeprecations": "6.0",
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@tests/*": ["tests/*"],
+      "@security/headers": ["security-headers.ts"]
+    }
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "alias.config.ts", "security-headers.ts", "src/vite-plugins"]
 }
 

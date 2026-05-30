@@ -50,17 +50,17 @@ export function FilterBar({ sortBy, onSortChange, filterBy, onFilterChange }: Fi
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="glass-elevated border-glass-border">
-          <DropdownMenuItem onClick={() => onSortChange("newest")}>
+          <DropdownMenuItem onClick={() => onSortChange("newest")} aria-checked={sortBy === "newest"}>
             Newest First
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onSortChange("oldest")}>
+          <DropdownMenuItem onClick={() => onSortChange("oldest")} aria-checked={sortBy === "oldest"}>
             Oldest First
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-glass-border" />
-          <DropdownMenuItem onClick={() => onSortChange("unread")}>
+          <DropdownMenuItem onClick={() => onSortChange("unread")} aria-checked={sortBy === "unread"}>
             Unread First
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onSortChange("important")}>
+          <DropdownMenuItem onClick={() => onSortChange("important")} aria-checked={sortBy === "important"}>
             Important First
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -80,17 +80,17 @@ export function FilterBar({ sortBy, onSortChange, filterBy, onFilterChange }: Fi
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="glass-elevated border-glass-border">
-          <DropdownMenuItem onClick={() => onFilterChange("all")}>
+          <DropdownMenuItem onClick={() => onFilterChange("all")} aria-checked={filterBy === "all"}>
             All Messages
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onFilterChange("unread")}>
+          <DropdownMenuItem onClick={() => onFilterChange("unread")} aria-checked={filterBy === "unread"}>
             Unread Only
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onFilterChange("important")}>
+          <DropdownMenuItem onClick={() => onFilterChange("important")} aria-checked={filterBy === "important"}>
             Important Only
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-glass-border" />
-          <DropdownMenuItem onClick={() => onFilterChange("archived")}>
+          <DropdownMenuItem onClick={() => onFilterChange("archived")} aria-checked={filterBy === "archived"}>
             Archived
           </DropdownMenuItem>
         </DropdownMenuContent>

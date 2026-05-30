@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   getPwaInstallPlatform,
   isStandaloneDisplayMode,
-  shouldOfferPwaInstall,
 } from "@/pwa/runtime";
 
 describe("pwa/runtime", () => {
@@ -33,6 +32,5 @@ describe("pwa/runtime", () => {
     });
 
     expect(getPwaInstallPlatform()).toBe("ios");
-    expect(shouldOfferPwaInstall()).toBe(true);
   });
 });

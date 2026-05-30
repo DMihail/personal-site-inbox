@@ -5,7 +5,6 @@ import type { View } from "../../features/inbox/types";
 interface InboxNavDrawerProps {
   open: boolean;
   isOnline: boolean;
-  currentView: View;
   inboxCount: number;
   unreadCount: number;
   importantCount: number;
@@ -17,7 +16,6 @@ interface InboxNavDrawerProps {
 export function InboxNavDrawer({
   open,
   isOnline,
-  currentView,
   inboxCount,
   unreadCount,
   importantCount,
@@ -37,7 +35,6 @@ export function InboxNavDrawer({
       <DeveloperInboxNavPanel
         titleId="inbox-nav-drawer-title"
         isOnline={isOnline}
-        currentView={currentView}
         inboxCount={inboxCount}
         unreadCount={unreadCount}
         importantCount={importantCount}

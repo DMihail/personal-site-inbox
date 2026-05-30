@@ -140,7 +140,3 @@ export function createSecurePersistStorage<S>(): PersistStorage<S> {
     },
   };
 }
-
-export function hasSecureStorageKey(): boolean {
-  return Boolean(getSecret());
-}

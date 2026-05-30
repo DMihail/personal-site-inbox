@@ -1,8 +1,6 @@
-import { getNotificationPermission } from "./notificationPermission";
+type UnblockBrowser = "chrome" | "edge" | "firefox" | "safari" | "generic";
 
-export type UnblockBrowser = "chrome" | "edge" | "firefox" | "safari" | "generic";
-
-export function detectNotificationSettingsBrowser(): UnblockBrowser {
+function detectNotificationSettingsBrowser(): UnblockBrowser {
   if (typeof navigator === "undefined") return "generic";
   const ua = navigator.userAgent;
   if (/Edg\//.test(ua)) return "edge";
@@ -49,8 +47,4 @@ export function getNotificationUnblockSteps(): string[] {
         "Reload the page, then enable push again",
       ];
   }
-}
-
-export function isNotificationPermissionBlocked(): boolean {
-  return getNotificationPermission() === "denied";
 }

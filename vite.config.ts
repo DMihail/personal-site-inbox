@@ -1,24 +1,16 @@
 import { defineConfig } from "vite";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
 import { VitePWA } from "vite-plugin-pwa";
 import { firebaseMessagingSwPlugin } from "./src/vite-plugins/firebaseMessagingSw";
+import { createAliases } from "./alias.config";
+import {
+  devSecurityHeaders,
+  productionSecurityHeaders,
+} from "./security-headers";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-const securityHeaders: Record<string, string> = {
-  "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet, noimageindex",
-  "X-Content-Type-Options": "nosniff",
-  "X-Frame-Options": "DENY",
-  "Referrer-Policy": "strict-origin-when-cross-origin",
-};
-
-export default defineConfig(({ mode }) => {
-  const isProd = mode === "production";
-
+export default defineConfig(() => {
   return {
     plugins: [
       react(),
@@ -28,9 +20,12 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       firebaseMessagingSwPlugin(),
       VitePWA({
+        strategies: "injectManifest",
+        srcDir: "src",
+        filename: "sw.js",
         registerType: "autoUpdate",
-        injectRegister: isProd ? "inline" : false,
-        includeAssets: ["favicon.png", "icon.png", "site.webmanifest", "robots.txt"],
+        injectRegister: false,
+        includeAssets: ["favicon.png", "icon.png", "robots.txt"],
         devOptions: {
           enabled: false,
         },
@@ -44,6 +39,7 @@ export default defineConfig(({ mode }) => {
           orientation: "portrait",
           background_color: "#0a0a0a",
           theme_color: "#0a0a0a",
+          ...({ gcm_sender_id: "103953800507" } as { gcm_sender_id: string }),
           icons: [
             {
               src: "/icon.png",
@@ -65,42 +61,13 @@ export default defineConfig(({ mode }) => {
             },
           ],
         },
-        workbox: {
-          skipWaiting: true,
-          clientsClaim: true,
-          importScripts: ["firebase-messaging-sw.js"],
-          navigateFallback: "/index.html",
+        injectManifest: {
           globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest,woff2}"],
-          runtimeCaching: [
-            {
-              urlPattern: ({ request }) =>
-                request.destination === "document" ||
-                request.destination === "script" ||
-                request.destination === "style",
-              handler: "StaleWhileRevalidate",
-              options: {
-                cacheName: "app-shell",
-                matchOptions: { ignoreVary: true },
-              },
-            },
-            {
-              urlPattern: ({ request }) =>
-                request.destination === "image" || request.destination === "font",
-              handler: "CacheFirst",
-              options: {
-                cacheName: "assets",
-                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
-                matchOptions: { ignoreVary: true },
-              },
-            },
-          ],
         },
       }),
     ],
     resolve: {
-      alias: {
-        "@": path.resolve(__dirname, "./src"),
-      },
+      alias: createAliases(),
     },
     build: {
       target: "es2022",
@@ -143,10 +110,10 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      headers: securityHeaders,
+      headers: devSecurityHeaders,
     },
     preview: {
-      headers: securityHeaders,
+      headers: productionSecurityHeaders,
     },
     assetsInclude: ["**/*.svg", "**/*.csv"],
   };

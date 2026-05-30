@@ -12,13 +12,14 @@
     "jsx": "react-jsx",
     "strict": true,
     "ignoreDeprecations": "6.0",
-    "types": ["vite/client", "vitest/globals"],
+    "types": ["vite/client", "node"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@tests/*": ["tests/*"]
+      "@tests/*": ["tests/*"],
+      "@security/headers": ["security-headers.ts"]
     }
   },
-  "include": ["src", "tests"]
+  "include": ["src", "security-headers.ts"]
 }
 
