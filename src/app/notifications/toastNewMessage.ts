@@ -37,7 +37,9 @@ export function toastNewMessage(message: Message) {
     duration: 10_000,
     action: {
       label: "Open",
-      onClick: () => openMessage(message.id),
+      onClick: () => {
+        openMessage(message.id);
+      },
     },
   });
 }

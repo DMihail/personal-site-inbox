@@ -13,7 +13,8 @@ export function useNotificationPermission() {
 
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState === "visible") refresh();
+      if (document.visibilityState !== "visible") return;
+      refresh();
     };
 
     window.addEventListener("focus", refresh);

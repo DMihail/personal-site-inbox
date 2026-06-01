@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
         strategies: "injectManifest",
         srcDir: "src",
         filename: "sw.js",
-        registerType: "autoUpdate",
+        registerType: "prompt",
         injectRegister: false,
         includeAssets: ["favicon.png", "icon.png", "robots.txt"],
         devOptions: {

@@ -12,7 +12,46 @@ export type ShowBrowserNotificationResult =
 
 const DEFAULT_NOTIFICATION_ICON = "/favicon.png";
 
-/** Shows a system notification; falls back to `Notification` when no service worker is active. */
+/** Prefer SW `showNotification` — required on Android when the page is SW-controlled. */
+export async function resolveNotificationRegistration(): Promise<ServiceWorkerRegistration | null> {
+  if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
+    return null;
+  }
+
+  const scoped = await navigator.serviceWorker.getRegistration("/");
+  if (scoped?.active) {
+    return scoped;
+  }
+
+  if (navigator.serviceWorker.controller) {
+    const controlled = await navigator.serviceWorker.getRegistration("/");
+    if (controlled?.active) {
+      return controlled;
+    }
+  }
+
+  try {
+    const fromPwa = await getPwaServiceWorkerRegistration();
+    if (fromPwa?.active) {
+      return fromPwa;
+    }
+  } catch {
+    // fall through
+  }
+
+  try {
+    const ready = await navigator.serviceWorker.ready;
+    if (ready.active) {
+      return ready;
+    }
+  } catch {
+    // fall through
+  }
+
+  return null;
+}
+
+/** Shows a system notification via the active service worker when possible. */
 export async function showBrowserNotification(
   title: string,
   options: NotificationOptions = {},
@@ -41,10 +80,19 @@ export async function showBrowserNotification(
   };
 
   try {
-    const reg = await getPwaServiceWorkerRegistration();
-    if (reg?.showNotification) {
+    const reg = await resolveNotificationRegistration();
+    if (reg) {
       await reg.showNotification(title, withIcon);
       return { ok: true };
+    }
+
+    if (navigator.serviceWorker?.controller) {
+      return {
+        ok: false,
+        reason: "error",
+        message:
+          "Service worker is not ready to show notifications. Reload the app, then try again.",
+      };
     }
 
     new Notification(title, withIcon);

@@ -37,7 +37,9 @@ export function SettingsView({
   onTestPush,
 }: SettingsViewProps) {
   const { permission, refresh } = useNotificationPermission();
-  const requestPermissionAndEnable = useRequestPushPermission(() => onPushEnabledChange(true));
+  const requestPermissionAndEnable = useRequestPushPermission(() => {
+    onPushEnabledChange(true);
+  });
   const recheckPermission = useRecheckPushPermission(refresh);
   const isDenied = permission === "denied";
   const needsPermissionPrompt = permission === "default" || permission === "unsupported";

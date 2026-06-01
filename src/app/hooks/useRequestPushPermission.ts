@@ -22,7 +22,7 @@ export function useRequestPushPermission(onGranted: () => void) {
         toast.error("Could not enable notifications", { description: result.error });
         return false;
       }
-      onGranted();
+      void onGranted();
       return true;
     });
   }, [onGranted]);

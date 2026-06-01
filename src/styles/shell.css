@@ -25,6 +25,15 @@ body {
     min-width: 2.75rem;
     min-height: 2.75rem;
   }
+
+  /* Sonner toasts — below notch / status bar on iOS PWA */
+  [data-sonner-toaster][data-y-position="top"] {
+    top: max(0.75rem, env(safe-area-inset-top, 0px)) !important;
+  }
+
+  [data-sonner-toaster][data-x-position="right"] {
+    right: max(0.75rem, env(safe-area-inset-right, 0px)) !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -282,6 +282,10 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
       // getToken may still succeed when a worker is activating
     }
 
+    if (navigator.storage?.persist) {
+      await navigator.storage.persist().catch(() => undefined);
+    }
+
     const token = await promiseWithTimeout(
       mod.getToken(messagingInstance, { vapidKey, serviceWorkerRegistration: swReg }),
       FCM_GET_TOKEN_TIMEOUT_MS,
@@ -295,7 +299,10 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
 
     return { ok: true, token };
   } catch (e) {
-    const message = e instanceof Error ? e.message : "FCM registration failed";
+    const raw = e instanceof Error ? e.message : "FCM registration failed";
+    const message = /storage/i.test(raw)
+      ? "Push storage failed in this browser. Free disk space, turn off private mode, clear site data for this app, then enable push again."
+      : raw;
     return { ok: false, reason: "error", message };
   }
 }
