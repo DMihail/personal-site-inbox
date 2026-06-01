@@ -32,7 +32,7 @@ export function buildContentSecurityPolicy(): string {
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob: https://www.gstatic.com",
     buildConnectSrc(),
-    "worker-src 'self' blob: https://www.gstatic.com",
+    "worker-src 'self' blob: https://www.gstatic.com https://storage.googleapis.com",
     "manifest-src 'self'",
     "upgrade-insecure-requests",
   ].join("; ");
@@ -56,13 +56,12 @@ export function buildDevContentSecurityPolicy(): string {
       "ws://localhost:*",
       "ws://127.0.0.1:*",
     ]),
-    "worker-src 'self' blob: https://www.gstatic.com",
+    "worker-src 'self' blob: https://www.gstatic.com https://storage.googleapis.com",
     "manifest-src 'self'",
   ].join("; ");
 }
 
-/** Headers safe for local dev (no HSTS — avoids pinning localhost). */
-export const devSecurityHeaders: Record<string, string> = {
+const sharedSecurityHeaders: Record<string, string> = {
   "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet, noimageindex",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
@@ -71,12 +70,18 @@ export const devSecurityHeaders: Record<string, string> = {
   "Permissions-Policy": PERMISSIONS_POLICY,
   "Cross-Origin-Opener-Policy": "same-origin",
   "Cross-Origin-Resource-Policy": "same-origin",
+};
+
+/** Local dev / Vite (no HSTS; relaxed connect-src for localhost API). */
+export const devSecurityHeaders: Record<string, string> = {
+  ...sharedSecurityHeaders,
   "Content-Security-Policy": buildDevContentSecurityPolicy(),
 };
 
-/** Production headers (Vercel + `vite preview`). Includes HSTS. */
+/** Production (Vercel + `vite preview`). */
 export const productionSecurityHeaders: Record<string, string> = {
-  ...devSecurityHeaders,
+  ...sharedSecurityHeaders,
+  "Content-Security-Policy": buildContentSecurityPolicy(),
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
 };
 

@@ -131,15 +131,3 @@ export async function finishNotificationPermissionRequest(
     };
   }
 }
-
-/**
- * Prefer calling `beginNotificationPermissionRequest()` from the click handler, then
- * `finishNotificationPermissionRequest()`. This helper is for callers that cannot split the flow.
- */
-export async function requestPushPermissionFromUserGesture(): Promise<PushPermissionRequestResult> {
-  const began = beginNotificationPermissionRequest();
-  if (!began.ok) {
-    return { ok: false, error: began.error, permission: began.permission };
-  }
-  return finishNotificationPermissionRequest(began.permissionPromise);
-}

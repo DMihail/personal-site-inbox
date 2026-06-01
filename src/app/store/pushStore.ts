@@ -3,7 +3,6 @@ import { persist } from "zustand/middleware";
 import { withSecurePersist } from "./securePersist";
 import { migratePushPersist } from "./persistMigrate";
 import { isFcmConfigured } from "@/utils/firebaseConfig";
-import { isPortfolioApiConfigured } from "@/utils/reply-api";
 import { registerFcmToken, subscribeForegroundMessages, unregisterFcmToken } from "../push/fcm";
 import {
   getNotificationPermission,
@@ -85,7 +84,7 @@ export const usePushStore = create<PushState>()(
           return;
         }
 
-        const result = await registerFcmToken(uid, { requestPermission: false });
+        const result = await registerFcmToken(uid);
         let fcmWarning: string | null = null;
         let token: string | null = null;
 
@@ -123,10 +122,7 @@ export const usePushStore = create<PushState>()(
       sendTestNotification: async () => {
         set({ isSendingTest: true });
         try {
-          return await runSendTestNotification({
-            pushEnabled: get().enabled,
-            includeServerPush: isPortfolioApiConfigured(),
-          });
+          return await runSendTestNotification({ pushEnabled: get().enabled });
         } finally {
           set({ isSendingTest: false });
         }
@@ -147,7 +143,7 @@ export const usePushStore = create<PushState>()(
           return;
         }
 
-        const result = await registerFcmToken(uid, { requestPermission: false });
+        const result = await registerFcmToken(uid);
         if (result.ok) {
           await startForegroundListener();
           set({ token: result.token, error: null });

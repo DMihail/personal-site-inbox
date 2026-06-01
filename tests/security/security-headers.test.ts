@@ -22,6 +22,12 @@ describe("security headers", () => {
     expect(productionSecurityHeaders["Strict-Transport-Security"]).toMatch(/max-age=/);
   });
 
+  it("uses production CSP on production headers (not dev localhost rules)", () => {
+    expect(productionSecurityHeaders["Content-Security-Policy"]).toContain("upgrade-insecure-requests");
+    expect(productionSecurityHeaders["Content-Security-Policy"]).not.toContain("http://localhost:*");
+    expect(devSecurityHeaders["Content-Security-Policy"]).toContain("http://localhost:*");
+  });
+
   it("builds a CSP that blocks framing and object embeds", () => {
     const csp = buildContentSecurityPolicy();
     expect(csp).toContain("frame-ancestors 'none'");

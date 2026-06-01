@@ -20,8 +20,6 @@ export type SendTestNotificationResult = {
 
 export async function runSendTestNotification(options: {
   pushEnabled: boolean;
-  /** When true and API is configured, also POST /api/inbox/test-push (real FCM from server). */
-  includeServerPush?: boolean;
 }): Promise<SendTestNotificationResult> {
   if (!options.pushEnabled) {
     return {
@@ -51,7 +49,7 @@ export async function runSendTestNotification(options: {
   let fcmTokenRefreshed = false;
   const uid = firebaseAuth.currentUser?.uid;
   if (uid && isFcmConfigured()) {
-    const tokenResult = await registerFcmToken(uid, { requestPermission: false });
+    const tokenResult = await registerFcmToken(uid);
     fcmTokenRefreshed = tokenResult.ok;
   }
 
@@ -80,7 +78,7 @@ export async function runSendTestNotification(options: {
   }
 
   let serverPush: SendTestNotificationResult["serverPush"] = "skipped";
-  if (options.includeServerPush && isPortfolioApiConfigured()) {
+  if (isPortfolioApiConfigured()) {
     try {
       const server = await sendInboxTestPush();
       serverPush = server.status;

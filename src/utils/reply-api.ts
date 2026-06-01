@@ -17,8 +17,6 @@ export function getPortfolioApiLabel(): string {
   }
 }
 
-export { portfolioApiBase } from "@/utils/portfolio-api-url";
-
 function replyErrorMessage(status: number, serverMessage?: string): string {
   if (serverMessage) return serverMessage;
   switch (status) {
