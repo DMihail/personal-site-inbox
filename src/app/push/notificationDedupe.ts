@@ -1,3 +1,5 @@
+import { logPushDebug } from "@/app/push/pushDebug";
+
 const SESSION_KEY = "inbox-notified-message-ids";
 const MAX_TRACKED_IDS = 200;
 
@@ -40,7 +42,10 @@ export async function showNotificationOnce(
   show: () => Promise<unknown>,
 ): Promise<void> {
   const id = messageId?.trim();
-  if (id && wasNotificationShown(id)) return;
+  if (id && wasNotificationShown(id)) {
+    logPushDebug("notification-skipped-duplicate-messageId", { messageId: id });
+    return;
+  }
   if (id) markNotificationShown(id);
   await show();
 }

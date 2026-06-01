@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { RefreshCw, X } from "lucide-react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { isPwaRuntime } from "@/pwa/config";
+import { isMobilePushDevice } from "@/pwa/runtime";
 import { Button } from "./ui/button";
 
 const DISMISS_KEY = "pwa-update-dismissed-script";
@@ -31,7 +32,8 @@ function watchWaitingWorker(registration: ServiceWorkerRegistration, onUpdate: (
 
 export function PwaUpdateBanner() {
   const [showUpdate, setShowUpdate] = useState(false);
-  const useWorkboxUpdates = isPwaRuntime;
+  /** Registering `/sw.js` on mobile replaces the FCM worker and fills storage. */
+  const useWorkboxUpdates = isPwaRuntime && !isMobilePushDevice();
 
   useRegisterSW({
     immediate: useWorkboxUpdates,

@@ -30,7 +30,7 @@ export async function getPushEnvironmentStatus(): Promise<PushEnvironmentStatus>
 }
 
 export function logPushEnvironmentHint(status: PushEnvironmentStatus): void {
-  if (!import.meta.env.DEV) return;
+  if (!import.meta.env.DEV && import.meta.env.VITE_PUSH_DEBUG !== "true") return;
 
   if (!status.hasMessagingSenderId) {
     console.warn(
@@ -45,5 +45,10 @@ export function logPushEnvironmentHint(status: PushEnvironmentStatus): void {
   }
   if (!status.messagingSupported && status.hasMessagingSenderId && status.hasVapidKey) {
     console.warn("[push] Firebase Messaging is not supported in this browser.");
+  }
+  if (import.meta.env.VITE_PUSH_DEBUG === "true") {
+    console.info(
+      "[push] VITE_PUSH_DEBUG is on — token/SW/Firestore changes log as [push:debug]. Service worker logs [push:sw].",
+    );
   }
 }

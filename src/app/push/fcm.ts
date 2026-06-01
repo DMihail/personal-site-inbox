@@ -9,6 +9,7 @@ import {
 } from "@/pwa/waitForServiceWorker";
 import { clearFcmClientStorage } from "@/app/push/clearFcmClientStorage";
 import { repairPushClientEnvironment } from "@/app/push/repairPushClientEnvironment";
+import { isPushDebugEnabled, logPushDebug, maskFcmToken } from "@/app/push/pushDebug";
 import { saveDeviceFcmToken, removeDeviceFcmToken } from "@/app/push/fcmTokenStore";
 import {
   getServiceWorkerActivationTimeoutMs,
@@ -164,7 +165,13 @@ function isRecoverableFcmStorageError(message: string): boolean {
 }
 
 function fcmStorageFailureMessage(): string {
-  return "Push storage failed in this browser. Free disk space on the phone, turn off private mode, then in Chrome → Site settings → Inbox → Clear storage (not only cache). Reopen the PWA and enable push again.";
+  if (isAndroidDevice()) {
+    return "Not enough storage for push on this phone. In Chrome: open Inbox → lock icon → Site settings → Storage → Clear (removes old app cache). Free system storage, fully close the PWA, reopen from the home screen, then enable push again.";
+  }
+  if (isIosLikeDevice()) {
+    return "Push storage failed. Free iPhone storage, close the PWA completely, reopen from the Home Screen, then enable push again.";
+  }
+  return "Push storage failed in this browser. Free disk space, then clear site data for Inbox and enable push again.";
 }
 
 function getFcmTokenTimeoutMs(): number {
@@ -304,24 +311,30 @@ async function registerFcmTokenInternal(uid: string): Promise<FcmRegisterResult>
 
       await clearFcmClientStorage();
 
-      const freshSwReg = await resolveMessagingServiceWorkerRegistration();
+      let freshSwReg = await resolveMessagingServiceWorkerRegistration();
       if (!freshSwReg?.active) {
         await repairPushClientEnvironment();
-        const repairedSwReg = await resolveMessagingServiceWorkerRegistration();
-        if (!repairedSwReg?.active) {
-          throw firstError;
-        }
-        token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, repairedSwReg);
-      } else {
-        token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, freshSwReg);
+        freshSwReg = await resolveMessagingServiceWorkerRegistration();
       }
+
+      if (!freshSwReg?.active) {
+        throw firstError;
+      }
+
+      token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, freshSwReg);
     }
 
     if (!token) {
       return { ok: false, reason: "no-token" };
     }
 
-    await saveDeviceFcmToken(uid, token);
+    const saved = await saveDeviceFcmToken(uid, token);
+    logPushDebug("fcm-token-registered", {
+      deviceId: saved.deviceId,
+      token: maskFcmToken(token),
+      tokenChanged: saved.tokenChanged,
+      hadPrevious: Boolean(saved.previousToken),
+    });
 
     return { ok: true, token };
   } catch (e) {
@@ -343,6 +356,7 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
 }
 
 export async function unregisterFcmToken(uid: string): Promise<void> {
+  logPushDebug("fcm-token-unregister", { uid });
   const mod = await loadMessagingModule();
   const messagingInstance = await getMessagingIfSupported();
   if (mod && messagingInstance) {
@@ -370,7 +384,16 @@ export async function subscribeForegroundMessages(
   }
 
   foregroundUnsub?.();
-  foregroundUnsub = mod.onMessage(messagingInstance, onPayload);
+  foregroundUnsub = mod.onMessage(messagingInstance, (payload) => {
+    const messageId = payload.data?.messageId;
+    if (isPushDebugEnabled()) {
+      console.info("[push:debug] foreground PUSH RECEIVED", {
+        messageId,
+        data: payload.data,
+      });
+    }
+    onPayload(payload);
+  });
 
   return () => {
     foregroundUnsub?.();

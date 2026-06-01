@@ -1,3 +1,4 @@
+import { logPushDebug, maskFcmToken } from "@/app/push/pushDebug";
 import { getFirestoreDb } from "@/utils/firestore";
 import { isIosLikeDevice } from "@/pwa/runtime";
 
@@ -15,15 +16,46 @@ function deviceDocPath(uid: string, deviceId: string) {
   return ["fcmTokens", uid, "devices", deviceId] as const;
 }
 
+export type SaveDeviceFcmTokenResult = {
+  deviceId: string;
+  tokenChanged: boolean;
+  previousToken: string | null;
+};
+
 /** Writes this device's FCM token and removes legacy single-token `fcmTokens/{uid}` doc. */
-export async function saveDeviceFcmToken(uid: string, token: string): Promise<string> {
+export async function saveDeviceFcmToken(
+  uid: string,
+  token: string,
+): Promise<SaveDeviceFcmTokenResult> {
   const { initPushDeviceId } = await import("@/app/push/pushDeviceId");
   const deviceId = await initPushDeviceId();
   const firestoreDb = await getFirestoreDb();
   const { doc, deleteDoc, getDoc, serverTimestamp, setDoc } = await import("firebase/firestore");
 
+  const deviceRef = doc(firestoreDb, ...deviceDocPath(uid, deviceId));
+  const existing = await getDoc(deviceRef);
+  const previousToken =
+    existing.exists() && typeof existing.data()?.token === "string"
+      ? existing.data()!.token
+      : null;
+  const tokenChanged = previousToken !== token;
+
+  if (tokenChanged) {
+    logPushDebug("firestore-token-update", {
+      deviceId,
+      platform: getPushPlatform(),
+      previous: previousToken ? maskFcmToken(previousToken) : null,
+      next: maskFcmToken(token),
+    });
+  } else {
+    logPushDebug("firestore-token-unchanged", {
+      deviceId,
+      token: maskFcmToken(token),
+    });
+  }
+
   await setDoc(
-    doc(firestoreDb, ...deviceDocPath(uid, deviceId)),
+    deviceRef,
     {
       token,
       uid,
@@ -40,7 +72,7 @@ export async function saveDeviceFcmToken(uid: string, token: string): Promise<st
     await deleteDoc(legacyRef).catch(() => undefined);
   }
 
-  return deviceId;
+  return { deviceId, tokenChanged, previousToken };
 }
 
 /** Removes only this device's token (other devices keep receiving push). */

@@ -13,7 +13,9 @@ import {
   getNotificationPermissionError,
   getPushNotificationSupport,
 } from "../push/notificationPermission";
+import { logPushDebug, maskFcmToken } from "../push/pushDebug";
 import { notifyFromFcmPayload } from "../push/notify";
+import { isIosLikeDevice, isStandaloneDisplayMode } from "@/pwa/runtime";
 import { runSendTestNotification, type SendTestNotificationResult } from "../push/sendTestNotification";
 
 interface PushState {
@@ -76,6 +78,12 @@ export const usePushStore = create<PushState>()(
             error: support.message,
           });
           return;
+        }
+
+        if (isIosLikeDevice() && !isStandaloneDisplayMode()) {
+          logPushDebug("ios-not-standalone", {
+            hint: "Add Inbox to Home Screen and open from the icon — Safari tab push is unreliable.",
+          });
         }
 
         const permission = getNotificationPermission();
@@ -155,6 +163,13 @@ export const usePushStore = create<PushState>()(
 
           const result = await refreshPushRegistration(uid);
           if (result.ok) {
+            const previous = get().token;
+            if (previous && previous !== result.token) {
+              logPushDebug("client-token-rotated", {
+                previous: maskFcmToken(previous),
+                next: maskFcmToken(result.token),
+              });
+            }
             await startForegroundListener();
             set({ token: result.token, error: null });
           } else if (result.reason === "no-vapid") {

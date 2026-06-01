@@ -2,7 +2,7 @@ export const DEFAULT_SERVICE_WORKER_TIMEOUT_MS = 20_000;
 export const IOS_SERVICE_WORKER_TIMEOUT_MS = 45_000;
 export const ANDROID_SERVICE_WORKER_TIMEOUT_MS = 12_000;
 
-/** iOS / Android — used for timeouts and install hints (push uses unified `/sw.js` in production). */
+/** iOS / Android — FCM-only SW in production; desktop uses `/sw.js` (Workbox + FCM). */
 export function isMobilePushDevice(): boolean {
   return isIosLikeDevice() || isAndroidDevice();
 }
