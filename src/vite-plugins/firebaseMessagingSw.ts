@@ -71,6 +71,7 @@ messaging.onBackgroundMessage((payload) => {
     icon: payload.notification?.icon || "/favicon.png",
     badge: "/favicon.png",
     tag: messageId ? "message:" + messageId : undefined,
+    renotify: true,
     data: { ...data, url },
   };
 

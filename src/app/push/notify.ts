@@ -1,6 +1,7 @@
 import type { MessagePayload } from "firebase/messaging";
 import type { Message } from "../features/inbox/types";
 import { getPwaServiceWorkerRegistration } from "./fcm";
+import { showNotificationOnce } from "./notificationDedupe";
 import {
   getNotificationPermission,
   getNotificationPermissionError,
@@ -77,6 +78,7 @@ export async function showBrowserNotification(
     icon: DEFAULT_NOTIFICATION_ICON,
     badge: DEFAULT_NOTIFICATION_ICON,
     ...options,
+    ...({ renotify: true } as NotificationOptions),
   };
 
   try {
@@ -111,14 +113,16 @@ export async function notifyFromFcmPayload(payload: MessagePayload) {
     payload.notification?.body ??
     data.body ??
     (data.preview ? String(data.preview) : "");
-  const messageId = data.messageId;
+  const messageId = typeof data.messageId === "string" ? data.messageId : undefined;
   const url = data.url ?? "/";
 
-  await showBrowserNotification(title, {
-    body,
-    tag: messageId ? `message:${messageId}` : undefined,
-    data: { ...data, url },
-  });
+  await showNotificationOnce(messageId, () =>
+    showBrowserNotification(title, {
+      body,
+      tag: messageId ? `message:${messageId}` : undefined,
+      data: { ...data, url },
+    }),
+  );
 }
 
 export async function notifyNewMessage(message: Message): Promise<ShowBrowserNotificationResult> {

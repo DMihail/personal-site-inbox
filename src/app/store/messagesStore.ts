@@ -5,8 +5,10 @@ import type { FilterOption, SortOption } from "../components/FilterBar";
 import { shouldToastForMessageChange } from "../notifications/shouldToastForMessageChange";
 import { toastNewMessage } from "../notifications/toastNewMessage";
 import { notifyNewMessage } from "../push/notify";
+import { showNotificationOnce } from "../push/notificationDedupe";
 import { shouldNotifyNewMessages } from "../push/shouldNotify";
 import { shouldToastNewMessage } from "../push/shouldToastNewMessage";
+import { usePushStore } from "./pushStore";
 
 type FirestoreMessageDoc = {
   name: string;
@@ -111,6 +113,11 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
                 toastNewMessage(msg);
               } else if (shouldNotifyNewMessages()) {
                 void notifyNewMessage(msg);
+              } else {
+                const { enabled, token } = usePushStore.getState();
+                if (enabled && token && msg.source === "portfolio") {
+                  void showNotificationOnce(msg.id, () => notifyNewMessage(msg));
+                }
               }
             }
 
