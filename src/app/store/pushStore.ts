@@ -1,6 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { withSecurePersist } from "./securePersist";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { migratePushPersist } from "./persistMigrate";
 import { isFcmConfigured } from "@/utils/firebaseConfig";
 import { registerFcmToken, subscribeForegroundMessages, unregisterFcmToken } from "../push/fcm";
@@ -62,61 +61,67 @@ export const usePushStore = create<PushState>()(
 
         set({ isRegistering: true, error: null });
 
-        const support = getPushNotificationSupport();
-        if (!support.ok) {
+        try {
+          const support = getPushNotificationSupport();
+          if (!support.ok) {
+            set({
+              enabled: false,
+              token: null,
+              error: support.message,
+            });
+            return;
+          }
+
+          const permission = getNotificationPermission();
+          if (permission !== "granted") {
+            set({
+              enabled: false,
+              token: null,
+              error: getNotificationPermissionError(permission),
+            });
+            return;
+          }
+
+          const result = await registerFcmToken(uid);
+          let fcmWarning: string | null = null;
+          let token: string | null = null;
+
+          if (result.ok) {
+            token = result.token;
+          } else if (result.reason === "no-vapid") {
+            fcmWarning =
+              "In-tab alerts only. Add VITE_FIREBASE_VAPID_KEY (Firebase → Cloud Messaging) for background push.";
+          } else if (result.reason === "permission-denied") {
+            set({
+              enabled: false,
+              token: null,
+              error: getNotificationPermissionError("denied"),
+            });
+            return;
+          } else {
+            fcmWarning =
+              result.message ??
+              "FCM token not saved — in-tab Firestore alerts still work. Check the browser console and Firestore rules.";
+          }
+
+          if (token) {
+            await startForegroundListener();
+          }
+
+          set({
+            enabled: true,
+            token,
+            error: fcmWarning,
+          });
+        } catch (e) {
           set({
             enabled: false,
             token: null,
-            isRegistering: false,
-            error: support.message,
+            error: e instanceof Error ? e.message : "Failed to enable push notifications",
           });
-          return;
+        } finally {
+          set({ isRegistering: false });
         }
-
-        const permission = getNotificationPermission();
-        if (permission !== "granted") {
-          set({
-            enabled: false,
-            token: null,
-            isRegistering: false,
-            error: getNotificationPermissionError(permission),
-          });
-          return;
-        }
-
-        const result = await registerFcmToken(uid);
-        let fcmWarning: string | null = null;
-        let token: string | null = null;
-
-        if (result.ok) {
-          token = result.token;
-        } else if (result.reason === "no-vapid") {
-          fcmWarning =
-            "In-tab alerts only. Add VITE_FIREBASE_VAPID_KEY (Firebase → Cloud Messaging) for background push.";
-        } else if (result.reason !== "permission-denied") {
-          fcmWarning =
-            result.message ??
-            "FCM token not saved — in-tab Firestore alerts still work. Check the browser console and Firestore rules.";
-        } else if (result.reason === "permission-denied") {
-          set({
-            enabled: false,
-            token: null,
-            isRegistering: false,
-            error: getNotificationPermissionError("denied"),
-          });
-          return;
-        }
-
-        if (token) {
-          await startForegroundListener();
-        }
-
-        set({
-          enabled: true,
-          token,
-          isRegistering: false,
-          error: fcmWarning,
-        });
       },
 
       sendTestNotification: async () => {
@@ -154,11 +159,12 @@ export const usePushStore = create<PushState>()(
         }
       },
     }),
-    withSecurePersist({
+    {
       name: "push-store",
+      storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ enabled: s.enabled }),
       version: 3,
       migrate: migratePushPersist,
-    }),
+    },
   ),
 );

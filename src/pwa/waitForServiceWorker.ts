@@ -1,4 +1,4 @@
-const DEFAULT_TIMEOUT_MS = 20_000;
+export const SERVICE_WORKER_TIMEOUT_MS = 20_000;
 
 function workerScriptUrl(registration: ServiceWorkerRegistration): string {
   const worker = registration.active ?? registration.installing ?? registration.waiting;
@@ -6,9 +6,33 @@ function workerScriptUrl(registration: ServiceWorkerRegistration): string {
 }
 
 /** Resolves when `registration` has an active worker (or the page is already controlled). */
+/** Rejects if `promise` does not settle within `timeoutMs`. */
+export function promiseWithTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  message = "Operation timed out",
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error(message));
+    }, timeoutMs);
+
+    void promise.then(
+      (value) => {
+        window.clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error: unknown) => {
+        window.clearTimeout(timeoutId);
+        reject(error instanceof Error ? error : new Error(message));
+      },
+    );
+  });
+}
+
 export function waitForServiceWorkerActive(
   registration: ServiceWorkerRegistration,
-  timeoutMs = DEFAULT_TIMEOUT_MS,
+  timeoutMs = SERVICE_WORKER_TIMEOUT_MS,
 ): Promise<ServiceWorkerRegistration> {
   if (registration.active) {
     return Promise.resolve(registration);
@@ -62,7 +86,7 @@ export function waitForServiceWorkerActive(
 
 export async function getActiveServiceWorkerRegistration(
   scope = "/",
-  activationTimeoutMs = DEFAULT_TIMEOUT_MS,
+  activationTimeoutMs = SERVICE_WORKER_TIMEOUT_MS,
 ): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
 

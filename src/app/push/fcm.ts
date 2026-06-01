@@ -5,8 +5,12 @@ import {
   getActiveServiceWorkerRegistration,
   isMessagingServiceWorker,
   isWorkboxServiceWorker,
+  promiseWithTimeout,
+  SERVICE_WORKER_TIMEOUT_MS,
   waitForServiceWorkerActive,
 } from "@/pwa/waitForServiceWorker";
+
+const FCM_GET_TOKEN_TIMEOUT_MS = 30_000;
 
 const LEGACY_MESSAGING_SW_SCOPE = "/firebase/";
 const DEV_MESSAGING_SW_URL = "/firebase-messaging-sw.js";
@@ -101,7 +105,11 @@ async function registerProdMessagingServiceWorker(): Promise<ServiceWorkerRegist
   if (registered) return registered;
 
   try {
-    const ready = await navigator.serviceWorker.ready;
+    const ready = await promiseWithTimeout(
+      navigator.serviceWorker.ready,
+      SERVICE_WORKER_TIMEOUT_MS,
+      "Service worker ready timed out",
+    );
     if (isWorkboxServiceWorker(ready) || isMessagingServiceWorker(ready)) {
       return ready;
     }
@@ -164,7 +172,11 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
       };
     }
 
-    const token = await mod.getToken(messagingInstance, { vapidKey, serviceWorkerRegistration: swReg });
+    const token = await promiseWithTimeout(
+      mod.getToken(messagingInstance, { vapidKey, serviceWorkerRegistration: swReg }),
+      FCM_GET_TOKEN_TIMEOUT_MS,
+      "FCM getToken timed out — check service worker and VAPID key",
+    );
     if (!token) {
       return { ok: false, reason: "no-token" };
     }
