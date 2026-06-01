@@ -6,6 +6,10 @@ import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from
 import { NavigationRoute, registerRoute } from "workbox-routing";
 import { CacheFirst } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
+import {
+  WORKBOX_ASSETS_MAX_AGE_SECONDS,
+  WORKBOX_ASSETS_MAX_ENTRIES,
+} from "./pwa/storageBudgets";
 
 self.addEventListener("message", (event) => {
   if (event?.data?.type === "SKIP_WAITING") {
@@ -41,8 +45,8 @@ registerRoute(
     matchOptions: { ignoreVary: true },
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 40,
-        maxAgeSeconds: 60 * 60 * 24 * 7,
+        maxEntries: WORKBOX_ASSETS_MAX_ENTRIES,
+        maxAgeSeconds: WORKBOX_ASSETS_MAX_AGE_SECONDS,
       }),
     ],
   }),
