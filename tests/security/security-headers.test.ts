@@ -13,7 +13,8 @@ describe("security headers", () => {
       expect(headers["X-Frame-Options"]).toBe("DENY");
       expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
       expect(headers["Content-Security-Policy"]).toBeTruthy();
-      expect(headers["Permissions-Policy"]).toContain("notifications=(self)");
+      expect(headers["Permissions-Policy"]).not.toContain("notifications=");
+      expect(headers["Permissions-Policy"]).not.toContain("push=");
     }
   });
 
@@ -34,6 +35,7 @@ describe("security headers", () => {
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("upgrade-insecure-requests");
     expect(csp).toContain("https://*.googleapis.com");
+    expect(csp).toContain("https://storage.googleapis.com");
   });
 
   it("dev CSP allows local HTTP API and skips upgrade-insecure-requests", () => {

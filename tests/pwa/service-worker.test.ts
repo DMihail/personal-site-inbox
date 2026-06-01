@@ -6,9 +6,10 @@ describe("service worker", () => {
   it("loads FCM handlers before Workbox setup", () => {
     const swSource = readFileSync(path.join(process.cwd(), "src/sw.js"), "utf8");
     const firebaseIndex = swSource.indexOf('importScripts("/firebase-messaging-sw.js")');
-    const workboxIndex = swSource.indexOf("workbox-sw.js");
+    const workboxIndex = swSource.indexOf("workbox-precaching");
 
     expect(firebaseIndex).toBeGreaterThanOrEqual(0);
     expect(workboxIndex).toBeGreaterThan(firebaseIndex);
+    expect(swSource).not.toContain("storage.googleapis.com/workbox-cdn");
   });
 });

@@ -3,8 +3,9 @@
  * Keep `vercel.json` in sync — run `npm run sync:security-headers` after edits.
  */
 
+/** Standard features only — `notifications` / `push` are not valid Permissions-Policy tokens in Chromium. */
 const PERMISSIONS_POLICY =
-  "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), browsing-topics=(), interest-cohort=(), notifications=(self), push=(self)";
+  "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), browsing-topics=(), interest-cohort=()";
 
 function buildConnectSrc(extra: string[] = []): string {
   return [
@@ -27,7 +28,7 @@ export function buildContentSecurityPolicy(): string {
     "form-action 'self'",
     "frame-ancestors 'none'",
     "object-src 'none'",
-    "script-src 'self' 'unsafe-inline' https://www.gstatic.com",
+    "script-src 'self' 'unsafe-inline' https://www.gstatic.com https://storage.googleapis.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob: https://www.gstatic.com",
@@ -46,7 +47,7 @@ export function buildDevContentSecurityPolicy(): string {
     "form-action 'self'",
     "frame-ancestors 'none'",
     "object-src 'none'",
-    "script-src 'self' 'unsafe-inline' https://www.gstatic.com",
+    "script-src 'self' 'unsafe-inline' https://www.gstatic.com https://storage.googleapis.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob: https://www.gstatic.com",
