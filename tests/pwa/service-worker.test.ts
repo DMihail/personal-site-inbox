@@ -12,4 +12,12 @@ describe("service worker", () => {
     expect(workboxIndex).toBeGreaterThan(firebaseIndex);
     expect(swSource).not.toContain("storage.googleapis.com/workbox-cdn");
   });
+
+  it("registers clientsClaim at top level, not inside activate", () => {
+    const swSource = readFileSync(path.join(process.cwd(), "src/sw.js"), "utf8");
+    expect(swSource).toMatch(/clientsClaim\(\)/);
+    expect(swSource).not.toMatch(
+      /addEventListener\s*\(\s*["']activate["'][^)]*clientsClaim/,
+    );
+  });
 });
