@@ -52,6 +52,8 @@ Deploy Firestore security rules when using Firebase:
 firebase deploy --only firestore:rules
 ```
 
+FCM tokens are stored per device at `fcmTokens/{uid}/devices/{deviceId}` so push can reach every phone and browser. Update the portfolio API to send to all tokens — see [docs/fcm-multi-device-backend.md](./docs/fcm-multi-device-backend.md).
+
 ## Security (public deployment)
 
 This app is a **single-operator** inbox, not multi-tenant. Before going public:

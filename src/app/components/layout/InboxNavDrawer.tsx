@@ -30,7 +30,7 @@ export function InboxNavDrawer({
       enableGesture
       edgeWidth={20}
       labelledBy="inbox-nav-drawer-title"
-      panelClassName="z-[60] w-[min(100vw,17rem)]"
+      panelClassName="z-[60] w-[min(100vw,17rem)] pt-[max(0px,env(safe-area-inset-top))]"
     >
       <DeveloperInboxNavPanel
         titleId="inbox-nav-drawer-title"

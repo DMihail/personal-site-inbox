@@ -1,3 +1,10 @@
+export const DEFAULT_SERVICE_WORKER_TIMEOUT_MS = 20_000;
+export const IOS_SERVICE_WORKER_TIMEOUT_MS = 45_000;
+
+export function getServiceWorkerActivationTimeoutMs(): number {
+  return isIosLikeDevice() ? IOS_SERVICE_WORKER_TIMEOUT_MS : DEFAULT_SERVICE_WORKER_TIMEOUT_MS;
+}
+
 /** True when the app runs as an installed PWA (home screen / standalone). */
 export function isStandaloneDisplayMode(): boolean {
   if (typeof window === "undefined") return false;
