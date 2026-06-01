@@ -3,6 +3,7 @@ import { isFcmConfigured } from "@/utils/firebaseConfig";
 import {
   getActiveServiceWorkerRegistration,
   isMessagingServiceWorker,
+  isPushCapableServiceWorker,
   promiseWithTimeout,
   waitForServiceWorkerActive,
 } from "@/pwa/waitForServiceWorker";
@@ -16,10 +17,7 @@ import {
   isMobilePushDevice,
   isStandaloneDisplayMode,
 } from "@/pwa/runtime";
-import {
-  registerMobileMessagingServiceWorker,
-  registerProductionServiceWorker,
-} from "@/pwa/registerServiceWorker";
+import { registerProductionServiceWorker } from "@/pwa/registerServiceWorker";
 
 const FCM_GET_TOKEN_TIMEOUT_MS = 30_000;
 const FCM_GET_TOKEN_ANDROID_TIMEOUT_MS = 18_000;
@@ -82,18 +80,18 @@ async function resolveMessagingServiceWorkerRegistration(): Promise<ServiceWorke
 
   const timeoutMs = getServiceWorkerActivationTimeoutMs();
   const registrations = await navigator.serviceWorker.getRegistrations();
-  const activeMessaging = registrations.find((reg) => isMessagingServiceWorker(reg) && reg.active);
-  if (activeMessaging) {
-    return activeMessaging;
+  const activePush = registrations.find((reg) => isPushCapableServiceWorker(reg) && reg.active);
+  if (activePush) {
+    return activePush;
   }
 
-  const pendingMessaging = registrations.find(isMessagingServiceWorker);
-  if (pendingMessaging) {
+  const pendingPush = registrations.find(isPushCapableServiceWorker);
+  if (pendingPush) {
     try {
-      const activated = await waitForServiceWorkerActive(pendingMessaging, timeoutMs);
+      const activated = await waitForServiceWorkerActive(pendingPush, timeoutMs);
       if (activated.active) return activated;
     } catch {
-      if (pendingMessaging.active) return pendingMessaging;
+      if (pendingPush.active) return pendingPush;
     }
   }
 
@@ -193,23 +191,9 @@ function serviceWorkerRegistrationFailureMessage(): string {
   return "Could not register service worker for push notifications. Reload the page and try again.";
 }
 
-/** Production: bootstrap registers platform SW; ensure it is active before FCM token refresh. */
+/** Production: unified `/sw.js` (FCM + Workbox) must be active before FCM token refresh. */
 async function registerProdMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   const timeoutMs = getServiceWorkerActivationTimeoutMs();
-
-  if (isMobilePushDevice()) {
-    const registered = await registerMobileMessagingServiceWorker();
-    if (registered?.active) return registered;
-    if (registered) {
-      try {
-        const active = await waitForServiceWorkerActive(registered, timeoutMs);
-        if (active.active) return active;
-      } catch {
-        if (registered.active) return registered;
-      }
-    }
-    return registerMobileMessagingServiceWorker({ retry: true });
-  }
 
   let registered = await registerProductionServiceWorker();
   if (registered?.active) return registered;

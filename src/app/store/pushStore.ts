@@ -143,6 +143,9 @@ export const usePushStore = create<PushState>()(
           return;
         }
 
+        const { registerMessagingServiceWorker } = await import("@/app/push/fcm");
+        await registerMessagingServiceWorker();
+
         const result = await registerFcmToken(uid);
         if (result.ok) {
           await startForegroundListener();
@@ -150,7 +153,12 @@ export const usePushStore = create<PushState>()(
         } else if (result.reason === "no-vapid") {
           set({ token: null, error: null });
         } else if (result.reason !== "permission-denied") {
-          set({ error: result.message ?? "Push token refresh failed" });
+          set({
+            token: null,
+            error:
+              result.message ??
+              "Push token refresh failed — toggle push off and on, or reinstall the PWA.",
+          });
         }
       },
     }),

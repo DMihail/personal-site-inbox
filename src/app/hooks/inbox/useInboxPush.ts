@@ -54,7 +54,10 @@ export function useInboxPush(userId: string | null | undefined) {
     navigator.serviceWorker?.addEventListener("controllerchange", onControllerChange);
     document.addEventListener("visibilitychange", onVisibilityChange);
 
-    void syncPushWithUser(userId);
+    void import("@/app/push/fcm").then(async (m) => {
+      await m.registerMessagingServiceWorker();
+      if (!cancelled) await syncPushWithUser(userId);
+    });
 
     return () => {
       cancelled = true;
