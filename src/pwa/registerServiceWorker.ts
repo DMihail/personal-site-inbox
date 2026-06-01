@@ -4,39 +4,42 @@ import {
   isWorkboxServiceWorker,
   waitForServiceWorkerActive,
 } from "@/pwa/waitForServiceWorker";
-import { getServiceWorkerActivationTimeoutMs } from "@/pwa/runtime";
+import { getServiceWorkerActivationTimeoutMs, isMobilePushDevice } from "@/pwa/runtime";
+
+const MESSAGING_SW_URL = "/firebase-messaging-sw.js";
 
 let inflightWorkboxRegister: Promise<ServiceWorkerRegistration | null> | null = null;
+let inflightMessagingRegister: Promise<ServiceWorkerRegistration | null> | null = null;
 
-/**
- * Mobile used a standalone FCM SW; production now uses unified `/sw.js` everywhere
- * (imports `firebase-messaging-sw.js`) so push and updates share one registration.
- */
-async function migrateToUnifiedPushServiceWorker(): Promise<void> {
+/** Workbox precache on Android often fills storage and breaks FCM IndexedDB. */
+export async function evictWorkboxFromMobile(): Promise<void> {
+  if (!isMobilePushDevice() || typeof navigator === "undefined") return;
+
   const registrations = await navigator.serviceWorker.getRegistrations();
-  const workbox = registrations.find((reg) => isWorkboxServiceWorker(reg));
-
-  if (workbox) {
-    await Promise.all(
-      registrations
-        .filter((reg) => isMessagingServiceWorker(reg) && !isWorkboxServiceWorker(reg))
-        .map((reg) => reg.unregister().catch(() => undefined)),
-    );
-    return;
-  }
-
   await Promise.all(
     registrations
-      .filter((reg) => isMessagingServiceWorker(reg) && !isWorkboxServiceWorker(reg))
+      .filter((reg) => isWorkboxServiceWorker(reg))
       .map((reg) => reg.unregister().catch(() => undefined)),
+  );
+
+  if (typeof caches === "undefined") return;
+
+  const keys = await caches.keys();
+  await Promise.all(
+    keys
+      .filter(
+        (name) =>
+          name.includes("workbox") ||
+          name.includes("precache") ||
+          name === "assets" ||
+          name.includes("app-shell"),
+      )
+      .map((name) => caches.delete(name)),
   );
 }
 
 async function attemptAppServiceWorkerRegister(): Promise<ServiceWorkerRegistration | null> {
   const timeoutMs = getServiceWorkerActivationTimeoutMs();
-
-  await migrateToUnifiedPushServiceWorker();
-
   const registrations = await navigator.serviceWorker.getRegistrations();
   const existing = registrations.find((reg) => isWorkboxServiceWorker(reg) && reg.active);
   if (existing) {
@@ -69,11 +72,15 @@ async function attemptAppServiceWorkerRegister(): Promise<ServiceWorkerRegistrat
   return null;
 }
 
-/** Registers `/sw.js` (Workbox + FCM via importScripts) on all platforms in production. */
+/** Desktop production: Workbox + FCM via importScripts. */
 export function registerAppServiceWorker(options?: {
   retry?: boolean;
 }): Promise<ServiceWorkerRegistration | null> {
-  if (!import.meta.env.PROD || !("serviceWorker" in navigator)) {
+  if (
+    !import.meta.env.PROD ||
+    !("serviceWorker" in navigator) ||
+    isMobilePushDevice()
+  ) {
     return Promise.resolve(null);
   }
 
@@ -93,28 +100,88 @@ export function registerAppServiceWorker(options?: {
   return inflightWorkboxRegister;
 }
 
-/** @deprecated Standalone FCM SW — use registerAppServiceWorker / registerProductionServiceWorker. */
+async function attemptMobileMessagingServiceWorkerRegister(): Promise<ServiceWorkerRegistration | null> {
+  const timeoutMs = getServiceWorkerActivationTimeoutMs();
+
+  await evictWorkboxFromMobile();
+
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  const existingMessaging = registrations.find(
+    (reg) => isMessagingServiceWorker(reg) && reg.active,
+  );
+  if (existingMessaging) {
+    return existingMessaging;
+  }
+
+  const pendingMessaging = registrations.find(isMessagingServiceWorker);
+  if (pendingMessaging) {
+    try {
+      const active = await waitForServiceWorkerActive(pendingMessaging, timeoutMs);
+      if (active.active) return active;
+    } catch {
+      if (pendingMessaging.active) return pendingMessaging;
+    }
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.register(MESSAGING_SW_URL, {
+      scope: "/",
+    });
+    try {
+      return await waitForServiceWorkerActive(registration, timeoutMs);
+    } catch {
+      return registration.active || registration.installing || registration.waiting
+        ? registration
+        : null;
+    }
+  } catch (error) {
+    console.warn("[pwa] Failed to register FCM service worker", error);
+    return null;
+  }
+}
+
+/** iOS / Android: lightweight FCM-only SW (no Workbox precache). */
 export function registerMobileMessagingServiceWorker(options?: {
   retry?: boolean;
 }): Promise<ServiceWorkerRegistration | null> {
-  return registerAppServiceWorker(options);
+  if (!import.meta.env.PROD || !("serviceWorker" in navigator) || !isMobilePushDevice()) {
+    return Promise.resolve(null);
+  }
+
+  if (options?.retry) {
+    inflightMessagingRegister = null;
+  }
+
+  if (!inflightMessagingRegister) {
+    inflightMessagingRegister = attemptMobileMessagingServiceWorkerRegister().then((result) => {
+      if (!result?.active && !result?.installing && !result?.waiting) {
+        inflightMessagingRegister = null;
+      }
+      return result;
+    });
+  }
+
+  return inflightMessagingRegister;
 }
 
-/** @deprecated Use registerAppServiceWorker */
 export const registerIosMessagingServiceWorker = registerMobileMessagingServiceWorker;
 
-/** Production SW: unified Workbox + FCM on all platforms. */
+/** Production: FCM-only on mobile, Workbox on desktop. */
 export function registerProductionServiceWorker(options?: {
   retry?: boolean;
 }): Promise<ServiceWorkerRegistration | null> {
+  if (isMobilePushDevice()) {
+    return registerMobileMessagingServiceWorker(options);
+  }
   return registerAppServiceWorker(options);
 }
 
-/** Registers `/sw.js` and waits for an active worker (retries once on failure). */
-export async function ensureActiveProductionServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+async function ensureActiveRegistration(
+  register: (options?: { retry?: boolean }) => Promise<ServiceWorkerRegistration | null>,
+): Promise<ServiceWorkerRegistration | null> {
   const timeoutMs = getServiceWorkerActivationTimeoutMs();
 
-  let registered = await registerProductionServiceWorker();
+  let registered = await register();
   if (registered?.active) return registered;
 
   if (registered) {
@@ -126,7 +193,12 @@ export async function ensureActiveProductionServiceWorker(): Promise<ServiceWork
     }
   }
 
-  return registerProductionServiceWorker({ retry: true });
+  return register({ retry: true });
+}
+
+/** Active push SW for the current platform (retries once). */
+export async function ensureActiveProductionServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  return ensureActiveRegistration(registerProductionServiceWorker);
 }
 
 /** Returns the active push-capable registration if one exists. */

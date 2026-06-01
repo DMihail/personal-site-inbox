@@ -164,7 +164,13 @@ function isRecoverableFcmStorageError(message: string): boolean {
 }
 
 function fcmStorageFailureMessage(): string {
-  return "Push storage failed in this browser. Free disk space on the phone, turn off private mode, then in Chrome → Site settings → Inbox → Clear storage (not only cache). Reopen the PWA and enable push again.";
+  if (isAndroidDevice()) {
+    return "Not enough storage for push on this phone. In Chrome: open Inbox → lock icon → Site settings → Storage → Clear (removes old app cache). Free system storage, fully close the PWA, reopen from the home screen, then enable push again.";
+  }
+  if (isIosLikeDevice()) {
+    return "Push storage failed. Free iPhone storage, close the PWA completely, reopen from the Home Screen, then enable push again.";
+  }
+  return "Push storage failed in this browser. Free disk space, then clear site data for Inbox and enable push again.";
 }
 
 function getFcmTokenTimeoutMs(): number {
@@ -304,17 +310,17 @@ async function registerFcmTokenInternal(uid: string): Promise<FcmRegisterResult>
 
       await clearFcmClientStorage();
 
-      const freshSwReg = await resolveMessagingServiceWorkerRegistration();
+      let freshSwReg = await resolveMessagingServiceWorkerRegistration();
       if (!freshSwReg?.active) {
         await repairPushClientEnvironment();
-        const repairedSwReg = await resolveMessagingServiceWorkerRegistration();
-        if (!repairedSwReg?.active) {
-          throw firstError;
-        }
-        token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, repairedSwReg);
-      } else {
-        token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, freshSwReg);
+        freshSwReg = await resolveMessagingServiceWorkerRegistration();
       }
+
+      if (!freshSwReg?.active) {
+        throw firstError;
+      }
+
+      token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, freshSwReg);
     }
 
     if (!token) {
