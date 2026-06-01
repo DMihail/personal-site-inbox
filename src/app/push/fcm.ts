@@ -7,6 +7,7 @@ import {
   promiseWithTimeout,
   waitForServiceWorkerActive,
 } from "@/pwa/waitForServiceWorker";
+import { clearFcmClientStorage } from "@/app/push/clearFcmClientStorage";
 import { saveDeviceFcmToken, removeDeviceFcmToken } from "@/app/push/fcmTokenStore";
 import {
   getServiceWorkerActivationTimeoutMs,
@@ -151,6 +152,27 @@ async function registerIosMessagingServiceWorkerFallback(): Promise<ServiceWorke
   }
 }
 
+function isRecoverableFcmStorageError(message: string): boolean {
+  return /storage|indexeddb|quota|push service|registration failed/i.test(message);
+}
+
+function fcmStorageFailureMessage(): string {
+  return "Push storage failed in this browser. Free disk space on the phone, turn off private mode, then in Chrome → Site settings → Inbox → Clear storage (not only cache). Reopen the PWA and enable push again.";
+}
+
+async function getFcmRegistrationToken(
+  mod: MessagingModule,
+  messagingInstance: MessagingInstance,
+  vapidKey: string,
+  swReg: ServiceWorkerRegistration,
+): Promise<string> {
+  return promiseWithTimeout(
+    mod.getToken(messagingInstance, { vapidKey, serviceWorkerRegistration: swReg }),
+    FCM_GET_TOKEN_TIMEOUT_MS,
+    "FCM getToken timed out — check service worker and VAPID key",
+  );
+}
+
 function serviceWorkerRegistrationFailureMessage(): string {
   if (isIosLikeDevice() && !isStandaloneDisplayMode()) {
     return "On iPhone, add this app to the Home Screen, open it from the icon, then enable notifications again.";
@@ -282,11 +304,26 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
       // getToken may still succeed when a worker is activating
     }
 
-    const token = await promiseWithTimeout(
-      mod.getToken(messagingInstance, { vapidKey, serviceWorkerRegistration: swReg }),
-      FCM_GET_TOKEN_TIMEOUT_MS,
-      "FCM getToken timed out — check service worker and VAPID key",
-    );
+    let token: string;
+    try {
+      token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, swReg);
+    } catch (firstError) {
+      const raw =
+        firstError instanceof Error ? firstError.message : "FCM registration failed";
+      if (!isRecoverableFcmStorageError(raw)) {
+        throw firstError;
+      }
+
+      await clearFcmClientStorage();
+      try {
+        await mod.deleteToken(messagingInstance);
+      } catch {
+        // best-effort reset before retry
+      }
+
+      token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, swReg);
+    }
+
     if (!token) {
       return { ok: false, reason: "no-token" };
     }
@@ -296,9 +333,7 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
     return { ok: true, token };
   } catch (e) {
     const raw = e instanceof Error ? e.message : "FCM registration failed";
-    const message = /storage/i.test(raw)
-      ? "Push storage failed in this browser. Free disk space, turn off private mode, clear site data for this app, then enable push again."
-      : raw;
+    const message = isRecoverableFcmStorageError(raw) ? fcmStorageFailureMessage() : raw;
     return { ok: false, reason: "error", message };
   }
 }
@@ -313,6 +348,8 @@ export async function unregisterFcmToken(uid: string): Promise<void> {
       // best-effort
     }
   }
+
+  await clearFcmClientStorage();
 
   try {
     await removeDeviceFcmToken(uid);
