@@ -2,7 +2,7 @@ import {
   isMessagingServiceWorker,
   waitForServiceWorkerActive,
 } from "@/pwa/waitForServiceWorker";
-import { getServiceWorkerActivationTimeoutMs, isIosLikeDevice } from "@/pwa/runtime";
+import { getServiceWorkerActivationTimeoutMs, isMobilePushDevice } from "@/pwa/runtime";
 
 const MESSAGING_SW_URL = "/firebase-messaging-sw.js";
 
@@ -28,11 +28,11 @@ async function attemptAppServiceWorkerRegister(): Promise<ServiceWorkerRegistrat
   return null;
 }
 
-/** Registers `/sw.js` immediately (production PWA). Safe to call multiple times. */
+/** Registers `/sw.js` (Workbox precache). Desktop production only — mobile uses FCM SW. */
 export function registerAppServiceWorker(options?: {
   retry?: boolean;
 }): Promise<ServiceWorkerRegistration | null> {
-  if (!import.meta.env.PROD || !("serviceWorker" in navigator)) {
+  if (!import.meta.env.PROD || !("serviceWorker" in navigator) || isMobilePushDevice()) {
     return Promise.resolve(null);
   }
 
@@ -52,7 +52,7 @@ export function registerAppServiceWorker(options?: {
   return inflightWorkboxRegister;
 }
 
-async function attemptIosMessagingServiceWorkerRegister(): Promise<ServiceWorkerRegistration | null> {
+async function attemptMobileMessagingServiceWorkerRegister(): Promise<ServiceWorkerRegistration | null> {
   const timeoutMs = getServiceWorkerActivationTimeoutMs();
   const registrations = await navigator.serviceWorker.getRegistrations();
 
@@ -74,16 +74,16 @@ async function attemptIosMessagingServiceWorkerRegister(): Promise<ServiceWorker
         : null;
     }
   } catch (error) {
-    console.warn("[pwa] Failed to register FCM service worker on iOS", error);
+    console.warn("[pwa] Failed to register FCM service worker", error);
     return null;
   }
 }
 
-/** iOS: FCM-only SW (Workbox + importScripts is unreliable for background push on Safari). */
-export function registerIosMessagingServiceWorker(options?: {
+/** iOS / Android: FCM-only SW — faster push setup than Workbox + importScripts. */
+export function registerMobileMessagingServiceWorker(options?: {
   retry?: boolean;
 }): Promise<ServiceWorkerRegistration | null> {
-  if (!import.meta.env.PROD || !("serviceWorker" in navigator) || !isIosLikeDevice()) {
+  if (!import.meta.env.PROD || !("serviceWorker" in navigator) || !isMobilePushDevice()) {
     return Promise.resolve(null);
   }
 
@@ -92,7 +92,7 @@ export function registerIosMessagingServiceWorker(options?: {
   }
 
   if (!inflightMessagingRegister) {
-    inflightMessagingRegister = attemptIosMessagingServiceWorkerRegister().then((result) => {
+    inflightMessagingRegister = attemptMobileMessagingServiceWorkerRegister().then((result) => {
       if (!result?.active && !result?.installing && !result?.waiting) {
         inflightMessagingRegister = null;
       }
@@ -103,12 +103,15 @@ export function registerIosMessagingServiceWorker(options?: {
   return inflightMessagingRegister;
 }
 
-/** Production SW: Workbox on Android/desktop, FCM-only on iOS. */
+/** @deprecated Use registerMobileMessagingServiceWorker */
+export const registerIosMessagingServiceWorker = registerMobileMessagingServiceWorker;
+
+/** Production SW: FCM-only on mobile, Workbox on desktop. */
 export function registerProductionServiceWorker(options?: {
   retry?: boolean;
 }): Promise<ServiceWorkerRegistration | null> {
-  if (isIosLikeDevice()) {
-    return registerIosMessagingServiceWorker(options);
+  if (isMobilePushDevice()) {
+    return registerMobileMessagingServiceWorker(options);
   }
   return registerAppServiceWorker(options);
 }
