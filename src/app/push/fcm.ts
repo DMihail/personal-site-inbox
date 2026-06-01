@@ -282,10 +282,6 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
       // getToken may still succeed when a worker is activating
     }
 
-    if (navigator.storage?.persist) {
-      await navigator.storage.persist().catch(() => undefined);
-    }
-
     const token = await promiseWithTimeout(
       mod.getToken(messagingInstance, { vapidKey, serviceWorkerRegistration: swReg }),
       FCM_GET_TOKEN_TIMEOUT_MS,

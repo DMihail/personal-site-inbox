@@ -1,4 +1,9 @@
 import type { PersistStorage, StorageValue } from "zustand/middleware";
+import {
+  getPersistedString,
+  removePersistedString,
+  setPersistedString,
+} from "@/pwa/persistentBrowserStorage";
 
 const ENCRYPTED_PREFIX = "enc:v1:";
 const PBKDF2_ITERATIONS = 120_000;
@@ -87,15 +92,14 @@ async function decryptPayload(payload: string, name: string, secret: string): Pr
 }
 
 /**
- * Persist storage: AES-GCM (key from `VITE_ZUSTAND_STORAGE_KEY`).
- * Dev without a key uses plain localStorage; production skips writes when the key is missing.
+ * Zustand persist backed by IndexedDB + `navigator.storage.persist()` (migrates legacy localStorage).
  */
 export function createSecurePersistStorage<S>(): PersistStorage<S> {
   return {
     getItem: async (name) => {
       if (typeof window === "undefined") return null;
 
-      const raw = localStorage.getItem(name);
+      const raw = await getPersistedString(name);
       if (!raw) return null;
 
       const secret = getSecret();
@@ -128,19 +132,19 @@ export function createSecurePersistStorage<S>(): PersistStorage<S> {
           return;
         }
         console.warn(
-          "[zustand] VITE_ZUSTAND_STORAGE_KEY is missing — persist is stored unencrypted in localStorage",
+          "[zustand] VITE_ZUSTAND_STORAGE_KEY is missing — persist is stored unencrypted",
         );
-        localStorage.setItem(name, json);
+        await setPersistedString(name, json);
         return;
       }
 
       const encrypted = await encryptPayload(json, name, secret);
-      localStorage.setItem(name, encrypted);
+      await setPersistedString(name, encrypted);
     },
 
-    removeItem: (name) => {
+    removeItem: async (name) => {
       if (typeof window === "undefined") return;
-      localStorage.removeItem(name);
+      await removePersistedString(name);
     },
   };
 }

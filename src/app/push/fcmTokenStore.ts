@@ -1,5 +1,4 @@
 import { getFirestoreDb } from "@/utils/firestore";
-import { getOrCreatePushDeviceId } from "./pushDeviceId";
 import { isIosLikeDevice } from "@/pwa/runtime";
 
 export type PushPlatform = "ios" | "android" | "desktop" | "unknown";
@@ -18,7 +17,8 @@ function deviceDocPath(uid: string, deviceId: string) {
 
 /** Writes this device's FCM token and removes legacy single-token `fcmTokens/{uid}` doc. */
 export async function saveDeviceFcmToken(uid: string, token: string): Promise<string> {
-  const deviceId = getOrCreatePushDeviceId();
+  const { initPushDeviceId } = await import("@/app/push/pushDeviceId");
+  const deviceId = await initPushDeviceId();
   const firestoreDb = await getFirestoreDb();
   const { doc, deleteDoc, getDoc, serverTimestamp, setDoc } = await import("firebase/firestore");
 
@@ -45,7 +45,8 @@ export async function saveDeviceFcmToken(uid: string, token: string): Promise<st
 
 /** Removes only this device's token (other devices keep receiving push). */
 export async function removeDeviceFcmToken(uid: string): Promise<void> {
-  const deviceId = getOrCreatePushDeviceId();
+  const { initPushDeviceId } = await import("@/app/push/pushDeviceId");
+  const deviceId = await initPushDeviceId();
   const firestoreDb = await getFirestoreDb();
   const { deleteDoc, doc } = await import("firebase/firestore");
   await deleteDoc(doc(firestoreDb, ...deviceDocPath(uid, deviceId))).catch(() => undefined);

@@ -18,7 +18,7 @@ vi.mock("@/utils/portfolio-api-url", () => ({
 }));
 
 vi.mock("@/app/push/pushDeviceId", () => ({
-  getOrCreatePushDeviceId: () => "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  initPushDeviceId: async () => "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
 }));
 
 describe("sendInboxTestPush", () => {

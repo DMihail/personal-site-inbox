@@ -13,9 +13,8 @@ self.addEventListener("message", (event) => {
   }
 });
 
-self.addEventListener("activate", (event) => {
-  event.waitUntil(clientsClaim());
-});
+/** Must run at top level — `clientsClaim()` only registers an `activate` listener. */
+clientsClaim();
 
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();

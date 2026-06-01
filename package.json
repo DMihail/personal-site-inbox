@@ -1,7 +1,7 @@
 {
   "name": "personal-site-inbox",
   "private": true,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && tsc -p tests/tsconfig.json --noEmit",
@@ -24,7 +24,7 @@
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "date-fns": "3.6.0",
-    "firebase": "^12.13.0",
+    "firebase": "^12.14.0",
     "lucide-react": "0.487.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
