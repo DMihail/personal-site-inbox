@@ -2,8 +2,6 @@ import { List, Menu } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { PushNotificationButton } from "../PushNotificationButton";
-import { StatusIndicator } from "../StatusIndicator";
-
 interface InboxAppHeaderProps {
   isOnline: boolean;
   unreadCount: number;
@@ -36,27 +34,21 @@ export function InboxAppHeader({
   onTestPush,
 }: InboxAppHeaderProps) {
   return (
-    <header className="flex shrink-0 items-center justify-between gap-3 border-b border-glass-border glass px-4 py-3 backdrop-blur-xl md:h-16 md:px-6 md:py-0">
+    <header className="app-chrome-safe-top flex shrink-0 items-center justify-between gap-3 border-b border-glass-border glass px-4 py-3 backdrop-blur-xl md:h-16 md:px-6 md:py-0">
       <div className="flex min-w-0 items-center gap-3">
         <Button
           type="button"
           variant="ghost"
           size="icon"
           onClick={onOpenNav}
-          className="ui-hover-ghost shrink-0"
+          className={`ui-hover-ghost shrink-0 ${compact ? "app-chrome-touch-icon" : ""}`}
           aria-label="Open navigation menu"
           aria-haspopup="dialog"
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </Button>
-        <div className="min-w-0 space-y-0.5">
+        <div className="min-w-0">
           <h1 className="truncate text-body text-text-primary md:text-heading-sm">Developer Inbox</h1>
-          {compact ? (
-            <StatusIndicator
-              label={isOnline ? "Connected" : "Offline"}
-              status={isOnline ? "online" : "offline"}
-            />
-          ) : null}
         </div>
       </div>
 
@@ -76,14 +68,21 @@ export function InboxAppHeader({
 
         {!compact ? (
           <div className="hidden items-center gap-4 md:flex lg:flex">
-            <StatusIndicator
-              label={isOnline ? "Connected" : "Offline"}
-              status={isOnline ? "online" : "offline"}
-            />
+            <span
+              className={`inline-flex items-center gap-1.5 font-mono text-meta ${isOnline ? "text-mint" : "text-text-muted"}`}
+              aria-label={isOnline ? "Connected" : "Offline"}
+            >
+              <span
+                className={`size-2 rounded-full ${isOnline ? "bg-mint" : "bg-text-muted"}`}
+                aria-hidden="true"
+              />
+              {isOnline ? "Connected" : "Offline"}
+            </span>
             <span className="text-meta hidden text-text-muted xl:inline">Installable app</span>
           </div>
         ) : null}
 
+        <div className={compact ? "app-chrome-touch-icon flex items-center justify-center" : undefined}>
         <PushNotificationButton
           enabled={pushEnabled}
           isRegistering={pushRegistering}
@@ -93,6 +92,7 @@ export function InboxAppHeader({
           onDisable={onDisablePush}
           onTest={onTestPush}
         />
+        </div>
 
         {unreadCount > 0 ? (
           <Badge

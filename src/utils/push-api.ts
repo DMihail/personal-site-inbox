@@ -1,3 +1,4 @@
+import { getOrCreatePushDeviceId } from "@/app/push/pushDeviceId";
 import { firebaseAuth } from "@/utils/firebaseAuth";
 import { isPortfolioApiConfigured } from "@/utils/reply-api";
 import { portfolioApiUrl } from "@/utils/portfolio-api-url";
@@ -22,7 +23,7 @@ function testPushErrorMessage(status: number, serverMessage?: string): string {
 }
 
 /**
- * Asks the portfolio backend to send an FCM test message to the current device token.
+ * Asks the portfolio backend to send FCM test messages (should target all `devices` tokens).
  * Endpoint is optional — 404 means the server has no test-push route yet.
  */
 export async function sendInboxTestPush(): Promise<InboxTestPushResult> {
@@ -44,7 +45,7 @@ export async function sendInboxTestPush(): Promise<InboxTestPushResult> {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ deviceId: getOrCreatePushDeviceId() }),
     });
   } catch {
     throw new Error(

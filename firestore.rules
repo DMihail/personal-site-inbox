@@ -13,14 +13,22 @@ service cloud.firestore {
     }
 
     match /fcmTokens/{uid} {
-      allow read, delete: if request.auth != null && request.auth.uid == uid;
-      allow create, update: if request.auth != null
-        && request.auth.uid == uid
-        && request.resource.data.uid == uid
-        && request.resource.data.keys().hasOnly(['token', 'uid', 'updatedAt'])
-        && request.resource.data.token is string
-        && request.resource.data.token.size() > 0
-        && request.resource.data.token.size() <= 4096;
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      match /devices/{deviceId} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null
+          && request.auth.uid == uid
+          && deviceId.matches('^[a-zA-Z0-9_-]{8,64}$')
+          && request.resource.data.uid == uid
+          && request.resource.data.keys().hasOnly(['token', 'uid', 'updatedAt', 'platform', 'userAgent'])
+          && request.resource.data.token is string
+          && request.resource.data.token.size() > 0
+          && request.resource.data.token.size() <= 4096
+          && request.resource.data.platform in ['ios', 'android', 'desktop', 'unknown']
+          && request.resource.data.userAgent is string
+          && request.resource.data.userAgent.size() <= 200;
+      }
     }
 
     match /{document=**} {

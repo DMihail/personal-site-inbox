@@ -17,6 +17,10 @@ vi.mock("@/utils/portfolio-api-url", () => ({
   portfolioApiUrl: (path: string) => `https://api.example.com${path}`,
 }));
 
+vi.mock("@/app/push/pushDeviceId", () => ({
+  getOrCreatePushDeviceId: () => "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+}));
+
 describe("sendInboxTestPush", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -41,7 +45,10 @@ describe("sendInboxTestPush", () => {
     await expect(sendInboxTestPush()).resolves.toEqual({ status: "sent" });
     expect(fetchMock).toHaveBeenCalledWith(
       "https://api.example.com/api/inbox/test-push",
-      expect.objectContaining({ method: "POST" }),
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ deviceId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" }),
+      }),
     );
   });
 

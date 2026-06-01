@@ -106,7 +106,7 @@ export async function runSendTestNotification(options: {
   }
   if (serverPush === "sent") {
     parts.push(
-      'Server FCM sent — look for a second system alert titled "Test notification" (body: "server push works").',
+      'Server FCM sent to all registered devices — look for a system alert titled "Test notification".',
     );
   } else if (serverPush === "not-available") {
     parts.push(
