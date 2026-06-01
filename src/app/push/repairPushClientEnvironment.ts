@@ -1,3 +1,4 @@
+import { logPushDebug } from "@/app/push/pushDebug";
 import { clearFcmClientStorage } from "@/app/push/clearFcmClientStorage";
 import {
   evictWorkboxFromMobile,
@@ -11,6 +12,10 @@ import { isMobilePushDevice } from "@/pwa/runtime";
  * On desktop, clears caches and re-registers the unified `/sw.js`.
  */
 export async function repairPushClientEnvironment(): Promise<void> {
+  logPushDebug("repair-push-environment-start", {
+    mobile: isMobilePushDevice(),
+    note: "does not call deleteToken — only clears FCM IDB and re-registers SW",
+  });
   await clearFcmClientStorage();
 
   if (isMobilePushDevice()) {

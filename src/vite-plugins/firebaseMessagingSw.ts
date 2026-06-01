@@ -61,6 +61,7 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
   const data = payload.data || {};
+  console.log("[push:sw] PUSH RECEIVED", { messageId: data.messageId, data: payload.data });
   const title = data.title || payload.notification?.title || "New contact message";
   const body = data.body || payload.notification?.body || data.preview || "";
   const messageId = data.messageId;

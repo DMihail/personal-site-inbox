@@ -9,6 +9,7 @@ import {
 } from "@/pwa/waitForServiceWorker";
 import { clearFcmClientStorage } from "@/app/push/clearFcmClientStorage";
 import { repairPushClientEnvironment } from "@/app/push/repairPushClientEnvironment";
+import { isPushDebugEnabled, logPushDebug, maskFcmToken } from "@/app/push/pushDebug";
 import { saveDeviceFcmToken, removeDeviceFcmToken } from "@/app/push/fcmTokenStore";
 import {
   getServiceWorkerActivationTimeoutMs,
@@ -327,7 +328,13 @@ async function registerFcmTokenInternal(uid: string): Promise<FcmRegisterResult>
       return { ok: false, reason: "no-token" };
     }
 
-    await saveDeviceFcmToken(uid, token);
+    const saved = await saveDeviceFcmToken(uid, token);
+    logPushDebug("fcm-token-registered", {
+      deviceId: saved.deviceId,
+      token: maskFcmToken(token),
+      tokenChanged: saved.tokenChanged,
+      hadPrevious: Boolean(saved.previousToken),
+    });
 
     return { ok: true, token };
   } catch (e) {
@@ -349,6 +356,7 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
 }
 
 export async function unregisterFcmToken(uid: string): Promise<void> {
+  logPushDebug("fcm-token-unregister", { uid });
   const mod = await loadMessagingModule();
   const messagingInstance = await getMessagingIfSupported();
   if (mod && messagingInstance) {
@@ -376,7 +384,16 @@ export async function subscribeForegroundMessages(
   }
 
   foregroundUnsub?.();
-  foregroundUnsub = mod.onMessage(messagingInstance, onPayload);
+  foregroundUnsub = mod.onMessage(messagingInstance, (payload) => {
+    const messageId = payload.data?.messageId;
+    if (isPushDebugEnabled()) {
+      console.info("[push:debug] foreground PUSH RECEIVED", {
+        messageId,
+        data: payload.data,
+      });
+    }
+    onPayload(payload);
+  });
 
   return () => {
     foregroundUnsub?.();
