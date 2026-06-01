@@ -9,7 +9,7 @@ import { ExpirationPlugin } from "workbox-expiration";
 import {
   WORKBOX_ASSETS_MAX_AGE_SECONDS,
   WORKBOX_ASSETS_MAX_ENTRIES,
-} from "./pwa/storageBudgets";
+} from "./pwa/workboxCacheLimits.js";
 
 self.addEventListener("message", (event) => {
   if (event?.data?.type === "SKIP_WAITING") {
