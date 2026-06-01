@@ -106,7 +106,7 @@ export async function runSendTestNotification(options: {
   }
   if (serverPush === "sent") {
     parts.push(
-      'Server FCM sent to all registered devices — look for a system alert titled "Test notification".',
+      'Server FCM sent to all registered devices — look for a second system alert titled "Test notification" (the first popup was from this app, not the contact API).',
     );
   } else if (serverPush === "not-available") {
     parts.push(

@@ -60,8 +60,12 @@ firebase.initializeApp(${JSON.stringify(firebaseConfig)});
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
+  if (payload.notification && payload.notification.title) {
+    return;
+  }
+
   const data = payload.data || {};
-  const title = data.title || payload.notification?.title || "New contact message";
+  const title = data.title || "New contact message";
   const body = data.body || payload.notification?.body || data.preview || "";
   const messageId = data.messageId;
   const url = data.url || "/";
