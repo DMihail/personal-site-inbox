@@ -8,12 +8,18 @@ import {
   waitForServiceWorkerActive,
 } from "@/pwa/waitForServiceWorker";
 import { clearFcmClientStorage } from "@/app/push/clearFcmClientStorage";
+import { repairPushClientEnvironment } from "@/app/push/repairPushClientEnvironment";
 import { saveDeviceFcmToken, removeDeviceFcmToken } from "@/app/push/fcmTokenStore";
 import {
   getServiceWorkerActivationTimeoutMs,
+  isAndroidDevice,
   isIosLikeDevice,
   isStandaloneDisplayMode,
 } from "@/pwa/runtime";
+import {
+  registerIosMessagingServiceWorker,
+  registerProductionServiceWorker,
+} from "@/pwa/registerServiceWorker";
 
 const FCM_GET_TOKEN_TIMEOUT_MS = 30_000;
 
@@ -125,33 +131,6 @@ async function waitForServiceWorkerControl(timeoutMs: number): Promise<void> {
   );
 }
 
-/** iOS fallback when Workbox `/sw.js` fails to activate (FCM-only worker). */
-async function registerIosMessagingServiceWorkerFallback(): Promise<ServiceWorkerRegistration | null> {
-  if (!isIosLikeDevice()) return null;
-
-  const timeoutMs = getServiceWorkerActivationTimeoutMs();
-  const registrations = await navigator.serviceWorker.getRegistrations();
-
-  for (const reg of registrations) {
-    const script = reg.active?.scriptURL ?? reg.installing?.scriptURL ?? reg.waiting?.scriptURL ?? "";
-    if (script.includes("/sw.js") && !reg.active) {
-      await reg.unregister().catch(() => undefined);
-    }
-  }
-
-  try {
-    const reg = await navigator.serviceWorker.register(MESSAGING_SW_URL, { scope: "/" });
-    try {
-      return await waitForServiceWorkerActive(reg, timeoutMs);
-    } catch {
-      return reg.active || reg.installing || reg.waiting ? reg : null;
-    }
-  } catch (error) {
-    console.warn("[fcm] iOS messaging service worker fallback failed", error);
-    return null;
-  }
-}
-
 function isRecoverableFcmStorageError(message: string): boolean {
   return /storage|indexeddb|quota|push service|registration failed/i.test(message);
 }
@@ -183,12 +162,17 @@ function serviceWorkerRegistrationFailureMessage(): string {
   return "Could not register service worker for push notifications. Reload the page and try again.";
 }
 
-/** Production: app bootstrap registers `/sw.js`; ensure it is active before FCM token refresh. */
+/** Production: bootstrap registers platform SW; ensure it is active before FCM token refresh. */
 async function registerProdMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
-  const { registerAppServiceWorker } = await import("@/pwa/registerServiceWorker");
   const timeoutMs = getServiceWorkerActivationTimeoutMs();
 
-  let registered = await registerAppServiceWorker();
+  if (isIosLikeDevice()) {
+    const registered = await registerIosMessagingServiceWorker();
+    if (registered?.active) return registered;
+    return registerIosMessagingServiceWorker({ retry: true });
+  }
+
+  let registered = await registerProductionServiceWorker();
   if (registered?.active) return registered;
 
   if (registered && !registered.active) {
@@ -200,18 +184,8 @@ async function registerProdMessagingServiceWorker(): Promise<ServiceWorkerRegist
     }
   }
 
-  registered = await registerAppServiceWorker({ retry: true });
+  registered = await registerProductionServiceWorker({ retry: true });
   if (registered?.active) return registered;
-  if (registered?.installing || registered?.waiting) {
-    try {
-      const activated = await waitForServiceWorkerActive(registered, timeoutMs);
-      if (activated.active) return activated;
-    } catch {
-      if (registered.active || registered.installing || registered.waiting) {
-        return registered;
-      }
-    }
-  }
 
   try {
     const ready = await promiseWithTimeout(
@@ -226,10 +200,7 @@ async function registerProdMessagingServiceWorker(): Promise<ServiceWorkerRegist
     // fall through
   }
 
-  const existing = await getActiveServiceWorkerRegistration("/", timeoutMs);
-  if (existing?.active) return existing;
-
-  return registerIosMessagingServiceWorkerFallback();
+  return getActiveServiceWorkerRegistration("/", timeoutMs);
 }
 
 export async function registerMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
@@ -304,6 +275,10 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
       // getToken may still succeed when a worker is activating
     }
 
+    if (isAndroidDevice()) {
+      await clearFcmClientStorage();
+    }
+
     let token: string;
     try {
       token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, swReg);
@@ -314,14 +289,19 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
         throw firstError;
       }
 
-      await clearFcmClientStorage();
+      await repairPushClientEnvironment();
       try {
         await mod.deleteToken(messagingInstance);
       } catch {
         // best-effort reset before retry
       }
 
-      token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, swReg);
+      const freshSwReg = await registerMessagingServiceWorker();
+      if (!freshSwReg?.active) {
+        throw firstError;
+      }
+
+      token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, freshSwReg);
     }
 
     if (!token) {
@@ -349,7 +329,7 @@ export async function unregisterFcmToken(uid: string): Promise<void> {
     }
   }
 
-  await clearFcmClientStorage();
+  await repairPushClientEnvironment();
 
   try {
     await removeDeviceFcmToken(uid);

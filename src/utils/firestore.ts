@@ -1,4 +1,5 @@
 import type { Firestore } from "firebase/firestore";
+import { FIRESTORE_OFFLINE_CACHE_BYTES } from "@/pwa/storageBudgets";
 import { firebaseApp } from "./firebaseApp";
 
 let firestorePromise: Promise<Firestore> | null = null;
@@ -11,8 +12,7 @@ export function getFirestoreDb(): Promise<Firestore> {
         initializeFirestore(firebaseApp, {
           localCache: persistentLocalCache({
             tabManager: persistentSingleTabManager({}),
-            /** Cap offline message cache — default can grow large on mobile. */
-            cacheSizeBytes: 12 * 1024 * 1024,
+            cacheSizeBytes: FIRESTORE_OFFLINE_CACHE_BYTES,
           }),
         }),
     );

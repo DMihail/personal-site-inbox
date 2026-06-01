@@ -61,7 +61,7 @@ This app is a **single-operator** inbox, not multi-tenant. Before going public:
 - Restrict Firebase Authentication (no open sign-up; one or few allowed accounts).
 - Deploy `firestore.rules` and keep `INBOX_ALLOWED_UIDS` (or equivalent) on your API backend.
 - Set `VITE_ZUSTAND_STORAGE_KEY` in production (persist is skipped without it).
-- Client state uses **IndexedDB** with [`navigator.storage.persist()`](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/persist) (legacy `localStorage` keys migrate on first read). `sessionStorage` is only used for ephemeral UI dismiss flags.
+- Client state uses **IndexedDB** with [`navigator.storage.persist()`](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/persist) on iOS and Android (legacy `localStorage` keys migrate on first read). Offline Firestore cache is capped at **48 MiB**; Workbox image cache up to **100** entries / **30** days (`src/pwa/storageBudgets.ts`). `sessionStorage` is only used for ephemeral UI dismiss flags.
 - Firebase web config in `.env` is visible in the client bundle — restrict API keys by domain in Firebase Console.
 - Do not commit `.env`; only `.env.example` belongs in git.
 
