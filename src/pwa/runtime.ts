@@ -1,8 +1,16 @@
 export const DEFAULT_SERVICE_WORKER_TIMEOUT_MS = 20_000;
 export const IOS_SERVICE_WORKER_TIMEOUT_MS = 45_000;
+export const ANDROID_SERVICE_WORKER_TIMEOUT_MS = 12_000;
+
+/** iOS / Android PWAs use the lightweight FCM service worker for push (not Workbox). */
+export function isMobilePushDevice(): boolean {
+  return isIosLikeDevice() || isAndroidDevice();
+}
 
 export function getServiceWorkerActivationTimeoutMs(): number {
-  return isIosLikeDevice() ? IOS_SERVICE_WORKER_TIMEOUT_MS : DEFAULT_SERVICE_WORKER_TIMEOUT_MS;
+  if (isIosLikeDevice()) return IOS_SERVICE_WORKER_TIMEOUT_MS;
+  if (isAndroidDevice()) return ANDROID_SERVICE_WORKER_TIMEOUT_MS;
+  return DEFAULT_SERVICE_WORKER_TIMEOUT_MS;
 }
 
 /** True when the app runs as an installed PWA (home screen / standalone). */

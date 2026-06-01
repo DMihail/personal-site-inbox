@@ -3,7 +3,6 @@ import { isFcmConfigured } from "@/utils/firebaseConfig";
 import {
   getActiveServiceWorkerRegistration,
   isMessagingServiceWorker,
-  isWorkboxServiceWorker,
   promiseWithTimeout,
   waitForServiceWorkerActive,
 } from "@/pwa/waitForServiceWorker";
@@ -14,14 +13,17 @@ import {
   getServiceWorkerActivationTimeoutMs,
   isAndroidDevice,
   isIosLikeDevice,
+  isMobilePushDevice,
   isStandaloneDisplayMode,
 } from "@/pwa/runtime";
 import {
-  registerIosMessagingServiceWorker,
+  registerMobileMessagingServiceWorker,
   registerProductionServiceWorker,
 } from "@/pwa/registerServiceWorker";
 
 const FCM_GET_TOKEN_TIMEOUT_MS = 30_000;
+const FCM_GET_TOKEN_ANDROID_TIMEOUT_MS = 18_000;
+const DESKTOP_SW_CONTROL_TIMEOUT_MS = 5_000;
 
 const LEGACY_MESSAGING_SW_SCOPE = "/firebase/";
 const MESSAGING_SW_URL = "/firebase-messaging-sw.js";
@@ -139,6 +141,10 @@ function fcmStorageFailureMessage(): string {
   return "Push storage failed in this browser. Free disk space on the phone, turn off private mode, then in Chrome → Site settings → Inbox → Clear storage (not only cache). Reopen the PWA and enable push again.";
 }
 
+function getFcmTokenTimeoutMs(): number {
+  return isAndroidDevice() ? FCM_GET_TOKEN_ANDROID_TIMEOUT_MS : FCM_GET_TOKEN_TIMEOUT_MS;
+}
+
 async function getFcmRegistrationToken(
   mod: MessagingModule,
   messagingInstance: MessagingInstance,
@@ -147,7 +153,7 @@ async function getFcmRegistrationToken(
 ): Promise<string> {
   return promiseWithTimeout(
     mod.getToken(messagingInstance, { vapidKey, serviceWorkerRegistration: swReg }),
-    FCM_GET_TOKEN_TIMEOUT_MS,
+    getFcmTokenTimeoutMs(),
     "FCM getToken timed out — check service worker and VAPID key",
   );
 }
@@ -166,10 +172,18 @@ function serviceWorkerRegistrationFailureMessage(): string {
 async function registerProdMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   const timeoutMs = getServiceWorkerActivationTimeoutMs();
 
-  if (isIosLikeDevice()) {
-    const registered = await registerIosMessagingServiceWorker();
+  if (isMobilePushDevice()) {
+    const registered = await registerMobileMessagingServiceWorker();
     if (registered?.active) return registered;
-    return registerIosMessagingServiceWorker({ retry: true });
+    if (registered) {
+      try {
+        const active = await waitForServiceWorkerActive(registered, timeoutMs);
+        if (active.active) return active;
+      } catch {
+        if (registered.active) return registered;
+      }
+    }
+    return registerMobileMessagingServiceWorker({ retry: true });
   }
 
   let registered = await registerProductionServiceWorker();
@@ -184,23 +198,7 @@ async function registerProdMessagingServiceWorker(): Promise<ServiceWorkerRegist
     }
   }
 
-  registered = await registerProductionServiceWorker({ retry: true });
-  if (registered?.active) return registered;
-
-  try {
-    const ready = await promiseWithTimeout(
-      navigator.serviceWorker.ready,
-      timeoutMs,
-      "Service worker ready timed out",
-    );
-    if (isWorkboxServiceWorker(ready) || isMessagingServiceWorker(ready)) {
-      return ready;
-    }
-  } catch {
-    // fall through
-  }
-
-  return getActiveServiceWorkerRegistration("/", timeoutMs);
+  return registerProductionServiceWorker({ retry: true });
 }
 
 export async function registerMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
@@ -269,14 +267,12 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
       }
     }
 
-    try {
-      await waitForServiceWorkerControl(getServiceWorkerActivationTimeoutMs());
-    } catch {
-      // getToken may still succeed when a worker is activating
-    }
-
-    if (isAndroidDevice()) {
-      await clearFcmClientStorage();
+    if (!isMobilePushDevice()) {
+      try {
+        await waitForServiceWorkerControl(DESKTOP_SW_CONTROL_TIMEOUT_MS);
+      } catch {
+        // getToken only needs an active push SW, not page control
+      }
     }
 
     let token: string;
@@ -289,7 +285,7 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
         throw firstError;
       }
 
-      await repairPushClientEnvironment();
+      await clearFcmClientStorage();
       try {
         await mod.deleteToken(messagingInstance);
       } catch {
@@ -298,10 +294,15 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
 
       const freshSwReg = await registerMessagingServiceWorker();
       if (!freshSwReg?.active) {
-        throw firstError;
+        await repairPushClientEnvironment();
+        const repairedSwReg = await registerMessagingServiceWorker();
+        if (!repairedSwReg?.active) {
+          throw firstError;
+        }
+        token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, repairedSwReg);
+      } else {
+        token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, freshSwReg);
       }
-
-      token = await getFcmRegistrationToken(mod, messagingInstance, vapidKey, freshSwReg);
     }
 
     if (!token) {

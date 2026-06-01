@@ -107,6 +107,8 @@ export function SettingsView({
                 <p className="text-meta text-text-muted">Browser alerts for new messages</p>
                 {isDenied ? null : pushError ? (
                   <p className="text-meta max-w-xs text-error">{pushError}</p>
+                ) : pushRegistering ? (
+                  <p className="text-meta text-text-muted">Enabling push… usually under 15 seconds.</p>
                 ) : pushEnabled ? (
                   <p className="text-meta text-mint">
                     Enabled — alerts for new messages in this browser.
