@@ -1,6 +1,9 @@
 import { clearFcmClientStorage } from "@/app/push/clearFcmClientStorage";
 
-/** Wipes FCM IndexedDB, Cache API, and service workers so push can re-register cleanly. */
+/**
+ * Last-resort recovery when FCM storage is corrupted.
+ * Not used when disabling push — that would break the PWA offline shell.
+ */
 export async function repairPushClientEnvironment(): Promise<void> {
   await clearFcmClientStorage();
 

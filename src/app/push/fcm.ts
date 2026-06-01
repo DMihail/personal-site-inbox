@@ -17,7 +17,9 @@ import {
   isMobilePushDevice,
   isStandaloneDisplayMode,
 } from "@/pwa/runtime";
-import { registerProductionServiceWorker } from "@/pwa/registerServiceWorker";
+import {
+  ensureActiveProductionServiceWorker,
+} from "@/pwa/registerServiceWorker";
 
 const FCM_GET_TOKEN_TIMEOUT_MS = 30_000;
 const FCM_GET_TOKEN_ANDROID_TIMEOUT_MS = 18_000;
@@ -33,15 +35,16 @@ type MessagePayload = import("firebase/messaging").MessagePayload;
 let messagingModule: MessagingModule | null = null;
 let messaging: MessagingInstance | null = null;
 let foregroundUnsub: (() => void) | null = null;
-type FcmRegisterResult =
+let inflightFcmRegister: Promise<FcmRegisterResult> | null = null;
+let inflightSwRegister: Promise<ServiceWorkerRegistration | null> | null = null;
+
+export type FcmRegisterResult =
   | { ok: true; token: string }
   | {
       ok: false;
       reason: "unsupported" | "permission-denied" | "no-vapid" | "no-token" | "error";
       message?: string;
     };
-
-let inflightFcmRegister: Promise<FcmRegisterResult> | null = null;
 
 async function loadMessagingModule(): Promise<MessagingModule | null> {
   if (!messagingModule) {
@@ -191,31 +194,7 @@ function serviceWorkerRegistrationFailureMessage(): string {
   return "Could not register service worker for push notifications. Reload the page and try again.";
 }
 
-/** Production: unified `/sw.js` (FCM + Workbox) must be active before FCM token refresh. */
-async function registerProdMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
-  const timeoutMs = getServiceWorkerActivationTimeoutMs();
-
-  let registered = await registerProductionServiceWorker();
-  if (registered?.active) return registered;
-
-  if (registered && !registered.active) {
-    try {
-      registered = await waitForServiceWorkerActive(registered, timeoutMs);
-      if (registered.active) return registered;
-    } catch {
-      if (registered.active) return registered;
-    }
-  }
-
-  return registerProductionServiceWorker({ retry: true });
-}
-
-/** Refreshes the FCM token in Firestore without re-registering an active messaging service worker. */
-export async function refreshFcmTokenInFirestore(uid: string): Promise<FcmRegisterResult> {
-  return registerFcmToken(uid);
-}
-
-export async function registerMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+async function registerMessagingServiceWorkerInternal(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
 
   await unregisterLegacyMessagingServiceWorker();
@@ -224,8 +203,32 @@ export async function registerMessagingServiceWorker(): Promise<ServiceWorkerReg
     return registerDevMessagingServiceWorker();
   }
 
-  return registerProdMessagingServiceWorker();
+  return ensureActiveProductionServiceWorker();
 }
+
+/** Idempotent: reuses active push SW; does not invalidate FCM token when already registered. */
+export function registerMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (!("serviceWorker" in navigator)) {
+    return Promise.resolve(null);
+  }
+
+  if (!inflightSwRegister) {
+    inflightSwRegister = registerMessagingServiceWorkerInternal().finally(() => {
+      inflightSwRegister = null;
+    });
+  }
+
+  return inflightSwRegister;
+}
+
+/** Ensures SW is active, then saves the current FCM token to Firestore. */
+export async function refreshPushRegistration(uid: string): Promise<FcmRegisterResult> {
+  await registerMessagingServiceWorker();
+  return registerFcmToken(uid);
+}
+
+/** @deprecated Use refreshPushRegistration */
+export const refreshFcmTokenInFirestore = refreshPushRegistration;
 
 /** Caller must request notification permission before calling (see notificationPermission.ts). */
 async function registerFcmTokenInternal(uid: string): Promise<FcmRegisterResult> {
@@ -346,11 +349,9 @@ export async function unregisterFcmToken(uid: string): Promise<void> {
     try {
       await mod.deleteToken(messagingInstance);
     } catch {
-      // best-effort
+      // best-effort — token may already be invalid
     }
   }
-
-  await repairPushClientEnvironment();
 
   try {
     await removeDeviceFcmToken(uid);

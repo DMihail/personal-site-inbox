@@ -110,6 +110,25 @@ export function registerProductionServiceWorker(options?: {
   return registerAppServiceWorker(options);
 }
 
+/** Registers `/sw.js` and waits for an active worker (retries once on failure). */
+export async function ensureActiveProductionServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  const timeoutMs = getServiceWorkerActivationTimeoutMs();
+
+  let registered = await registerProductionServiceWorker();
+  if (registered?.active) return registered;
+
+  if (registered) {
+    try {
+      registered = await waitForServiceWorkerActive(registered, timeoutMs);
+      if (registered.active) return registered;
+    } catch {
+      if (registered.active) return registered;
+    }
+  }
+
+  return registerProductionServiceWorker({ retry: true });
+}
+
 /** Returns the active push-capable registration if one exists. */
 export function getActivePushServiceWorkerRegistration(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) {

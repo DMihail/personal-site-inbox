@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   getActiveServiceWorkerRegistration,
+  isMessagingServiceWorker,
+  isPushCapableServiceWorker,
   isWorkboxServiceWorker,
 } from "@/pwa/waitForServiceWorker";
 
@@ -15,6 +17,16 @@ describe("waitForServiceWorker helpers", () => {
       active: { scriptURL: "http://localhost/sw.js" },
     } as ServiceWorkerRegistration;
     expect(isWorkboxServiceWorker(reg)).toBe(true);
+    expect(isPushCapableServiceWorker(reg)).toBe(true);
+  });
+
+  it("detects standalone FCM service worker script", () => {
+    const reg = {
+      active: { scriptURL: "http://localhost/firebase-messaging-sw.js" },
+    } as ServiceWorkerRegistration;
+    expect(isMessagingServiceWorker(reg)).toBe(true);
+    expect(isPushCapableServiceWorker(reg)).toBe(true);
+    expect(isWorkboxServiceWorker(reg)).toBe(false);
   });
 
   it("returns null immediately when no registration exists", async () => {

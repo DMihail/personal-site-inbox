@@ -1,21 +1,18 @@
 import { useAuthStore } from "@/app/store/authStore";
 import { usePushStore } from "@/app/store/pushStore";
 import { isFcmConfigured } from "@/utils/firebaseConfig";
-import { getActivePushServiceWorkerRegistration } from "@/pwa/registerServiceWorker";
 
 async function syncPushIfEnabled(uid: string): Promise<void> {
   const { enabled } = usePushStore.getState();
   if (!enabled || !isFcmConfigured()) return;
-
-  const { registerMessagingServiceWorker } = await import("@/app/push/fcm");
-  await registerMessagingServiceWorker();
   await usePushStore.getState().syncWithUser(uid);
 }
 
 function watchPushServiceWorkerActivation(uid: string): void {
   if (!("serviceWorker" in navigator)) return;
 
-  void getActivePushServiceWorkerRegistration().then((reg) => {
+  void import("@/app/push/fcm").then(async ({ registerMessagingServiceWorker }) => {
+    const reg = await registerMessagingServiceWorker();
     if (!reg) return;
 
     reg.addEventListener("updatefound", () => {
