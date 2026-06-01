@@ -36,6 +36,8 @@ describe("security headers", () => {
     expect(csp).toContain("upgrade-insecure-requests");
     expect(csp).toContain("https://*.googleapis.com");
     expect(csp).toContain("https://storage.googleapis.com");
+    expect(csp).toContain("https://vercel.live");
+    expect(csp).toContain("frame-src");
   });
 
   it("dev CSP allows local HTTP API and skips upgrade-insecure-requests", () => {

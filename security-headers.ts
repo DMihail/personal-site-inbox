@@ -7,9 +7,13 @@
 const PERMISSIONS_POLICY =
   "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), browsing-topics=(), interest-cohort=()";
 
+/** Vercel Preview Comments / Live toolbar (injected on preview deployments only). */
+const VERCEL_LIVE_ORIGIN = "https://vercel.live";
+
 function buildConnectSrc(extra: string[] = []): string {
   return [
     "connect-src 'self'",
+    VERCEL_LIVE_ORIGIN,
     "https://*.googleapis.com",
     "https://*.firebaseio.com",
     "wss://*.firebaseio.com",
@@ -20,6 +24,13 @@ function buildConnectSrc(extra: string[] = []): string {
   ].join(" ");
 }
 
+const SCRIPT_SRC = [
+  "script-src 'self' 'unsafe-inline'",
+  "https://www.gstatic.com",
+  "https://storage.googleapis.com",
+  VERCEL_LIVE_ORIGIN,
+].join(" ");
+
 /** Production Content-Security-Policy for the inbox SPA, Firebase, Google Fonts, and reply API. */
 export function buildContentSecurityPolicy(): string {
   return [
@@ -28,11 +39,12 @@ export function buildContentSecurityPolicy(): string {
     "form-action 'self'",
     "frame-ancestors 'none'",
     "object-src 'none'",
-    "script-src 'self' 'unsafe-inline' https://www.gstatic.com https://storage.googleapis.com",
+    SCRIPT_SRC,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: blob: https://www.gstatic.com",
+    `img-src 'self' data: blob: https://www.gstatic.com ${VERCEL_LIVE_ORIGIN}`,
     buildConnectSrc(),
+    `frame-src 'self' ${VERCEL_LIVE_ORIGIN}`,
     "worker-src 'self' blob: https://www.gstatic.com https://storage.googleapis.com",
     "manifest-src 'self'",
     "upgrade-insecure-requests",
@@ -47,16 +59,17 @@ export function buildDevContentSecurityPolicy(): string {
     "form-action 'self'",
     "frame-ancestors 'none'",
     "object-src 'none'",
-    "script-src 'self' 'unsafe-inline' https://www.gstatic.com https://storage.googleapis.com",
+    SCRIPT_SRC,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "img-src 'self' data: blob: https://www.gstatic.com",
+    `img-src 'self' data: blob: https://www.gstatic.com ${VERCEL_LIVE_ORIGIN}`,
     buildConnectSrc([
       "http://localhost:*",
       "http://127.0.0.1:*",
       "ws://localhost:*",
       "ws://127.0.0.1:*",
     ]),
+    `frame-src 'self' ${VERCEL_LIVE_ORIGIN}`,
     "worker-src 'self' blob: https://www.gstatic.com https://storage.googleapis.com",
     "manifest-src 'self'",
   ].join("; ");
