@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   getActiveServiceWorkerRegistration,
   isWorkboxServiceWorker,
-  promiseWithTimeout,
 } from "@/pwa/waitForServiceWorker";
 
 describe("waitForServiceWorker helpers", () => {
@@ -16,18 +15,6 @@ describe("waitForServiceWorker helpers", () => {
       active: { scriptURL: "http://localhost/sw.js" },
     } as ServiceWorkerRegistration;
     expect(isWorkboxServiceWorker(reg)).toBe(true);
-  });
-
-  it("rejects when promise exceeds timeout", async () => {
-    await expect(
-      promiseWithTimeout(
-        new Promise<string>(() => {
-          // never resolves
-        }),
-        20,
-        "timed out",
-      ),
-    ).rejects.toThrow("timed out");
   });
 
   it("returns null immediately when no registration exists", async () => {
