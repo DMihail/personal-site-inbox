@@ -1,4 +1,5 @@
 import {
+  ensurePersistentStorage,
   getPersistedString,
   setPersistedString,
 } from "@/pwa/persistentBrowserStorage";
@@ -13,6 +14,7 @@ function isValidDeviceId(id: string): boolean {
 }
 
 async function loadOrCreateDeviceId(): Promise<string> {
+  await ensurePersistentStorage();
   const existing = (await getPersistedString(STORAGE_KEY))?.trim();
   if (existing && isValidDeviceId(existing)) {
     return existing;

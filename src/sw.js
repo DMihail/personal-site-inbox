@@ -4,13 +4,24 @@ importScripts("/firebase-messaging-sw.js");
 import { clientsClaim } from "workbox-core";
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from "workbox-precaching";
 import { NavigationRoute, registerRoute } from "workbox-routing";
-import { CacheFirst, StaleWhileRevalidate } from "workbox-strategies";
+import { CacheFirst } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
 
 self.addEventListener("message", (event) => {
   if (event?.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
+});
+
+/** Drop legacy duplicate runtime cache (precache already covers JS/CSS). */
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.filter((name) => name.includes("app-shell")).map((name) => caches.delete(name)),
+      ),
+    ),
+  );
 });
 
 /** Must run at top level — `clientsClaim()` only registers an `activate` listener. */
@@ -21,16 +32,7 @@ cleanupOutdatedCaches();
 
 registerRoute(new NavigationRoute(createHandlerBoundToURL("/index.html")));
 
-registerRoute(
-  ({ request }) =>
-    request.destination === "document" ||
-    request.destination === "script" ||
-    request.destination === "style",
-  new StaleWhileRevalidate({
-    cacheName: "app-shell",
-    matchOptions: { ignoreVary: true },
-  }),
-);
+// JS/CSS/HTML are already in the Workbox precache — avoid a second "app-shell" cache (doubles disk on Android).
 
 registerRoute(
   ({ request }) => request.destination === "image" || request.destination === "font",
@@ -39,8 +41,8 @@ registerRoute(
     matchOptions: { ignoreVary: true },
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 200,
-        maxAgeSeconds: 60 * 60 * 24 * 30,
+        maxEntries: 40,
+        maxAgeSeconds: 60 * 60 * 24 * 7,
       }),
     ],
   }),

@@ -45,20 +45,17 @@ function openDatabase(): Promise<IDBDatabase | null> {
     return Promise.resolve(null);
   }
 
-  dbPromise ??= ensurePersistentStorage().then(
-    () =>
-      new Promise<IDBDatabase | null>((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-        request.onupgradeneeded = () => {
-          const db = request.result;
-          if (!db.objectStoreNames.contains(STORE_NAME)) {
-            db.createObjectStore(STORE_NAME);
-          }
-        };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error ?? new Error("IndexedDB open failed"));
-      }),
-  );
+  dbPromise ??= new Promise<IDBDatabase | null>((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error ?? new Error("IndexedDB open failed"));
+  });
 
   return dbPromise.catch(() => null);
 }
