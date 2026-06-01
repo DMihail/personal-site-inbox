@@ -11,6 +11,8 @@ export function getFirestoreDb(): Promise<Firestore> {
         initializeFirestore(firebaseApp, {
           localCache: persistentLocalCache({
             tabManager: persistentSingleTabManager({}),
+            /** Cap offline message cache — default can grow large on mobile. */
+            cacheSizeBytes: 12 * 1024 * 1024,
           }),
         }),
     );
