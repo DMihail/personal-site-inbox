@@ -35,7 +35,6 @@ type MessagePayload = import("firebase/messaging").MessagePayload;
 let messagingModule: MessagingModule | null = null;
 let messaging: MessagingInstance | null = null;
 let foregroundUnsub: (() => void) | null = null;
-
 type FcmRegisterResult =
   | { ok: true; token: string }
   | {
@@ -43,6 +42,8 @@ type FcmRegisterResult =
       reason: "unsupported" | "permission-denied" | "no-vapid" | "no-token" | "error";
       message?: string;
     };
+
+let inflightFcmRegister: Promise<FcmRegisterResult> | null = null;
 
 async function loadMessagingModule(): Promise<MessagingModule | null> {
   if (!messagingModule) {
@@ -73,6 +74,30 @@ async function getMessagingIfSupported(): Promise<MessagingInstance | null> {
 /** PWA Workbox SW (imports firebase-messaging-sw.js) — same registration used for background push. */
 export async function getPwaServiceWorkerRegistration(): Promise<ServiceWorkerRegistration | null> {
   return getActiveServiceWorkerRegistration("/");
+}
+
+/** Reuse an active FCM worker — re-registering invalidates the previous FCM token on the server. */
+async function resolveMessagingServiceWorkerRegistration(): Promise<ServiceWorkerRegistration | null> {
+  if (!("serviceWorker" in navigator)) return null;
+
+  const timeoutMs = getServiceWorkerActivationTimeoutMs();
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  const activeMessaging = registrations.find((reg) => isMessagingServiceWorker(reg) && reg.active);
+  if (activeMessaging) {
+    return activeMessaging;
+  }
+
+  const pendingMessaging = registrations.find(isMessagingServiceWorker);
+  if (pendingMessaging) {
+    try {
+      const activated = await waitForServiceWorkerActive(pendingMessaging, timeoutMs);
+      if (activated.active) return activated;
+    } catch {
+      if (pendingMessaging.active) return pendingMessaging;
+    }
+  }
+
+  return registerMessagingServiceWorker();
 }
 
 async function unregisterLegacyMessagingServiceWorker(): Promise<void> {
@@ -201,6 +226,11 @@ async function registerProdMessagingServiceWorker(): Promise<ServiceWorkerRegist
   return registerProductionServiceWorker({ retry: true });
 }
 
+/** Refreshes the FCM token in Firestore without re-registering an active messaging service worker. */
+export async function refreshFcmTokenInFirestore(uid: string): Promise<FcmRegisterResult> {
+  return registerFcmToken(uid);
+}
+
 export async function registerMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
 
@@ -214,7 +244,7 @@ export async function registerMessagingServiceWorker(): Promise<ServiceWorkerReg
 }
 
 /** Caller must request notification permission before calling (see notificationPermission.ts). */
-export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> {
+async function registerFcmTokenInternal(uid: string): Promise<FcmRegisterResult> {
   if (!isFcmConfigured()) {
     return {
       ok: false,
@@ -244,7 +274,7 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
       return { ok: false, reason: "unsupported" };
     }
 
-    const swReg = await registerMessagingServiceWorker();
+    const swReg = await resolveMessagingServiceWorkerRegistration();
     if (!swReg) {
       return {
         ok: false,
@@ -286,16 +316,11 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
       }
 
       await clearFcmClientStorage();
-      try {
-        await mod.deleteToken(messagingInstance);
-      } catch {
-        // best-effort reset before retry
-      }
 
-      const freshSwReg = await registerMessagingServiceWorker();
+      const freshSwReg = await resolveMessagingServiceWorkerRegistration();
       if (!freshSwReg?.active) {
         await repairPushClientEnvironment();
-        const repairedSwReg = await registerMessagingServiceWorker();
+        const repairedSwReg = await resolveMessagingServiceWorkerRegistration();
         if (!repairedSwReg?.active) {
           throw firstError;
         }
@@ -317,6 +342,17 @@ export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> 
     const message = isRecoverableFcmStorageError(raw) ? fcmStorageFailureMessage() : raw;
     return { ok: false, reason: "error", message };
   }
+}
+
+export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> {
+  if (inflightFcmRegister) {
+    return inflightFcmRegister;
+  }
+
+  inflightFcmRegister = registerFcmTokenInternal(uid).finally(() => {
+    inflightFcmRegister = null;
+  });
+  return inflightFcmRegister;
 }
 
 export async function unregisterFcmToken(uid: string): Promise<void> {

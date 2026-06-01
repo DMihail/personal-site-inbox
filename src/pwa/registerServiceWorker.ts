@@ -1,5 +1,6 @@
 import {
   isMessagingServiceWorker,
+  isWorkboxServiceWorker,
   waitForServiceWorkerActive,
 } from "@/pwa/waitForServiceWorker";
 import { getServiceWorkerActivationTimeoutMs, isMobilePushDevice } from "@/pwa/runtime";
@@ -52,9 +53,34 @@ export function registerAppServiceWorker(options?: {
   return inflightWorkboxRegister;
 }
 
+/** Workbox `/sw.js` at scope `/` replaces the FCM worker and invalidates the push token. */
+async function evictWorkboxServiceWorkersOnMobile(): Promise<void> {
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  await Promise.all(
+    registrations
+      .filter((reg) => isWorkboxServiceWorker(reg) && !isMessagingServiceWorker(reg))
+      .map((reg) => reg.unregister().catch(() => undefined)),
+  );
+}
+
 async function attemptMobileMessagingServiceWorkerRegister(): Promise<ServiceWorkerRegistration | null> {
   const timeoutMs = getServiceWorkerActivationTimeoutMs();
+  await evictWorkboxServiceWorkersOnMobile();
   const registrations = await navigator.serviceWorker.getRegistrations();
+  const existingMessaging = registrations.find(isMessagingServiceWorker);
+
+  if (existingMessaging?.active) {
+    return existingMessaging;
+  }
+
+  if (existingMessaging && !existingMessaging.active) {
+    try {
+      const active = await waitForServiceWorkerActive(existingMessaging, timeoutMs);
+      if (active.active) return active;
+    } catch {
+      if (existingMessaging.active) return existingMessaging;
+    }
+  }
 
   for (const reg of registrations) {
     if (!isMessagingServiceWorker(reg)) {
