@@ -94,6 +94,7 @@ export function TabletDrawerPreviewPage() {
           settingsView={<p className="p-6 text-text-secondary">Settings preview</p>}
           pushEnabled={false}
           pushRegistering={false}
+          isSendingTest={false}
           pushError={null}
           onEnablePush={() => {}}
           onDisablePush={() => {}}

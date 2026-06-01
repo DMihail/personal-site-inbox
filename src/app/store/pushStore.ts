@@ -9,7 +9,8 @@ import {
   getNotificationPermissionError,
   getPushNotificationSupport,
 } from "../push/notificationPermission";
-import { notifyFromFcmPayload, notifyNewMessage } from "../push/notify";
+import { notifyFromFcmPayload } from "../push/notify";
+import { runSendTestNotification, type SendTestNotificationResult } from "../push/sendTestNotification";
 
 interface PushState {
   enabled: boolean;
@@ -18,7 +19,8 @@ interface PushState {
   isRegistering: boolean;
   setEnabled: (enabled: boolean, uid: string | null) => Promise<void>;
   syncWithUser: (uid: string | null) => Promise<void>;
-  sendTestNotification: () => Promise<void>;
+  sendTestNotification: () => Promise<SendTestNotificationResult>;
+  isSendingTest: boolean;
 }
 
 let unsubscribeForeground: (() => void) | null = null;
@@ -42,6 +44,7 @@ export const usePushStore = create<PushState>()(
       token: null,
       error: null,
       isRegistering: false,
+      isSendingTest: false,
 
       setEnabled: async (enabled, uid) => {
         if (!uid) {
@@ -81,7 +84,7 @@ export const usePushStore = create<PushState>()(
           return;
         }
 
-        const result = await registerFcmToken(uid, { requestPermission: false });
+        const result = await registerFcmToken(uid);
         let fcmWarning: string | null = null;
         let token: string | null = null;
 
@@ -117,20 +120,12 @@ export const usePushStore = create<PushState>()(
       },
 
       sendTestNotification: async () => {
-        if (!get().enabled) return;
-        await notifyNewMessage({
-          id: "test",
-          senderName: "Test",
-          senderEmail: "test@example.com",
-          company: "Developer Inbox",
-          subject: "Test notification",
-          preview: "If you see this, desktop notifications work.",
-          timestamp: new Date(),
-          isRead: false,
-          isImportant: false,
-          isArchived: false,
-          source: "test",
-        });
+        set({ isSendingTest: true });
+        try {
+          return await runSendTestNotification({ pushEnabled: get().enabled });
+        } finally {
+          set({ isSendingTest: false });
+        }
       },
 
       syncWithUser: async (uid) => {
@@ -148,7 +143,7 @@ export const usePushStore = create<PushState>()(
           return;
         }
 
-        const result = await registerFcmToken(uid, { requestPermission: false });
+        const result = await registerFcmToken(uid);
         if (result.ok) {
           await startForegroundListener();
           set({ token: result.token, error: null });

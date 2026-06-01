@@ -7,7 +7,7 @@ export function isDesktopViewport(): boolean {
   return window.matchMedia(MEDIA_QUERIES.desktop).matches;
 }
 
-export function isFcmDeliveryAvailable(): boolean {
+function isFcmDeliveryAvailable(): boolean {
   if (!canShowBrowserNotifications()) return false;
   const { enabled, token } = usePushStore.getState();
   return enabled && Boolean(token);

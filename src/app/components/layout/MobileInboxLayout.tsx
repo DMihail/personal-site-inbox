@@ -47,6 +47,7 @@ export function MobileInboxLayout({
   settingsView,
   pushEnabled,
   pushRegistering,
+  isSendingTest,
   pushError,
   onEnablePush,
   onDisablePush,
@@ -61,6 +62,7 @@ export function MobileInboxLayout({
         compact
         pushEnabled={pushEnabled}
         pushRegistering={pushRegistering}
+        isSendingTest={isSendingTest}
         pushError={pushError}
         onEnablePush={onEnablePush}
         onDisablePush={onDisablePush}

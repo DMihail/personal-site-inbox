@@ -88,7 +88,7 @@ async function decryptPayload(payload: string, name: string, secret: string): Pr
 
 /**
  * Persist storage: AES-GCM (key from `VITE_ZUSTAND_STORAGE_KEY`).
- * Falls back to plain localStorage if the key is not set (dev only).
+ * Dev without a key uses plain localStorage; production skips writes when the key is missing.
  */
 export function createSecurePersistStorage<S>(): PersistStorage<S> {
   return {
@@ -121,11 +121,15 @@ export function createSecurePersistStorage<S>(): PersistStorage<S> {
       const secret = getSecret();
 
       if (!secret) {
-        if (import.meta.env.DEV) {
-          console.warn(
-            "[zustand] VITE_ZUSTAND_STORAGE_KEY is missing — persist is stored unencrypted in localStorage",
+        if (import.meta.env.PROD) {
+          console.error(
+            "[zustand] VITE_ZUSTAND_STORAGE_KEY is required in production — persist was not saved",
           );
+          return;
         }
+        console.warn(
+          "[zustand] VITE_ZUSTAND_STORAGE_KEY is missing — persist is stored unencrypted in localStorage",
+        );
         localStorage.setItem(name, json);
         return;
       }

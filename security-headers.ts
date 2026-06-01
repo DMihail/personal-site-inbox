@@ -6,6 +6,19 @@
 const PERMISSIONS_POLICY =
   "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), browsing-topics=(), interest-cohort=(), notifications=(self), push=(self)";
 
+function buildConnectSrc(extra: string[] = []): string {
+  return [
+    "connect-src 'self'",
+    "https://*.googleapis.com",
+    "https://*.firebaseio.com",
+    "wss://*.firebaseio.com",
+    "https://*.firebaseapp.com",
+    "https://www.gstatic.com",
+    "https:",
+    ...extra,
+  ].join(" ");
+}
+
 /** Production Content-Security-Policy for the inbox SPA, Firebase, Google Fonts, and reply API. */
 export function buildContentSecurityPolicy(): string {
   return [
@@ -18,23 +31,37 @@ export function buildContentSecurityPolicy(): string {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob: https://www.gstatic.com",
-    [
-      "connect-src 'self'",
-      "https://*.googleapis.com",
-      "https://*.firebaseio.com",
-      "wss://*.firebaseio.com",
-      "https://*.firebaseapp.com",
-      "https://www.gstatic.com",
-      "https:",
-    ].join(" "),
-    "worker-src 'self' blob: https://www.gstatic.com",
+    buildConnectSrc(),
+    "worker-src 'self' blob: https://www.gstatic.com https://storage.googleapis.com",
     "manifest-src 'self'",
     "upgrade-insecure-requests",
   ].join("; ");
 }
 
-/** Headers safe for local dev (no HSTS — avoids pinning localhost). */
-export const devSecurityHeaders: Record<string, string> = {
+/** Dev CSP: no upgrade-insecure-requests; allows local portfolio API over HTTP. */
+export function buildDevContentSecurityPolicy(): string {
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    "script-src 'self' 'unsafe-inline' https://www.gstatic.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https://www.gstatic.com",
+    buildConnectSrc([
+      "http://localhost:*",
+      "http://127.0.0.1:*",
+      "ws://localhost:*",
+      "ws://127.0.0.1:*",
+    ]),
+    "worker-src 'self' blob: https://www.gstatic.com https://storage.googleapis.com",
+    "manifest-src 'self'",
+  ].join("; ");
+}
+
+const sharedSecurityHeaders: Record<string, string> = {
   "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet, noimageindex",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
@@ -43,12 +70,18 @@ export const devSecurityHeaders: Record<string, string> = {
   "Permissions-Policy": PERMISSIONS_POLICY,
   "Cross-Origin-Opener-Policy": "same-origin",
   "Cross-Origin-Resource-Policy": "same-origin",
-  "Content-Security-Policy": buildContentSecurityPolicy(),
 };
 
-/** Production headers (Vercel + `vite preview`). Includes HSTS. */
+/** Local dev / Vite (no HSTS; relaxed connect-src for localhost API). */
+export const devSecurityHeaders: Record<string, string> = {
+  ...sharedSecurityHeaders,
+  "Content-Security-Policy": buildDevContentSecurityPolicy(),
+};
+
+/** Production (Vercel + `vite preview`). */
 export const productionSecurityHeaders: Record<string, string> = {
-  ...devSecurityHeaders,
+  ...sharedSecurityHeaders,
+  "Content-Security-Policy": buildContentSecurityPolicy(),
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
 };
 

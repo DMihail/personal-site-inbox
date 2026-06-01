@@ -33,7 +33,7 @@ Path aliases: `@/` → `src/`, `@tests/` → `tests/`, `@security/headers` → `
 
 ## Setup
 
-**Prerequisites:** Node.js 20+, Firebase project, backend that exposes the reply endpoint expected by this app.
+**Prerequisites:** Node.js 20+, Firebase project, companion HTTP API for replies and optional server-sent FCM (e.g. a Next.js portfolio backend with `/api/inbox/reply` and `/api/inbox/test-push`).
 
 ```bash
 npm install
@@ -44,11 +44,23 @@ npm run dev
 
 Default dev URL: [http://localhost:5173](http://localhost:5173)
 
+Local API (optional): run the backend on port 3000 and set `VITE_PORTFOLIO_API_URL=http://localhost:3000` — Vite proxies `/api` to avoid CORS.
+
 Deploy Firestore security rules when using Firebase:
 
 ```bash
 firebase deploy --only firestore:rules
 ```
+
+## Security (public deployment)
+
+This app is a **single-operator** inbox, not multi-tenant. Before going public:
+
+- Restrict Firebase Authentication (no open sign-up; one or few allowed accounts).
+- Deploy `firestore.rules` and keep `INBOX_ALLOWED_UIDS` (or equivalent) on your API backend.
+- Set `VITE_ZUSTAND_STORAGE_KEY` in production (persist is skipped without it).
+- Firebase web config in `.env` is visible in the client bundle — restrict API keys by domain in Firebase Console.
+- Do not commit `.env`; only `.env.example` belongs in git.
 
 ## Scripts
 
@@ -86,4 +98,4 @@ Dark glassmorphism theme. Form and layout primitives follow [shadcn/ui](https://
 
 ## License
 
-See repository license file if present; otherwise all rights reserved by the maintainer.
+Add a `LICENSE` file (e.g. MIT) if you want others to use or fork this code. Without it, the repository is public but not clearly open-source.

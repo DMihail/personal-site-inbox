@@ -14,7 +14,9 @@
 
 # Env files (never commit secrets)
 .env
-.env.*
+.env.local
+.env.*.local
+!.env.example
 
 # Logs
 npm-debug.log*

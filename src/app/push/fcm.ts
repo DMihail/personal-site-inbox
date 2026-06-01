@@ -124,10 +124,8 @@ export async function registerMessagingServiceWorker(): Promise<ServiceWorkerReg
   return registerProdMessagingServiceWorker();
 }
 
-export async function registerFcmToken(
-  uid: string,
-  options?: { requestPermission?: boolean },
-): Promise<FcmRegisterResult> {
+/** Caller must request notification permission before calling (see notificationPermission.ts). */
+export async function registerFcmToken(uid: string): Promise<FcmRegisterResult> {
   if (!isFcmConfigured()) {
     return {
       ok: false,
@@ -142,12 +140,7 @@ export async function registerFcmToken(
     return { ok: false, reason: "no-vapid" };
   }
 
-  if (options?.requestPermission !== false) {
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") {
-      return { ok: false, reason: "permission-denied" };
-    }
-  } else if (Notification.permission !== "granted") {
+  if (typeof Notification !== "undefined" && Notification.permission !== "granted") {
     return { ok: false, reason: "permission-denied" };
   }
 
@@ -184,7 +177,6 @@ export async function registerFcmToken(
         token,
         uid,
         updatedAt: serverTimestamp(),
-        userAgent: navigator.userAgent,
       },
       { merge: true },
     );

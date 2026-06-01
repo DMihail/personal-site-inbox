@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import tailwindcss from "@tailwindcss/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
@@ -10,7 +10,11 @@ import {
   productionSecurityHeaders,
 } from "./security-headers";
 
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const portfolioApiProxyTarget =
+    env.VITE_PORTFOLIO_API_URL?.trim().replace(/\/$/, "") || "http://localhost:3000";
+
   return {
     plugins: [
       react(),
@@ -111,6 +115,12 @@ export default defineConfig(() => {
     },
     server: {
       headers: devSecurityHeaders,
+      proxy: {
+        "/api": {
+          target: portfolioApiProxyTarget,
+          changeOrigin: true,
+        },
+      },
     },
     preview: {
       headers: productionSecurityHeaders,

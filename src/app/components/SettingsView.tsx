@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import { Bell, CheckCircle2, Database, Wifi, LogOut, Mail, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { getPortfolioApiLabel, isPortfolioApiConfigured } from "@/utils/reply-api";
 import { useNotificationPermission } from "../hooks/useNotificationPermission";
 import { useRecheckPushPermission } from "../hooks/useRecheckPushPermission";
@@ -12,6 +13,7 @@ import { Separator } from "./ui/separator";
 import { AppVersion } from "./AppVersion";
 import { PwaInstallPrompt } from "./PwaInstallPrompt";
 import { isStandaloneDisplayMode } from "@/pwa/runtime";
+import { getNotificationPermission, getPushNotificationSupport } from "../push/notificationPermission";
 
 interface SettingsViewProps {
   isOnline: boolean;
@@ -19,6 +21,7 @@ interface SettingsViewProps {
   pushEnabled: boolean;
   pushRegistering: boolean;
   pushError: string | null;
+  isSendingTest?: boolean;
   onPushEnabledChange: (enabled: boolean) => void;
   onTestPush?: () => void;
 }
@@ -29,6 +32,7 @@ export function SettingsView({
   pushEnabled,
   pushRegistering,
   pushError,
+  isSendingTest = false,
   onPushEnabledChange,
   onTestPush,
 }: SettingsViewProps) {
@@ -36,6 +40,7 @@ export function SettingsView({
   const requestPermissionAndEnable = useRequestPushPermission(() => onPushEnabledChange(true));
   const recheckPermission = useRecheckPushPermission(refresh);
   const isDenied = permission === "denied";
+  const needsPermissionPrompt = permission === "default" || permission === "unsupported";
   const [isSigningOut, setIsSigningOut] = useState(false);
   const pushSwitchId = useId();
 
@@ -46,12 +51,30 @@ export function SettingsView({
     });
   };
 
+  const handleAllowNotifications = () => {
+    const support = getPushNotificationSupport();
+    if (!support.ok) {
+      toast.error("Could not enable notifications", { description: support.message });
+      return;
+    }
+
+    if (getNotificationPermission() === "granted") {
+      onPushEnabledChange(true);
+      refresh();
+      return;
+    }
+
+    void requestPermissionAndEnable().then((ok) => {
+      if (ok) refresh();
+    });
+  };
+
   const handlePushSwitchChange = (checked: boolean) => {
     if (!checked) {
       onPushEnabledChange(false);
       return;
     }
-    void requestPermissionAndEnable();
+    handleAllowNotifications();
   };
 
   return (
@@ -88,32 +111,54 @@ export function SettingsView({
                   </p>
                 ) : (
                   <p className="text-meta text-text-muted">
-                    Enable via the bell in the header. Requires FCM when the app is closed.
+                    Tap Allow below — the browser will ask for permission. FCM is needed when the app is closed.
                   </p>
                 )}
               </div>
               <Switch
                 id={pushSwitchId}
                 checked={pushEnabled && !isDenied}
-                disabled={pushRegistering || isDenied}
+                disabled={pushRegistering || isDenied || needsPermissionPrompt}
                 onCheckedChange={handlePushSwitchChange}
+                aria-label="Push notifications enabled"
               />
             </div>
+
+            {needsPermissionPrompt && !isDenied ? (
+              <Button
+                type="button"
+                size="sm"
+                className="btn-primary w-full"
+                disabled={pushRegistering}
+                onClick={handleAllowNotifications}
+              >
+                Allow notifications
+              </Button>
+            ) : null}
 
             {isDenied ? (
               <NotificationPermissionHelp onRecheck={recheckPermission} />
             ) : null}
 
             {pushEnabled && onTestPush ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="glass ui-hover-glass w-full border-glass-border"
-                onClick={onTestPush}
-              >
-                Send test notification
-              </Button>
+              <div className="space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="glass ui-hover-glass w-full border-glass-border"
+                  disabled={isSendingTest}
+                  aria-busy={isSendingTest}
+                  onClick={onTestPush}
+                >
+                  {isSendingTest ? "Testing…" : "Send test notification"}
+                </Button>
+                <p className="text-meta text-text-muted">
+                  Refreshes FCM token, shows a local alert, and POSTs to{" "}
+                  <code className="text-text-secondary">/api/inbox/test-push</code> when{" "}
+                  <code className="text-text-secondary">VITE_PORTFOLIO_API_URL</code> is set.
+                </p>
+              </div>
             ) : null}
           </div>
         </section>

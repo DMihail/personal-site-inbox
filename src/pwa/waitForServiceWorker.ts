@@ -62,23 +62,25 @@ export function waitForServiceWorkerActive(
 
 export async function getActiveServiceWorkerRegistration(
   scope = "/",
+  activationTimeoutMs = DEFAULT_TIMEOUT_MS,
 ): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
 
   const existing = await navigator.serviceWorker.getRegistration(scope);
+  if (existing?.active) {
+    return existing;
+  }
+
   if (existing) {
     try {
-      return await waitForServiceWorkerActive(existing);
+      return await waitForServiceWorkerActive(existing, activationTimeoutMs);
     } catch {
-      return navigator.serviceWorker.ready.catch(() => null);
+      return existing.active ? existing : null;
     }
   }
 
-  try {
-    return await navigator.serviceWorker.ready;
-  } catch {
-    return null;
-  }
+  // Do not await navigator.serviceWorker.ready with no registration — it never resolves.
+  return null;
 }
 
 export function isMessagingServiceWorker(registration: ServiceWorkerRegistration): boolean {

@@ -1,27 +1,20 @@
 import { firebaseAuth } from "@/utils/firebaseAuth";
+import { getPortfolioApiEnvBase, portfolioApiUrl } from "@/utils/portfolio-api-url";
 
 const MIN_REPLY_LENGTH = 2;
 
 export function isPortfolioApiConfigured(): boolean {
-  return Boolean(import.meta.env.VITE_PORTFOLIO_API_URL?.trim());
+  return Boolean(getPortfolioApiEnvBase());
 }
 
 export function getPortfolioApiLabel(): string {
-  const base = import.meta.env.VITE_PORTFOLIO_API_URL?.trim();
+  const base = getPortfolioApiEnvBase();
   if (!base) return "Not configured";
   try {
-    return new URL(base.replace(/\/$/, "")).origin;
+    return new URL(base).origin;
   } catch {
     return "Invalid URL";
   }
-}
-
-function portfolioApiBase(): string {
-  const base = import.meta.env.VITE_PORTFOLIO_API_URL?.trim().replace(/\/$/, "");
-  if (!base) {
-    throw new Error("VITE_PORTFOLIO_API_URL is not configured");
-  }
-  return base;
 }
 
 function replyErrorMessage(status: number, serverMessage?: string): string {
@@ -56,7 +49,7 @@ export async function sendInboxReply(messageId: string, body: string): Promise<v
   const idToken = await user.getIdToken();
   let res: Response;
   try {
-    res = await fetch(`${portfolioApiBase()}/api/inbox/reply`, {
+    res = await fetch(portfolioApiUrl("/api/inbox/reply"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
