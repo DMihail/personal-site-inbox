@@ -1,34 +1,37 @@
-/* App service worker — FCM must register push listeners before Workbox async setup. */
+/* App service worker — FCM handlers must load before Workbox (importScripts is sync). */
 importScripts("/firebase-messaging-sw.js");
-importScripts("https://storage.googleapis.com/workbox-cdn/releases/7.4.0/workbox-sw.js");
+
+import { clientsClaim } from "workbox-core";
+import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from "workbox-precaching";
+import { NavigationRoute, registerRoute } from "workbox-routing";
+import { CacheFirst, StaleWhileRevalidate } from "workbox-strategies";
+import { ExpirationPlugin } from "workbox-expiration";
 
 self.skipWaiting();
-workbox.core.clientsClaim();
-workbox.precaching.precacheAndRoute(self.__WB_MANIFEST);
-workbox.precaching.cleanupOutdatedCaches();
+clientsClaim();
+precacheAndRoute(self.__WB_MANIFEST);
+cleanupOutdatedCaches();
 
-workbox.routing.registerRoute(
-  new workbox.routing.NavigationRoute(workbox.precaching.createHandlerBoundToURL("/index.html")),
-);
+registerRoute(new NavigationRoute(createHandlerBoundToURL("/index.html")));
 
-workbox.routing.registerRoute(
+registerRoute(
   ({ request }) =>
     request.destination === "document" ||
     request.destination === "script" ||
     request.destination === "style",
-  new workbox.strategies.StaleWhileRevalidate({
+  new StaleWhileRevalidate({
     cacheName: "app-shell",
     matchOptions: { ignoreVary: true },
   }),
 );
 
-workbox.routing.registerRoute(
+registerRoute(
   ({ request }) => request.destination === "image" || request.destination === "font",
-  new workbox.strategies.CacheFirst({
+  new CacheFirst({
     cacheName: "assets",
     matchOptions: { ignoreVary: true },
     plugins: [
-      new workbox.expiration.ExpirationPlugin({
+      new ExpirationPlugin({
         maxEntries: 200,
         maxAgeSeconds: 60 * 60 * 24 * 30,
       }),
