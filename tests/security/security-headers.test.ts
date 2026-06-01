@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildContentSecurityPolicy,
+  buildDevContentSecurityPolicy,
   devSecurityHeaders,
   productionSecurityHeaders,
 } from "@security/headers";
@@ -27,5 +28,12 @@ describe("security headers", () => {
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("upgrade-insecure-requests");
     expect(csp).toContain("https://*.googleapis.com");
+  });
+
+  it("dev CSP allows local HTTP API and skips upgrade-insecure-requests", () => {
+    const csp = buildDevContentSecurityPolicy();
+    expect(csp).toContain("http://localhost:*");
+    expect(csp).not.toContain("upgrade-insecure-requests");
+    expect(devSecurityHeaders["Content-Security-Policy"]).toBe(csp);
   });
 });

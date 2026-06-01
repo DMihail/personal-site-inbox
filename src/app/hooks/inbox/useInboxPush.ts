@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo } from "react";
+import { toast } from "sonner";
 import { getNotificationPermission } from "@/app/push/notificationPermission";
 import { usePushStore } from "@/app/store/pushStore";
 import { isFcmConfigured } from "@/utils/firebaseConfig";
@@ -11,6 +12,7 @@ export function useInboxPush(userId: string | null | undefined) {
   const setPushEnabled = usePushStore((s) => s.setEnabled);
   const syncPushWithUser = usePushStore((s) => s.syncWithUser);
   const sendTestNotification = usePushStore((s) => s.sendTestNotification);
+  const isSendingTest = usePushStore((s) => s.isSendingTest);
 
   useEffect(() => {
     if (getNotificationPermission() === "denied" && usePushStore.getState().enabled) {
@@ -55,7 +57,20 @@ export function useInboxPush(userId: string | null | undefined) {
   }, [setPushEnabled, userId]);
 
   const onTestPush = useCallback(() => {
-    void sendTestNotification();
+    const pending = toast.loading("Running notification test…", {
+      description: "Local alert + optional POST to portfolio API (server FCM).",
+    });
+    void sendTestNotification().then((result) => {
+      toast.dismiss(pending);
+      if (result.ok) {
+        toast.success("Test complete", {
+          description: result.message,
+          duration: 12_000,
+        });
+        return;
+      }
+      toast.error("Test notification failed", { description: result.message });
+    });
   }, [sendTestNotification]);
 
   const handlePushEnabledChange = useCallback(
@@ -70,11 +85,20 @@ export function useInboxPush(userId: string | null | undefined) {
       pushEnabled,
       pushRegistering,
       pushError,
+      isSendingTest,
       onEnablePush,
       onDisablePush,
       onTestPush,
     }),
-    [pushEnabled, pushRegistering, pushError, onEnablePush, onDisablePush, onTestPush],
+    [
+      pushEnabled,
+      pushRegistering,
+      pushError,
+      isSendingTest,
+      onEnablePush,
+      onDisablePush,
+      onTestPush,
+    ],
   );
 
   return { handlers, handlePushEnabledChange };

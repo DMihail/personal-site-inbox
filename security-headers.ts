@@ -6,6 +6,19 @@
 const PERMISSIONS_POLICY =
   "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), browsing-topics=(), interest-cohort=(), notifications=(self), push=(self)";
 
+function buildConnectSrc(extra: string[] = []): string {
+  return [
+    "connect-src 'self'",
+    "https://*.googleapis.com",
+    "https://*.firebaseio.com",
+    "wss://*.firebaseio.com",
+    "https://*.firebaseapp.com",
+    "https://www.gstatic.com",
+    "https:",
+    ...extra,
+  ].join(" ");
+}
+
 /** Production Content-Security-Policy for the inbox SPA, Firebase, Google Fonts, and reply API. */
 export function buildContentSecurityPolicy(): string {
   return [
@@ -18,18 +31,33 @@ export function buildContentSecurityPolicy(): string {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob: https://www.gstatic.com",
-    [
-      "connect-src 'self'",
-      "https://*.googleapis.com",
-      "https://*.firebaseio.com",
-      "wss://*.firebaseio.com",
-      "https://*.firebaseapp.com",
-      "https://www.gstatic.com",
-      "https:",
-    ].join(" "),
+    buildConnectSrc(),
     "worker-src 'self' blob: https://www.gstatic.com",
     "manifest-src 'self'",
     "upgrade-insecure-requests",
+  ].join("; ");
+}
+
+/** Dev CSP: no upgrade-insecure-requests; allows local portfolio API over HTTP. */
+export function buildDevContentSecurityPolicy(): string {
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    "script-src 'self' 'unsafe-inline' https://www.gstatic.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https://www.gstatic.com",
+    buildConnectSrc([
+      "http://localhost:*",
+      "http://127.0.0.1:*",
+      "ws://localhost:*",
+      "ws://127.0.0.1:*",
+    ]),
+    "worker-src 'self' blob: https://www.gstatic.com",
+    "manifest-src 'self'",
   ].join("; ");
 }
 
@@ -43,7 +71,7 @@ export const devSecurityHeaders: Record<string, string> = {
   "Permissions-Policy": PERMISSIONS_POLICY,
   "Cross-Origin-Opener-Policy": "same-origin",
   "Cross-Origin-Resource-Policy": "same-origin",
-  "Content-Security-Policy": buildContentSecurityPolicy(),
+  "Content-Security-Policy": buildDevContentSecurityPolicy(),
 };
 
 /** Production headers (Vercel + `vite preview`). Includes HSTS. */

@@ -26,7 +26,8 @@ export function getPushNotificationSupport(): PushNotificationSupport {
   if (!window.isSecureContext) {
     return {
       ok: false,
-      message: "Notifications require HTTPS or localhost. Open the app over a secure URL.",
+      message:
+        "Notifications require HTTPS (or localhost). If you open the dev server by LAN IP (http://192.168.x.x), use https or adb reverse to localhost instead.",
       permission: "unsupported",
     };
   }
@@ -67,26 +68,40 @@ export function getNotificationPermissionError(
   }
 }
 
+type BeginPermissionRequestResult =
+  | { ok: true; permissionPromise: Promise<NotificationPermission> }
+  | { ok: false; error: string; permission: NotificationPermissionState };
+
 /**
- * Call directly from a click / tap handler (Settings switch, menu item).
- * Do not await other work before this runs — user activation may expire.
+ * Start `Notification.requestPermission()` in the same synchronous turn as a click/tap.
+ * Call this directly from the event handler — do not `await` anything before it.
  */
-async function requestNotificationPermission(): Promise<NotificationPermissionState> {
+export function beginNotificationPermissionRequest(): BeginPermissionRequestResult {
   const support = getPushNotificationSupport();
   if (!support.ok) {
-    return support.permission === "granted" ? "granted" : support.permission;
+    return { ok: false, error: support.message, permission: support.permission };
   }
 
   const current = getNotificationPermission();
-  if (current === "granted" || current === "denied") {
-    return current;
+  if (current === "granted") {
+    return { ok: true, permissionPromise: Promise.resolve("granted") };
+  }
+  if (current === "denied") {
+    return {
+      ok: false,
+      error: getNotificationPermissionError("denied"),
+      permission: "denied",
+    };
   }
 
   try {
-    const result = await Notification.requestPermission();
-    return result as NotificationPermissionState;
+    return { ok: true, permissionPromise: Notification.requestPermission() };
   } catch {
-    return "unsupported";
+    return {
+      ok: false,
+      error: getNotificationPermissionError("unsupported"),
+      permission: "unsupported",
+    };
   }
 }
 
@@ -94,20 +109,37 @@ type PushPermissionRequestResult =
   | { ok: true; permission: "granted" }
   | { ok: false; error: string; permission: NotificationPermissionState };
 
+/** Completes a permission request started with `beginNotificationPermissionRequest`. */
+export async function finishNotificationPermissionRequest(
+  permissionPromise: Promise<NotificationPermission>,
+): Promise<PushPermissionRequestResult> {
+  try {
+    const permission = (await permissionPromise) as NotificationPermissionState;
+    if (permission === "granted") {
+      return { ok: true, permission: "granted" };
+    }
+    return {
+      ok: false,
+      error: getNotificationPermissionError(permission),
+      permission,
+    };
+  } catch {
+    return {
+      ok: false,
+      error: getNotificationPermissionError("unsupported"),
+      permission: "unsupported",
+    };
+  }
+}
+
+/**
+ * Prefer calling `beginNotificationPermissionRequest()` from the click handler, then
+ * `finishNotificationPermissionRequest()`. This helper is for callers that cannot split the flow.
+ */
 export async function requestPushPermissionFromUserGesture(): Promise<PushPermissionRequestResult> {
-  const support = getPushNotificationSupport();
-  if (!support.ok) {
-    return { ok: false, error: support.message, permission: support.permission };
+  const began = beginNotificationPermissionRequest();
+  if (!began.ok) {
+    return { ok: false, error: began.error, permission: began.permission };
   }
-
-  const permission = await requestNotificationPermission();
-  if (permission === "granted") {
-    return { ok: true, permission: "granted" };
-  }
-
-  return {
-    ok: false,
-    error: getNotificationPermissionError(permission),
-    permission,
-  };
+  return finishNotificationPermissionRequest(began.permissionPromise);
 }

@@ -13,6 +13,7 @@ interface InboxAppHeaderProps {
   compact?: boolean;
   pushEnabled: boolean;
   pushRegistering: boolean;
+  isSendingTest: boolean;
   pushError: string | null;
   onEnablePush: () => void;
   onDisablePush: () => void;
@@ -28,6 +29,7 @@ export function InboxAppHeader({
   compact,
   pushEnabled,
   pushRegistering,
+  isSendingTest,
   pushError,
   onEnablePush,
   onDisablePush,
@@ -85,6 +87,7 @@ export function InboxAppHeader({
         <PushNotificationButton
           enabled={pushEnabled}
           isRegistering={pushRegistering}
+          isSendingTest={isSendingTest}
           error={pushError}
           onEnable={onEnablePush}
           onDisable={onDisablePush}

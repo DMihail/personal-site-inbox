@@ -3,13 +3,15 @@ import { persist } from "zustand/middleware";
 import { withSecurePersist } from "./securePersist";
 import { migratePushPersist } from "./persistMigrate";
 import { isFcmConfigured } from "@/utils/firebaseConfig";
+import { isPortfolioApiConfigured } from "@/utils/reply-api";
 import { registerFcmToken, subscribeForegroundMessages, unregisterFcmToken } from "../push/fcm";
 import {
   getNotificationPermission,
   getNotificationPermissionError,
   getPushNotificationSupport,
 } from "../push/notificationPermission";
-import { notifyFromFcmPayload, notifyNewMessage } from "../push/notify";
+import { notifyFromFcmPayload } from "../push/notify";
+import { runSendTestNotification, type SendTestNotificationResult } from "../push/sendTestNotification";
 
 interface PushState {
   enabled: boolean;
@@ -18,7 +20,8 @@ interface PushState {
   isRegistering: boolean;
   setEnabled: (enabled: boolean, uid: string | null) => Promise<void>;
   syncWithUser: (uid: string | null) => Promise<void>;
-  sendTestNotification: () => Promise<void>;
+  sendTestNotification: () => Promise<SendTestNotificationResult>;
+  isSendingTest: boolean;
 }
 
 let unsubscribeForeground: (() => void) | null = null;
@@ -42,6 +45,7 @@ export const usePushStore = create<PushState>()(
       token: null,
       error: null,
       isRegistering: false,
+      isSendingTest: false,
 
       setEnabled: async (enabled, uid) => {
         if (!uid) {
@@ -117,20 +121,15 @@ export const usePushStore = create<PushState>()(
       },
 
       sendTestNotification: async () => {
-        if (!get().enabled) return;
-        await notifyNewMessage({
-          id: "test",
-          senderName: "Test",
-          senderEmail: "test@example.com",
-          company: "Developer Inbox",
-          subject: "Test notification",
-          preview: "If you see this, desktop notifications work.",
-          timestamp: new Date(),
-          isRead: false,
-          isImportant: false,
-          isArchived: false,
-          source: "test",
-        });
+        set({ isSendingTest: true });
+        try {
+          return await runSendTestNotification({
+            pushEnabled: get().enabled,
+            includeServerPush: isPortfolioApiConfigured(),
+          });
+        } finally {
+          set({ isSendingTest: false });
+        }
       },
 
       syncWithUser: async (uid) => {

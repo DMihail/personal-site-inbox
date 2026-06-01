@@ -43,6 +43,7 @@ export function InboxShell() {
       pushEnabled={c.pushHandlers.pushEnabled}
       pushRegistering={c.pushHandlers.pushRegistering}
       pushError={c.pushHandlers.pushError}
+      isSendingTest={c.pushHandlers.isSendingTest}
       onPushEnabledChange={c.handlePushEnabledChange}
       onTestPush={c.pushHandlers.onTestPush}
     />

@@ -34,6 +34,7 @@ export interface InboxLayoutBaseProps {
   pushEnabled: boolean;
   pushRegistering: boolean;
   pushError: string | null;
+  isSendingTest: boolean;
   onEnablePush: () => void;
   onDisablePush: () => void;
   onTestPush: () => void;
@@ -43,6 +44,7 @@ export interface InboxPushHandlers {
   pushEnabled: boolean;
   pushRegistering: boolean;
   pushError: string | null;
+  isSendingTest: boolean;
   onEnablePush: () => void;
   onDisablePush: () => void;
   onTestPush: () => void;

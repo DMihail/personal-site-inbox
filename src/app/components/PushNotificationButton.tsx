@@ -11,12 +11,13 @@ import {
 import { useNotificationPermission } from "../hooks/useNotificationPermission";
 import { useRecheckPushPermission } from "../hooks/useRecheckPushPermission";
 import { useRequestPushPermission } from "../hooks/useRequestPushPermission";
-import { getPushNotificationSupport } from "../push/notificationPermission";
+import { getNotificationPermission } from "../push/notificationPermission";
 import { NotificationPermissionHelp } from "./NotificationPermissionHelp";
 
 interface PushNotificationButtonProps {
   enabled: boolean;
   isRegistering: boolean;
+  isSendingTest?: boolean;
   error: string | null;
   onEnable: () => void;
   onDisable: () => void;
@@ -26,6 +27,7 @@ interface PushNotificationButtonProps {
 export function PushNotificationButton({
   enabled,
   isRegistering,
+  isSendingTest = false,
   error,
   onEnable,
   onDisable,
@@ -40,23 +42,18 @@ export function PushNotificationButton({
   const Icon = isDenied ? BellOff : isActive ? BellRing : Bell;
 
   const handleEnable = () => {
-    refresh();
+    const current = getNotificationPermission();
 
-    const support = getPushNotificationSupport();
-    if (!support.ok) {
-      toast.error("Could not enable notifications", { description: support.message });
-      return;
-    }
-
-    if (permission === "denied") {
+    if (current === "denied") {
       toast.message("Unblock in browser settings", {
         description: "Follow the steps below, reload, then tap Check again.",
       });
       return;
     }
 
-    if (permission === "granted") {
+    if (current === "granted") {
       onEnable();
+      refresh();
       return;
     }
 
@@ -100,8 +97,8 @@ export function PushNotificationButton({
         {isActive ? (
           <>
             {onTest ? (
-              <DropdownMenuItem onClick={onTest}>
-                Send test notification
+              <DropdownMenuItem disabled={isSendingTest} onSelect={onTest}>
+                {isSendingTest ? "Testing…" : "Send test notification"}
               </DropdownMenuItem>
             ) : null}
             <DropdownMenuItem onClick={onDisable}>
@@ -109,13 +106,16 @@ export function PushNotificationButton({
             </DropdownMenuItem>
           </>
         ) : isDenied ? (
-          <DropdownMenuItem onClick={recheckPermission}>
+          <DropdownMenuItem onSelect={recheckPermission}>
             Check permission again
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem
             disabled={isRegistering}
-            onClick={handleEnable}
+            onSelect={(event) => {
+              event.preventDefault();
+              handleEnable();
+            }}
           >
             {isRegistering ? "Enabling…" : "Enable notifications"}
           </DropdownMenuItem>
