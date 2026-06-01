@@ -100,7 +100,9 @@ export function firebaseMessagingSwPlugin(): Plugin {
       writeMessagingSw(root, mode);
     },
     configureServer(server) {
-      const write = () => writeMessagingSw(server.config.root, server.config.mode);
+      const write = () => {
+        writeMessagingSw(server.config.root, server.config.mode);
+      };
       write();
       server.watcher.on("change", (file) => {
         if (path.basename(file).startsWith(".env")) {

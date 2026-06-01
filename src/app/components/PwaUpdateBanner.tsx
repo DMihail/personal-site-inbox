@@ -1,76 +1,90 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RefreshCw, X } from "lucide-react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { isPwaRuntime } from "@/pwa/config";
-import { getActiveServiceWorkerRegistration } from "@/pwa/waitForServiceWorker";
 import { Button } from "./ui/button";
 
-const UPDATE_CHECK_MS = 60 * 60 * 1000;
+const DISMISS_KEY = "pwa-update-dismissed-script";
 
-function safeUpdateCheck(registration: ServiceWorkerRegistration) {
-  if (!registration.active && registration.installing) return;
-  void registration.update().catch(() => {
-    // Ignore transient InvalidStateError while a worker is installing.
+function shouldOfferReload(registration: ServiceWorkerRegistration): boolean {
+  if (!registration.waiting || !navigator.serviceWorker.controller) {
+    return false;
+  }
+  return sessionStorage.getItem(DISMISS_KEY) !== registration.waiting.scriptURL;
+}
+
+function watchWaitingWorker(registration: ServiceWorkerRegistration, onUpdate: (show: boolean) => void) {
+  const sync = () => {
+    onUpdate(shouldOfferReload(registration));
+  };
+
+  sync();
+  registration.addEventListener("updatefound", () => {
+    const installing = registration.installing;
+    installing?.addEventListener("statechange", () => {
+      if (installing.state === "installed") {
+        sync();
+      }
+    });
   });
 }
 
 export function PwaUpdateBanner() {
-  const {
-    needRefresh: [needRefresh, setNeedRefresh],
-    offlineReady: [offlineReady, setOfflineReady],
-  } = useRegisterSW({
-    immediate: true,
-    onNeedReload() {
-      setNeedRefresh(true);
-    },
+  const [showUpdate, setShowUpdate] = useState(false);
+
+  useRegisterSW({
     onRegisteredSW(_swUrl, registration) {
-      if (registration) safeUpdateCheck(registration);
+      if (!registration) return;
+      watchWaitingWorker(registration, (show) => {
+        setShowUpdate(show);
+      });
     },
   });
 
   useEffect(() => {
-    if (!offlineReady) return;
-    setOfflineReady(false);
-  }, [offlineReady, setOfflineReady]);
-
-  useEffect(() => {
     if (!isPwaRuntime || !("serviceWorker" in navigator)) return;
 
-    let intervalId: number | undefined;
-    let registration: ServiceWorkerRegistration | undefined;
-
-    const checkForUpdates = () => {
-      if (registration) safeUpdateCheck(registration);
+    const onControllerChange = () => {
+      void navigator.serviceWorker.getRegistration("/").then((reg) => {
+        setShowUpdate(reg ? shouldOfferReload(reg) : false);
+      });
     };
 
-    const onVisible = () => {
-      if (document.visibilityState === "visible") checkForUpdates();
-    };
-
-    void getActiveServiceWorkerRegistration("/")
-      .then((reg) => {
-        if (!reg) return;
-        registration = reg;
-        checkForUpdates();
-        window.addEventListener("focus", checkForUpdates);
-        document.addEventListener("visibilitychange", onVisible);
-        intervalId = window.setInterval(checkForUpdates, UPDATE_CHECK_MS);
-      })
-      .catch(() => undefined);
-
+    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
     return () => {
-      window.removeEventListener("focus", checkForUpdates);
-      document.removeEventListener("visibilitychange", onVisible);
-      if (intervalId !== undefined) window.clearInterval(intervalId);
+      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
     };
   }, []);
 
-  if (!isPwaRuntime || !needRefresh) return null;
-
-  const applyUpdate = () => {
-    setNeedRefresh(false);
+  const applyUpdate = useCallback(async () => {
+    setShowUpdate(false);
+    const reg = await navigator.serviceWorker.getRegistration("/");
+    if (reg?.waiting) {
+      reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      await new Promise<void>((resolve) => {
+        const timeout = window.setTimeout(resolve, 5000);
+        navigator.serviceWorker.addEventListener(
+          "controllerchange",
+          () => {
+            window.clearTimeout(timeout);
+            resolve();
+          },
+          { once: true },
+        );
+      });
+    }
     window.location.reload();
-  };
+  }, []);
+
+  const dismissUpdate = useCallback(async () => {
+    const reg = await navigator.serviceWorker.getRegistration("/");
+    if (reg?.waiting) {
+      sessionStorage.setItem(DISMISS_KEY, reg.waiting.scriptURL);
+    }
+    setShowUpdate(false);
+  }, []);
+
+  if (!isPwaRuntime || !showUpdate) return null;
 
   return (
     <div
@@ -91,7 +105,7 @@ export function PwaUpdateBanner() {
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Button type="button" size="sm" className="btn-primary" onClick={applyUpdate}>
+          <Button type="button" size="sm" className="btn-primary" onClick={() => void applyUpdate()}>
             Reload now
           </Button>
           <Button
@@ -99,7 +113,7 @@ export function PwaUpdateBanner() {
             size="icon"
             variant="ghost"
             className="ui-hover-ghost"
-            onClick={() => setNeedRefresh(false)}
+            onClick={() => void dismissUpdate()}
             aria-label="Dismiss update notice"
           >
             <X className="h-4 w-4" aria-hidden />
