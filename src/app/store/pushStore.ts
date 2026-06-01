@@ -3,7 +3,11 @@ import { persist } from "zustand/middleware";
 import { withSecurePersist } from "./securePersist";
 import { migratePushPersist } from "./persistMigrate";
 import { isFcmConfigured } from "@/utils/firebaseConfig";
-import { registerFcmToken, subscribeForegroundMessages, unregisterFcmToken } from "../push/fcm";
+import {
+  refreshPushRegistration,
+  subscribeForegroundMessages,
+  unregisterFcmToken,
+} from "../push/fcm";
 import {
   getNotificationPermission,
   getNotificationPermissionError,
@@ -24,6 +28,7 @@ interface PushState {
 }
 
 let unsubscribeForeground: (() => void) | null = null;
+let inflightSync: Promise<void> | null = null;
 
 async function startForegroundListener() {
   unsubscribeForeground?.();
@@ -84,7 +89,7 @@ export const usePushStore = create<PushState>()(
           return;
         }
 
-        const result = await registerFcmToken(uid);
+        const result = await refreshPushRegistration(uid);
         let fcmWarning: string | null = null;
         let token: string | null = null;
 
@@ -129,29 +134,44 @@ export const usePushStore = create<PushState>()(
       },
 
       syncWithUser: async (uid) => {
-        const { enabled } = get();
-        if (!uid || !enabled) {
-          stopForegroundListener();
-          if (!uid) {
-            set({ token: null });
+        if (inflightSync) {
+          return inflightSync;
+        }
+
+        inflightSync = (async () => {
+          const { enabled } = get();
+          if (!uid || !enabled) {
+            stopForegroundListener();
+            if (!uid) {
+              set({ token: null });
+            }
+            return;
           }
-          return;
-        }
 
-        if (!isFcmConfigured()) {
-          set({ token: null, error: null });
-          return;
-        }
+          if (!isFcmConfigured()) {
+            set({ token: null, error: null });
+            return;
+          }
 
-        const result = await registerFcmToken(uid);
-        if (result.ok) {
-          await startForegroundListener();
-          set({ token: result.token, error: null });
-        } else if (result.reason === "no-vapid") {
-          set({ token: null, error: null });
-        } else if (result.reason !== "permission-denied") {
-          set({ error: result.message ?? "Push token refresh failed" });
-        }
+          const result = await refreshPushRegistration(uid);
+          if (result.ok) {
+            await startForegroundListener();
+            set({ token: result.token, error: null });
+          } else if (result.reason === "no-vapid") {
+            set({ token: null, error: null });
+          } else if (result.reason !== "permission-denied") {
+            set({
+              token: null,
+              error:
+                result.message ??
+                "Push token refresh failed — toggle push off and on, or reinstall the PWA.",
+            });
+          }
+        })().finally(() => {
+          inflightSync = null;
+        });
+
+        return inflightSync;
       },
     }),
     withSecurePersist({

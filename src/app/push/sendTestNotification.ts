@@ -1,4 +1,4 @@
-import { registerFcmToken, registerMessagingServiceWorker } from "@/app/push/fcm";
+import { refreshPushRegistration } from "@/app/push/fcm";
 import { notifyNewMessage, type ShowBrowserNotificationResult } from "@/app/push/notify";
 import {
   getNotificationPermission,
@@ -42,14 +42,10 @@ export async function runSendTestNotification(options: {
     };
   }
 
-  if ("serviceWorker" in navigator) {
-    await registerMessagingServiceWorker();
-  }
-
   let fcmTokenRefreshed = false;
   const uid = firebaseAuth.currentUser?.uid;
   if (uid && isFcmConfigured()) {
-    const tokenResult = await registerFcmToken(uid);
+    const tokenResult = await refreshPushRegistration(uid);
     fcmTokenRefreshed = tokenResult.ok;
   }
 

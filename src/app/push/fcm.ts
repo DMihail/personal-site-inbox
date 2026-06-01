@@ -3,6 +3,7 @@ import { isFcmConfigured } from "@/utils/firebaseConfig";
 import {
   getActiveServiceWorkerRegistration,
   isMessagingServiceWorker,
+  isPushCapableServiceWorker,
   promiseWithTimeout,
   waitForServiceWorkerActive,
 } from "@/pwa/waitForServiceWorker";
@@ -17,8 +18,7 @@ import {
   isStandaloneDisplayMode,
 } from "@/pwa/runtime";
 import {
-  registerMobileMessagingServiceWorker,
-  registerProductionServiceWorker,
+  ensureActiveProductionServiceWorker,
 } from "@/pwa/registerServiceWorker";
 
 const FCM_GET_TOKEN_TIMEOUT_MS = 30_000;
@@ -35,15 +35,16 @@ type MessagePayload = import("firebase/messaging").MessagePayload;
 let messagingModule: MessagingModule | null = null;
 let messaging: MessagingInstance | null = null;
 let foregroundUnsub: (() => void) | null = null;
-type FcmRegisterResult =
+let inflightFcmRegister: Promise<FcmRegisterResult> | null = null;
+let inflightSwRegister: Promise<ServiceWorkerRegistration | null> | null = null;
+
+export type FcmRegisterResult =
   | { ok: true; token: string }
   | {
       ok: false;
       reason: "unsupported" | "permission-denied" | "no-vapid" | "no-token" | "error";
       message?: string;
     };
-
-let inflightFcmRegister: Promise<FcmRegisterResult> | null = null;
 
 async function loadMessagingModule(): Promise<MessagingModule | null> {
   if (!messagingModule) {
@@ -82,18 +83,18 @@ async function resolveMessagingServiceWorkerRegistration(): Promise<ServiceWorke
 
   const timeoutMs = getServiceWorkerActivationTimeoutMs();
   const registrations = await navigator.serviceWorker.getRegistrations();
-  const activeMessaging = registrations.find((reg) => isMessagingServiceWorker(reg) && reg.active);
-  if (activeMessaging) {
-    return activeMessaging;
+  const activePush = registrations.find((reg) => isPushCapableServiceWorker(reg) && reg.active);
+  if (activePush) {
+    return activePush;
   }
 
-  const pendingMessaging = registrations.find(isMessagingServiceWorker);
-  if (pendingMessaging) {
+  const pendingPush = registrations.find(isPushCapableServiceWorker);
+  if (pendingPush) {
     try {
-      const activated = await waitForServiceWorkerActive(pendingMessaging, timeoutMs);
+      const activated = await waitForServiceWorkerActive(pendingPush, timeoutMs);
       if (activated.active) return activated;
     } catch {
-      if (pendingMessaging.active) return pendingMessaging;
+      if (pendingPush.active) return pendingPush;
     }
   }
 
@@ -193,45 +194,7 @@ function serviceWorkerRegistrationFailureMessage(): string {
   return "Could not register service worker for push notifications. Reload the page and try again.";
 }
 
-/** Production: bootstrap registers platform SW; ensure it is active before FCM token refresh. */
-async function registerProdMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
-  const timeoutMs = getServiceWorkerActivationTimeoutMs();
-
-  if (isMobilePushDevice()) {
-    const registered = await registerMobileMessagingServiceWorker();
-    if (registered?.active) return registered;
-    if (registered) {
-      try {
-        const active = await waitForServiceWorkerActive(registered, timeoutMs);
-        if (active.active) return active;
-      } catch {
-        if (registered.active) return registered;
-      }
-    }
-    return registerMobileMessagingServiceWorker({ retry: true });
-  }
-
-  let registered = await registerProductionServiceWorker();
-  if (registered?.active) return registered;
-
-  if (registered && !registered.active) {
-    try {
-      registered = await waitForServiceWorkerActive(registered, timeoutMs);
-      if (registered.active) return registered;
-    } catch {
-      if (registered.active) return registered;
-    }
-  }
-
-  return registerProductionServiceWorker({ retry: true });
-}
-
-/** Refreshes the FCM token in Firestore without re-registering an active messaging service worker. */
-export async function refreshFcmTokenInFirestore(uid: string): Promise<FcmRegisterResult> {
-  return registerFcmToken(uid);
-}
-
-export async function registerMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+async function registerMessagingServiceWorkerInternal(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator)) return null;
 
   await unregisterLegacyMessagingServiceWorker();
@@ -240,8 +203,32 @@ export async function registerMessagingServiceWorker(): Promise<ServiceWorkerReg
     return registerDevMessagingServiceWorker();
   }
 
-  return registerProdMessagingServiceWorker();
+  return ensureActiveProductionServiceWorker();
 }
+
+/** Idempotent: reuses active push SW; does not invalidate FCM token when already registered. */
+export function registerMessagingServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (!("serviceWorker" in navigator)) {
+    return Promise.resolve(null);
+  }
+
+  if (!inflightSwRegister) {
+    inflightSwRegister = registerMessagingServiceWorkerInternal().finally(() => {
+      inflightSwRegister = null;
+    });
+  }
+
+  return inflightSwRegister;
+}
+
+/** Ensures SW is active, then saves the current FCM token to Firestore. */
+export async function refreshPushRegistration(uid: string): Promise<FcmRegisterResult> {
+  await registerMessagingServiceWorker();
+  return registerFcmToken(uid);
+}
+
+/** @deprecated Use refreshPushRegistration */
+export const refreshFcmTokenInFirestore = refreshPushRegistration;
 
 /** Caller must request notification permission before calling (see notificationPermission.ts). */
 async function registerFcmTokenInternal(uid: string): Promise<FcmRegisterResult> {
@@ -362,11 +349,9 @@ export async function unregisterFcmToken(uid: string): Promise<void> {
     try {
       await mod.deleteToken(messagingInstance);
     } catch {
-      // best-effort
+      // best-effort — token may already be invalid
     }
   }
-
-  await repairPushClientEnvironment();
 
   try {
     await removeDeviceFcmToken(uid);
