@@ -2,6 +2,9 @@ html {
   color-scheme: dark;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Defaults for Telegram Mini App (overridden in JS via theme.ts) */
+  --tg-viewport-stable-height: 100dvh;
+  --tg-content-safe-area-inset-top: 0px;
 }
 
 html,
@@ -34,6 +37,20 @@ body {
   [data-sonner-toaster][data-x-position="right"] {
     right: max(0.75rem, env(safe-area-inset-right, 0px)) !important;
   }
+
+}
+
+html.telegram-mini-app .app-telegram-viewport {
+  height: var(--tg-viewport-stable-height);
+  min-height: var(--tg-viewport-stable-height);
+}
+
+html.telegram-mini-app .app-chrome-safe-top {
+  padding-top: max(0.75rem, var(--tg-content-safe-area-inset-top), env(safe-area-inset-top, 0px));
+}
+
+html.telegram-mini-app [data-sonner-toaster][data-y-position="top"] {
+  top: max(0.75rem, var(--tg-content-safe-area-inset-top), env(safe-area-inset-top, 0px)) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

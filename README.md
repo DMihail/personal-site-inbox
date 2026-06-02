@@ -14,6 +14,7 @@ PWA inbox for contact messages: realtime list, filters, replies via a backend AP
 - Email replies through a configurable HTTP API
 - FCM push (optional) with in-app toast fallback
 - Installable PWA with offline shell
+- **Telegram Mini App** — same inbox inside Telegram (see [docs/telegram-mini-app.md](./docs/telegram-mini-app.md))
 
 ## Tech stack
 
@@ -53,6 +54,10 @@ firebase deploy --only firestore:rules
 ```
 
 FCM tokens are stored per device at `fcmTokens/{uid}/devices/{deviceId}` so push can reach every phone and browser. Update the portfolio API to send to all tokens — see [docs/fcm-multi-device-backend.md](./docs/fcm-multi-device-backend.md).
+
+### Telegram Mini App
+
+Point your bot’s menu button Web App URL to this deployment (`https://…`). Sign-in is unchanged (Firebase email/password). Browser push is disabled inside Telegram; use portfolio Telegram notifications or the installed PWA for FCM. Setup: [docs/telegram-mini-app.md](./docs/telegram-mini-app.md).
 
 ## Security (public deployment)
 

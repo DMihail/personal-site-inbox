@@ -1,11 +1,12 @@
 import { Share, Smartphone, X } from "lucide-react";
+import { isTelegramMiniApp } from "@/telegram/detect";
 import { usePwaInstall } from "../hooks/usePwaInstall";
 import { Button } from "./ui/button";
 
 export function PwaInstallPrompt() {
   const { platform, visible, canNativePrompt, dismiss, promptInstall } = usePwaInstall();
 
-  if (!visible || !platform) return null;
+  if (isTelegramMiniApp() || !visible || !platform) return null;
 
   return (
     <div

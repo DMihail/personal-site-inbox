@@ -3,6 +3,7 @@ import { usePushStore } from "@/push/store";
 import { isPushConfigured } from "@/push/config";
 import { ensureFcmServiceWorker } from "@/push/service-worker";
 import { initDeviceId } from "@/push/device-id";
+import { isTelegramMiniApp } from "@/telegram/detect";
 
 const VISIBILITY_DEBOUNCE_MS = 2_000;
 let visibilityTimer: ReturnType<typeof setTimeout> | undefined;
@@ -39,7 +40,12 @@ function bindVisibilityRefresh(uid: string): void {
 export function initPushModule(): void {
   void initDeviceId();
 
-  if (!import.meta.env.PROD || !isPushConfigured() || !("serviceWorker" in navigator)) {
+  if (
+    isTelegramMiniApp() ||
+    !import.meta.env.PROD ||
+    !isPushConfigured() ||
+    !("serviceWorker" in navigator)
+  ) {
     return;
   }
 
