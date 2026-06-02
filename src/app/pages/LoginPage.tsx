@@ -2,6 +2,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AuthScreen } from "../components/AuthScreen";
+import { consumeTelegramStartPath, isTelegramMiniApp } from "@/telegram";
 import { RouteLoadingScreen } from "../components/RouteLoadingScreen";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useAuthStore } from "../store/authStore";
@@ -53,7 +54,8 @@ export function LoginPage() {
 
   useEffect(() => {
     if (!isHydrating && user) {
-      navigate("/inbox", { replace: true });
+      const startPath = isTelegramMiniApp() ? consumeTelegramStartPath() : null;
+      navigate(startPath ?? "/inbox", { replace: true });
     }
   }, [user, isHydrating, navigate]);
 
