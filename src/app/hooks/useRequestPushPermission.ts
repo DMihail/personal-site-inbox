@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import {
   beginNotificationPermissionRequest,
   finishNotificationPermissionRequest,
-} from "../push/notificationPermission";
+} from "@/push/permissions";
 
 /**
  * Requests notification permission from a user gesture, then runs `onGranted`.

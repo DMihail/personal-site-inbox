@@ -1,4 +1,4 @@
-import { initPushDeviceId } from "@/app/push/pushDeviceId";
+import { initDeviceId } from "@/push/device-id";
 import { firebaseAuth } from "@/utils/firebaseAuth";
 import { isPortfolioApiConfigured } from "@/utils/reply-api";
 import { portfolioApiUrl } from "@/utils/portfolio-api-url";
@@ -45,7 +45,7 @@ export async function sendInboxTestPush(): Promise<InboxTestPushResult> {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
       },
-      body: JSON.stringify({ deviceId: await initPushDeviceId() }),
+      body: JSON.stringify({ deviceId: await initDeviceId() }),
     });
   } catch {
     throw new Error(

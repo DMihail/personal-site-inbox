@@ -16,38 +16,25 @@ function isValidDeviceId(id: string): boolean {
 async function loadOrCreateDeviceId(): Promise<string> {
   await ensurePersistentStorage();
   const existing = (await getPersistedString(STORAGE_KEY))?.trim();
-  if (existing && isValidDeviceId(existing)) {
-    return existing;
-  }
+  if (existing && isValidDeviceId(existing)) return existing;
 
   const id = crypto.randomUUID();
   await setPersistedString(STORAGE_KEY, id);
   return id;
 }
 
-/** Call once at app start so sync `getOrCreatePushDeviceId` has a cached value. */
-export function initPushDeviceId(): Promise<string> {
-  if (cachedDeviceId) {
-    return Promise.resolve(cachedDeviceId);
-  }
-
+export function initDeviceId(): Promise<string> {
+  if (cachedDeviceId) return Promise.resolve(cachedDeviceId);
   initPromise ??= loadOrCreateDeviceId().then((id) => {
     cachedDeviceId = id;
     return id;
   });
-
   return initPromise;
 }
 
-/** Stable id per browser/PWA install — used as Firestore `devices/{deviceId}` doc id. */
-export function getOrCreatePushDeviceId(): string {
-  if (cachedDeviceId) {
-    return cachedDeviceId;
-  }
-
-  if (typeof window === "undefined") {
-    return "ssr";
-  }
+export function getDeviceId(): string {
+  if (cachedDeviceId) return cachedDeviceId;
+  if (typeof window === "undefined") return "ssr";
 
   try {
     const legacy = localStorage.getItem(STORAGE_KEY)?.trim();
@@ -57,7 +44,7 @@ export function getOrCreatePushDeviceId(): string {
       return legacy;
     }
   } catch {
-    // fall through
+    // ignore
   }
 
   const id = crypto.randomUUID();
@@ -66,7 +53,7 @@ export function getOrCreatePushDeviceId(): string {
   return id;
 }
 
-export function resetPushDeviceIdCacheForTests(): void {
+export function resetDeviceIdCacheForTests(): void {
   cachedDeviceId = null;
   initPromise = null;
 }

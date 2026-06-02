@@ -17,7 +17,6 @@ export type PushNotificationSupport =
   | { ok: true }
   | { ok: false; message: string; permission: NotificationPermissionState };
 
-/** Checks environment before calling `Notification.requestPermission`. */
 export function getPushNotificationSupport(): PushNotificationSupport {
   if (typeof window === "undefined") {
     return { ok: false, message: "Notifications are unavailable during SSR.", permission: "unsupported" };
@@ -26,8 +25,7 @@ export function getPushNotificationSupport(): PushNotificationSupport {
   if (!window.isSecureContext) {
     return {
       ok: false,
-      message:
-        "Notifications require HTTPS (or localhost). If you open the dev server by LAN IP (http://192.168.x.x), use https or adb reverse to localhost instead.",
+      message: "Notifications require HTTPS (or localhost).",
       permission: "unsupported",
     };
   }
@@ -61,7 +59,7 @@ export function getNotificationPermissionError(
     case "denied":
       return "Notifications are blocked for this site. Allow them in browser settings, then reload.";
     case "default":
-      return "Notification permission was not granted. Try again and choose Allow in the browser prompt.";
+      return "Notification permission was not granted. Try again and choose Allow.";
     case "unsupported":
     default:
       return "Notifications are not supported in this browser or context.";
@@ -72,10 +70,6 @@ type BeginPermissionRequestResult =
   | { ok: true; permissionPromise: Promise<NotificationPermission> }
   | { ok: false; error: string; permission: NotificationPermissionState };
 
-/**
- * Start `Notification.requestPermission()` in the same synchronous turn as a click/tap.
- * Call this directly from the event handler — do not `await` anything before it.
- */
 export function beginNotificationPermissionRequest(): BeginPermissionRequestResult {
   const support = getPushNotificationSupport();
   if (!support.ok) {
@@ -109,7 +103,6 @@ type PushPermissionRequestResult =
   | { ok: true; permission: "granted" }
   | { ok: false; error: string; permission: NotificationPermissionState };
 
-/** Completes a permission request started with `beginNotificationPermissionRequest`. */
 export async function finishNotificationPermissionRequest(
   permissionPromise: Promise<NotificationPermission>,
 ): Promise<PushPermissionRequestResult> {

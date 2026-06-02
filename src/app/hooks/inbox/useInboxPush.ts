@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
-import { getNotificationPermission } from "@/app/push/notificationPermission";
-import { usePushStore } from "@/app/store/pushStore";
-import { isFcmConfigured } from "@/utils/firebaseConfig";
+import { getNotificationPermission } from "@/push/permissions";
+import { usePushStore } from "@/push/store";
+import { isPushConfigured } from "@/push/config";
 import type { InboxPushHandlers } from "./inbox-layout.types";
 
 export function useInboxPush(userId: string | null | undefined) {
@@ -10,8 +10,8 @@ export function useInboxPush(userId: string | null | undefined) {
   const pushRegistering = usePushStore((s) => s.isRegistering);
   const pushError = usePushStore((s) => s.error);
   const setPushEnabled = usePushStore((s) => s.setEnabled);
-  const syncPushWithUser = usePushStore((s) => s.syncWithUser);
-  const sendTestNotification = usePushStore((s) => s.sendTestNotification);
+  const sync = usePushStore((s) => s.sync);
+  const sendTest = usePushStore((s) => s.sendTest);
   const isSendingTest = usePushStore((s) => s.isSendingTest);
 
   useEffect(() => {
@@ -20,49 +20,14 @@ export function useInboxPush(userId: string | null | undefined) {
     }
 
     if (!userId) {
-      void syncPushWithUser(null);
+      void sync(null);
       return;
     }
 
-    if (!isFcmConfigured() || !("serviceWorker" in navigator)) {
-      void syncPushWithUser(userId);
-      return;
+    if (isPushConfigured()) {
+      void sync(userId);
     }
-
-    let cancelled = false;
-    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
-
-    const scheduleTokenRefresh = () => {
-      if (refreshTimer) clearTimeout(refreshTimer);
-      refreshTimer = setTimeout(() => {
-        if (!cancelled && usePushStore.getState().enabled) {
-          void syncPushWithUser(userId);
-        }
-      }, 1500);
-    };
-
-    const onControllerChange = () => {
-      scheduleTokenRefresh();
-    };
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        scheduleTokenRefresh();
-      }
-    };
-
-    navigator.serviceWorker?.addEventListener("controllerchange", onControllerChange);
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    void syncPushWithUser(userId);
-
-    return () => {
-      cancelled = true;
-      if (refreshTimer) clearTimeout(refreshTimer);
-      navigator.serviceWorker?.removeEventListener("controllerchange", onControllerChange);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, [userId, syncPushWithUser]);
+  }, [userId, sync]);
 
   const onEnablePush = useCallback(() => {
     void setPushEnabled(true, userId ?? null);
@@ -73,21 +38,16 @@ export function useInboxPush(userId: string | null | undefined) {
   }, [setPushEnabled, userId]);
 
   const onTestPush = useCallback(() => {
-    const pending = toast.loading("Running notification test…", {
-      description: "Local alert + optional POST to portfolio API (server FCM).",
-    });
-    void sendTestNotification().then((result) => {
+    const pending = toast.loading("Running notification test…");
+    void sendTest().then((result) => {
       toast.dismiss(pending);
       if (result.ok) {
-        toast.success("Test complete", {
-          description: result.message,
-          duration: 12_000,
-        });
+        toast.success("Test complete", { description: result.message, duration: 12_000 });
         return;
       }
-      toast.error("Test notification failed", { description: result.message });
+      toast.error("Test failed", { description: result.message });
     });
-  }, [sendTestNotification]);
+  }, [sendTest]);
 
   const handlePushEnabledChange = useCallback(
     (enabled: boolean) => {

@@ -1,31 +1,21 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  getOrCreatePushDeviceId,
-  initPushDeviceId,
-  resetPushDeviceIdCacheForTests,
-} from "@/app/push/pushDeviceId";
-import { resetPersistentBrowserStorageForTests } from "@/pwa/persistentBrowserStorage";
+  getDeviceId,
+  initDeviceId,
+  resetDeviceIdCacheForTests,
+} from "@/push/device-id";
 
-describe("getOrCreatePushDeviceId", () => {
-  afterEach(async () => {
-    resetPushDeviceIdCacheForTests();
-    await resetPersistentBrowserStorageForTests();
+describe("device-id", () => {
+  afterEach(() => {
+    resetDeviceIdCacheForTests();
+    localStorage.clear();
   });
 
-  it("returns a stable id after init", async () => {
-    const first = await initPushDeviceId();
-    const second = getOrCreatePushDeviceId();
-    expect(second).toBe(first);
-    expect(first).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-    );
-  });
-
-  it("creates a new id when storage is empty", async () => {
-    const id = await initPushDeviceId();
+  it("returns the same id after init", async () => {
+    const id = await initDeviceId();
+    expect(getDeviceId()).toBe(id);
     expect(id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
     );
-    expect(getOrCreatePushDeviceId()).toBe(id);
   });
 });

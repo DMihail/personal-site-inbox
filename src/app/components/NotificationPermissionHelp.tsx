@@ -1,5 +1,5 @@
 import { RefreshCw } from "lucide-react";
-import { getNotificationUnblockSteps } from "../push/notificationUnblock";
+import { getNotificationUnblockSteps } from "@/push/unblock";
 import { Button } from "./ui/button";
 
 interface NotificationPermissionHelpProps {
