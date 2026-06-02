@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { getNotificationPermission } from "@/push/permissions";
 import { usePushStore } from "@/push/store";
 import { isPushConfigured } from "@/push/config";
+import { isTelegramMiniApp } from "@/telegram/detect";
 import type { InboxPushHandlers } from "./inbox-layout.types";
 
 export function useInboxPush(userId: string | null | undefined) {
@@ -24,7 +25,7 @@ export function useInboxPush(userId: string | null | undefined) {
       return;
     }
 
-    if (isPushConfigured()) {
+    if (isPushConfigured() && !isTelegramMiniApp()) {
       void sync(userId);
     }
   }, [userId, sync]);

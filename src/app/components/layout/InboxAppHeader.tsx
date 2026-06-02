@@ -1,6 +1,7 @@
 import { List, Menu } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { isTelegramMiniApp } from "@/telegram/detect";
 import { PushNotificationButton } from "../PushNotificationButton";
 interface InboxAppHeaderProps {
   isOnline: boolean;
@@ -33,6 +34,8 @@ export function InboxAppHeader({
   onDisablePush,
   onTestPush,
 }: InboxAppHeaderProps) {
+  const inTelegram = isTelegramMiniApp();
+
   return (
     <header className="app-chrome-safe-top flex shrink-0 items-center justify-between gap-3 border-b border-glass-border glass px-4 py-3 backdrop-blur-xl md:h-16 md:px-6 md:py-0">
       <div className="flex min-w-0 items-center gap-3">
@@ -78,21 +81,25 @@ export function InboxAppHeader({
               />
               {isOnline ? "Connected" : "Offline"}
             </span>
-            <span className="text-meta hidden text-text-muted xl:inline">Installable app</span>
+            {!inTelegram ? (
+              <span className="text-meta hidden text-text-muted xl:inline">Installable app</span>
+            ) : null}
           </div>
         ) : null}
 
-        <div className={compact ? "app-chrome-touch-icon flex items-center justify-center" : undefined}>
-        <PushNotificationButton
-          enabled={pushEnabled}
-          isRegistering={pushRegistering}
-          isSendingTest={isSendingTest}
-          error={pushError}
-          onEnable={onEnablePush}
-          onDisable={onDisablePush}
-          onTest={onTestPush}
-        />
-        </div>
+        {!inTelegram ? (
+          <div className={compact ? "app-chrome-touch-icon flex items-center justify-center" : undefined}>
+            <PushNotificationButton
+              enabled={pushEnabled}
+              isRegistering={pushRegistering}
+              isSendingTest={isSendingTest}
+              error={pushError}
+              onEnable={onEnablePush}
+              onDisable={onDisablePush}
+              onTest={onTestPush}
+            />
+          </div>
+        ) : null}
 
         {unreadCount > 0 ? (
           <Badge

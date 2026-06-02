@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
+import { TelegramProvider } from "./TelegramProvider";
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -7,7 +8,7 @@ interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
   return (
-    <>
+    <TelegramProvider>
       {children}
       <Toaster
         position="top-right"
@@ -22,6 +23,6 @@ export function AppProviders({ children }: AppProvidersProps) {
         }}
         toastOptions={{ className: "glass-elevated border-glass-border" }}
       />
-    </>
+    </TelegramProvider>
   );
 }

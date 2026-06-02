@@ -6,6 +6,8 @@ import { SettingsView } from "../components/SettingsView";
 import { SkipLink } from "../components/SkipLink";
 import { useInboxController } from "../hooks/inbox";
 import { useMediaQuery } from "../hooks/useMediaQuery";
+import { useTelegramInboxBack } from "../hooks/useTelegramInboxBack";
+import { useTelegramStartNavigation } from "../hooks/useTelegramStartNavigation";
 import { MEDIA_QUERIES } from "@/shared/constants/media-queries";
 
 const DesktopInboxLayout = lazy(() =>
@@ -35,6 +37,16 @@ function InboxLayoutFallback() {
 export function InboxShell() {
   const c = useInboxController();
   const isMdUp = useMediaQuery(MEDIA_QUERIES.mdUp);
+
+  useTelegramStartNavigation(true);
+  useTelegramInboxBack({
+    navMenuOpen: c.navMenuOpen,
+    messagesListOpen: c.messagesListOpen,
+    mobileDetailOpen: c.mobileDetailOpen,
+    onCloseNavMenu: c.onCloseNavMenu,
+    onCloseMessagesList: c.onCloseMessagesList,
+    onCloseMobileDetail: c.onCloseMobileDetail,
+  });
 
   const settingsView = (
     <SettingsView
@@ -81,7 +93,7 @@ export function InboxShell() {
   };
 
   return (
-    <div className="flex h-dvh w-screen flex-col overflow-hidden bg-background text-foreground dark">
+    <div className="app-telegram-viewport flex h-dvh w-screen flex-col overflow-hidden bg-background text-foreground dark">
       <SkipLink />
       <OfflineModal
         isOpen={c.showOfflineModal}

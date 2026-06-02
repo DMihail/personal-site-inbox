@@ -13,6 +13,8 @@ import { Separator } from "./ui/separator";
 import { AppVersion } from "./AppVersion";
 import { PwaInstallPrompt } from "./PwaInstallPrompt";
 import { isStandaloneDisplayMode } from "@/pwa/runtime";
+import { isTelegramMiniApp } from "@/telegram/detect";
+import { TelegramMiniAppNotice } from "./TelegramMiniAppNotice";
 import { getNotificationPermission, getPushNotificationSupport } from "@/push/permissions";
 
 interface SettingsViewProps {
@@ -45,6 +47,7 @@ export function SettingsView({
   const needsPermissionPrompt = permission === "default" || permission === "unsupported";
   const [isSigningOut, setIsSigningOut] = useState(false);
   const pushSwitchId = useId();
+  const inTelegram = isTelegramMiniApp();
 
   const handleSignOut = () => {
     setIsSigningOut(true);
@@ -89,8 +92,9 @@ export function SettingsView({
       <Separator className="bg-glass-border" />
 
       <div className="space-y-6">
-        <PwaInstallPrompt />
+        {inTelegram ? <TelegramMiniAppNotice /> : <PwaInstallPrompt />}
 
+        {!inTelegram ? (
         <section className="space-y-3" aria-labelledby="settings-notifications">
           <h3 id="settings-notifications" className="text-body text-text-primary">
             Notifications
@@ -166,6 +170,7 @@ export function SettingsView({
             ) : null}
           </div>
         </section>
+        ) : null}
 
         <section className="space-y-3" aria-labelledby="settings-reply-api">
           <h3 id="settings-reply-api" className="text-body text-text-primary">
@@ -233,14 +238,16 @@ export function SettingsView({
                 <span className="text-body text-text-primary">Installed app</span>
               </div>
               <p className="text-meta text-text-muted">
-                {isStandaloneDisplayMode()
-                  ? "Running from your home screen"
-                  : "Add to Home Screen for background push (especially on iOS)"}
+                {inTelegram
+                  ? "Opened from Telegram — install the PWA for background push"
+                  : isStandaloneDisplayMode()
+                    ? "Running from your home screen"
+                    : "Add to Home Screen for background push (especially on iOS)"}
               </p>
               <p
-                className={`text-body-sm ${isStandaloneDisplayMode() ? "text-mint" : "text-text-muted"}`}
+                className={`text-body-sm ${isStandaloneDisplayMode() && !inTelegram ? "text-mint" : inTelegram ? "text-cyan" : "text-text-muted"}`}
               >
-                {isStandaloneDisplayMode() ? "Installed" : "Browser tab"}
+                {inTelegram ? "Telegram Mini App" : isStandaloneDisplayMode() ? "Installed" : "Browser tab"}
               </p>
             </div>
           </div>
