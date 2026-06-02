@@ -26,10 +26,10 @@ export function getNotificationUnblockSteps(): string[] {
       ];
     case "safari":
       return [
-        "Safari menu → Settings (or Preferences) → Websites → Notifications",
+        "Safari menu → Settings → Websites → Notifications",
         `Select ${host} and choose Allow`,
         "Reload the page, then enable push again",
-        "On iPhone/iPad: Settings → Notifications → your installed Inbox app → Allow",
+        "On iPhone/iPad: Settings → Notifications → Inbox app → Allow",
       ];
     case "edge":
       return [
@@ -41,10 +41,9 @@ export function getNotificationUnblockSteps(): string[] {
     case "generic":
     default:
       return [
-        "Click the lock or tune icon left of the address bar",
-        "Open Site settings (Chrome) or Permissions",
-        `Set Notifications to Allow for ${host}`,
-        "Reload the page, then enable push again",
+        "Click the lock icon left of the address bar",
+        "Site settings → Notifications → Allow",
+        `Reload ${host}, then enable push again`,
       ];
   }
 }

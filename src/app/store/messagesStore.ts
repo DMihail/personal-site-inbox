@@ -4,11 +4,10 @@ import type { Message } from "../features/inbox/types";
 import type { FilterOption, SortOption } from "../components/FilterBar";
 import { shouldToastForMessageChange } from "../notifications/shouldToastForMessageChange";
 import { toastNewMessage } from "../notifications/toastNewMessage";
-import { notifyNewMessage } from "../push/notify";
-import { showNotificationOnce } from "../push/notificationDedupe";
-import { shouldNotifyNewMessages } from "../push/shouldNotify";
-import { shouldToastNewMessage } from "../push/shouldToastNewMessage";
-import { usePushStore } from "./pushStore";
+import { notifyNewMessage } from "@/push/display";
+import { showNotificationOnce } from "@/push/dedupe";
+import { shouldNotifyViaFirestore, shouldToastNewMessage } from "@/push/fallback";
+import { usePushStore } from "@/push/store";
 
 type FirestoreMessageDoc = {
   name: string;
@@ -111,7 +110,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
               const msg = toAppMessage(ch.doc.id, ch.doc.data() as FirestoreMessageDoc);
               if (shouldToastNewMessage()) {
                 toastNewMessage(msg);
-              } else if (shouldNotifyNewMessages()) {
+              } else if (shouldNotifyViaFirestore()) {
                 void notifyNewMessage(msg);
               } else {
                 const { enabled, token } = usePushStore.getState();

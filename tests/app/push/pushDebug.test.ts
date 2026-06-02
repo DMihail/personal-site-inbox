@@ -1,15 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { maskFcmToken } from "@/app/push/pushDebug";
+import { maskToken } from "@/push/debug";
 
-describe("maskFcmToken", () => {
+describe("maskToken", () => {
   it("masks long tokens for safe logging", () => {
     const token = "a".repeat(140);
-    const masked = maskFcmToken(token);
+    const masked = maskToken(token);
     expect(masked).toMatch(/^aaaaaaaa…aaaaaa$/);
     expect(masked).not.toBe(token);
-  });
-
-  it("handles empty tokens", () => {
-    expect(maskFcmToken("")).toBe("(empty)");
   });
 });

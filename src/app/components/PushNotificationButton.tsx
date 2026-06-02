@@ -11,7 +11,7 @@ import {
 import { useNotificationPermission } from "../hooks/useNotificationPermission";
 import { useRecheckPushPermission } from "../hooks/useRecheckPushPermission";
 import { useRequestPushPermission } from "../hooks/useRequestPushPermission";
-import { getNotificationPermission } from "../push/notificationPermission";
+import { getNotificationPermission } from "@/push/permissions";
 import { NotificationPermissionHelp } from "./NotificationPermissionHelp";
 
 interface PushNotificationButtonProps {

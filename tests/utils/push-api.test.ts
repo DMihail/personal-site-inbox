@@ -17,8 +17,8 @@ vi.mock("@/utils/portfolio-api-url", () => ({
   portfolioApiUrl: (path: string) => `https://api.example.com${path}`,
 }));
 
-vi.mock("@/app/push/pushDeviceId", () => ({
-  initPushDeviceId: async () => "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+vi.mock("@/push/device-id", () => ({
+  initDeviceId: async () => "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
 }));
 
 describe("sendInboxTestPush", () => {

@@ -13,7 +13,7 @@ import { Separator } from "./ui/separator";
 import { AppVersion } from "./AppVersion";
 import { PwaInstallPrompt } from "./PwaInstallPrompt";
 import { isStandaloneDisplayMode } from "@/pwa/runtime";
-import { getNotificationPermission, getPushNotificationSupport } from "../push/notificationPermission";
+import { getNotificationPermission, getPushNotificationSupport } from "@/push/permissions";
 
 interface SettingsViewProps {
   isOnline: boolean;

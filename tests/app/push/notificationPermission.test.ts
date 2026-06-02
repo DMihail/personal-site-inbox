@@ -3,7 +3,7 @@ import {
   beginNotificationPermissionRequest,
   finishNotificationPermissionRequest,
   getPushNotificationSupport,
-} from "@/app/push/notificationPermission";
+} from "@/push/permissions";
 
 describe("notificationPermission", () => {
   afterEach(() => {

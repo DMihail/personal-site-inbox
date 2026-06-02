@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getNotificationPermission, type NotificationPermissionState } from "../push/notificationPermission";
+import { getNotificationPermission, type NotificationPermissionState } from "@/push/permissions";
 
 /** Live `Notification.permission` — refreshes when the tab regains focus. */
 export function useNotificationPermission() {

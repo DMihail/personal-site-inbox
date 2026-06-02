@@ -1,9 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  markNotificationShown,
-  showNotificationOnce,
-  wasNotificationShown,
-} from "@/app/push/notificationDedupe";
+import { showNotificationOnce } from "@/push/dedupe";
 
 describe("notificationDedupe", () => {
   afterEach(() => {
@@ -17,7 +13,6 @@ describe("notificationDedupe", () => {
     await showNotificationOnce("msg-1", show);
 
     expect(show).toHaveBeenCalledTimes(1);
-    expect(wasNotificationShown("msg-1")).toBe(true);
   });
 
   it("allows different message ids", async () => {
@@ -29,9 +24,12 @@ describe("notificationDedupe", () => {
     expect(show).toHaveBeenCalledTimes(2);
   });
 
-  it("tracks ids via markNotificationShown", () => {
-    markNotificationShown("abc");
-    expect(wasNotificationShown("abc")).toBe(true);
-    expect(wasNotificationShown("xyz")).toBe(false);
+  it("shows when message id is missing", async () => {
+    const show = vi.fn().mockResolvedValue(undefined);
+
+    await showNotificationOnce(undefined, show);
+    await showNotificationOnce(undefined, show);
+
+    expect(show).toHaveBeenCalledTimes(2);
   });
 });
