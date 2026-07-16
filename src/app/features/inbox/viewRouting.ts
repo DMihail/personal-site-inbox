@@ -2,20 +2,20 @@ import type { View } from "./types";
 
 export const DEFAULT_VIEW: View = "inbox";
 
-export const VIEW_PAGE_TITLES: Record<View, string> = {
+export const VIEW_PAGE_TITLES = {
   inbox: "Inbox",
   unread: "Unread",
   important: "Important",
   archived: "Archived",
   settings: "Settings",
-};
+} as const satisfies Record<View, string>;
 
-export const VIEW_SECTION_HEADINGS: Record<Exclude<View, "settings">, string> = {
+export const VIEW_SECTION_HEADINGS = {
   inbox: "All messages",
   unread: "Unread",
   important: "Important",
   archived: "Archived",
-};
+} as const satisfies Record<Exclude<View, "settings">, string>;
 
 export function viewToPath(view: View) {
   if (view === "inbox") return "/inbox";

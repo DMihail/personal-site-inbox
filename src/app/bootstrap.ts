@@ -1,12 +1,23 @@
 import { useAuthStore } from "@/app/store/authStore";
 import { initPushModule } from "@/push/init";
 import { ensurePersistentStorage } from "@/pwa/persistentBrowserStorage";
+import { ensureAppServiceWorker } from "@/pwa/appServiceWorker";
+import { isPwaRuntime } from "@/pwa/config";
 import { initTelegramMiniApp } from "@/telegram/init";
+import { isTelegramMiniApp } from "@/telegram/detect";
+
+let stopAuthListener: (() => void) | null = null;
 
 /** Side effects before React mounts. */
 export function bootstrapApp(): void {
   void ensurePersistentStorage();
   initTelegramMiniApp();
-  useAuthStore.getState().startAuthListener();
+
+  if (isPwaRuntime && !isTelegramMiniApp() && "serviceWorker" in navigator) {
+    void ensureAppServiceWorker();
+  }
+
+  stopAuthListener?.();
+  stopAuthListener = useAuthStore.getState().startAuthListener();
   initPushModule();
 }

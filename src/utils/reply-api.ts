@@ -35,7 +35,11 @@ function replyErrorMessage(status: number, serverMessage?: string): string {
   }
 }
 
-export async function sendInboxReply(messageId: string, body: string): Promise<void> {
+export async function sendInboxReply(
+  messageId: string,
+  body: string,
+  signal?: AbortSignal,
+): Promise<void> {
   const trimmed = body.trim();
   if (trimmed.length < MIN_REPLY_LENGTH) {
     throw new Error("Reply is too short");
@@ -56,9 +60,15 @@ export async function sendInboxReply(messageId: string, body: string): Promise<v
         Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({ messageId, body: trimmed }),
+      signal,
     });
-  } catch {
-    throw new Error("Could not reach reply API — check VITE_PORTFOLIO_API_URL and CORS");
+  } catch (error) {
+    if (signal?.aborted || (error instanceof DOMException && error.name === "AbortError")) {
+      throw error;
+    }
+    throw new Error("Could not reach reply API — check VITE_PORTFOLIO_API_URL and CORS", {
+      cause: error,
+    });
   }
 
   let payload: { error?: string; success?: boolean } = {};

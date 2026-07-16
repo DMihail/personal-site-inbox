@@ -3,7 +3,7 @@ import { Button } from "../ui/button";
 import { SlideDrawer } from "./SlideDrawer";
 import { InboxMessagesPanel } from "./InboxMessagesPanel";
 import type { Message } from "../../features/inbox/types";
-import type { FilterOption, SortOption } from "../FilterBar";
+import type { FilterOption, SortOption } from "@/app/features/inbox/types";
 
 interface InboxMessagesDrawerProps {
   open: boolean;

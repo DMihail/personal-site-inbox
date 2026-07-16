@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useDrawerGesture } from "../../hooks/useDrawerGesture";
 import type { DrawerSide } from "../../hooks/drawerGesture";
 
@@ -36,9 +36,14 @@ export function SlideDrawer({
   const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const focusBeforeOpenRef = useRef<HTMLElement | null>(null);
-  const [mounted, setMounted] = useState(() => open || persistent);
+  const shouldStayMounted = open || persistent;
+  const [mounted, setMounted] = useState(shouldStayMounted);
+  const onEscapeClose = useEffectEvent(() => {
+    onClose();
+  });
 
-  if ((open || persistent) && !mounted) {
+  // Adjust mount flag during render when opening (React-supported pattern).
+  if (shouldStayMounted && !mounted) {
     setMounted(true);
   }
 
@@ -54,19 +59,19 @@ export function SlideDrawer({
   });
 
   useEffect(() => {
-    if (open || persistent || !mounted) return;
+    if (shouldStayMounted || !mounted) return;
     const timer = window.setTimeout(() => setMounted(false), CLOSE_MS);
     return () => window.clearTimeout(timer);
-  }, [open, persistent, mounted]);
+  }, [shouldStayMounted, mounted]);
 
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") onEscapeClose();
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -80,8 +85,7 @@ export function SlideDrawer({
   useLayoutEffect(() => {
     if (open) {
       const active = document.activeElement;
-      focusBeforeOpenRef.current =
-        active instanceof HTMLElement ? active : null;
+      focusBeforeOpenRef.current = active instanceof HTMLElement ? active : null;
       return;
     }
 
@@ -143,9 +147,7 @@ export function SlideDrawer({
   if (!mounted) return null;
 
   const sideClass =
-    side === "start"
-      ? "inset-y-0 start-0 border-e"
-      : "inset-y-0 end-0 border-s";
+    side === "start" ? "inset-y-0 start-0 border-e" : "inset-y-0 end-0 border-s";
 
   return (
     <div

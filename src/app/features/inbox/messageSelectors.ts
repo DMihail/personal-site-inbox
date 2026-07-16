@@ -1,4 +1,4 @@
-import type { FilterOption, SortOption } from "../../components/FilterBar";
+import type { FilterOption, SortOption } from "@/app/features/inbox/types";
 import type { Message, View } from "./types";
 
 function sortMessages(messages: Message[], sortBy: SortOption) {
@@ -51,16 +51,23 @@ export function selectFilteredMessages(
   return sortMessages(searched, sortBy);
 }
 
-export function selectInboxCount(messages: Message[]): number {
-  return messages.filter((m) => !m.isArchived).length;
-}
+export function selectMessageCounts(messages: Message[]): {
+  inboxCount: number;
+  unreadCount: number;
+  importantCount: number;
+} {
+  let inboxCount = 0;
+  let unreadCount = 0;
+  let importantCount = 0;
 
-export function selectUnreadCount(messages: Message[]): number {
-  return messages.filter((m) => !m.isRead && !m.isArchived).length;
-}
+  for (const message of messages) {
+    if (message.isArchived) continue;
+    inboxCount += 1;
+    if (!message.isRead) unreadCount += 1;
+    if (message.isImportant) importantCount += 1;
+  }
 
-export function selectImportantCount(messages: Message[]): number {
-  return messages.filter((m) => m.isImportant && !m.isArchived).length;
+  return { inboxCount, unreadCount, importantCount };
 }
 
 export function selectSelectedMessage(

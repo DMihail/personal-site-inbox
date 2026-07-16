@@ -8,7 +8,7 @@ export function TelegramMiniAppNotice() {
       className="glass-elevated rounded-xl border border-cyan/25 bg-cyan/5 p-4"
     >
       <div className="flex gap-3">
-        <div className="icon-well icon-well-md shrink-0">
+        <div className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl border border-glass-border glass">
           <MessageCircle className="h-4 w-4 text-cyan" aria-hidden />
         </div>
         <div className="min-w-0 space-y-1">

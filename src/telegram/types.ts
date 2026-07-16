@@ -15,6 +15,18 @@ export interface TelegramWebApp {
   viewportHeight: number;
   viewportStableHeight: number;
   isExpanded: boolean;
+  contentSafeAreaInset?: {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  };
+  safeAreaInset?: {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  };
   ready: () => void;
   expand: () => void;
   close: () => void;

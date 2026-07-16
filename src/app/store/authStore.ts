@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { withSecurePersist } from "./securePersist";
-import { migrateAuthPersist } from "./persistMigrate";
+import { withSecurePersist } from "@/shared/persist/securePersist";
+import { migrateAuthPersist } from "@/shared/persist/persistMigrate";
 import type { User } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
 import { firebaseAuth } from "@/utils/firebaseAuth";

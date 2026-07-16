@@ -21,7 +21,11 @@ body {
 /* Standalone iOS (black-translucent status bar) — keep header controls below notch */
 @layer utilities {
   .app-chrome-safe-top {
-    padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+    padding-top: max(
+      0.75rem,
+      env(safe-area-inset-top, 0px),
+      var(--tg-content-safe-area-inset-top, 0px)
+    );
   }
 
   .app-chrome-touch-icon {
@@ -29,13 +33,17 @@ body {
     min-height: 2.75rem;
   }
 
-  /* Sonner toasts — below notch / status bar on iOS PWA */
+  /* Sonner toasts — below notch / status bar on iOS PWA / Telegram */
   [data-sonner-toaster][data-y-position="top"] {
-    top: max(0.75rem, env(safe-area-inset-top, 0px)) !important;
+    top: max(
+      0.75rem,
+      env(safe-area-inset-top, 0px),
+      var(--tg-content-safe-area-inset-top, 0px)
+    ) !important;
   }
 
   [data-sonner-toaster][data-x-position="right"] {
-    right: max(0.75rem, env(safe-area-inset-right, 0px)) !important;
+    inset-inline-end: max(0.75rem, env(safe-area-inset-right, 0px)) !important;
   }
 
 }
@@ -43,14 +51,6 @@ body {
 html.telegram-mini-app .app-telegram-viewport {
   height: var(--tg-viewport-stable-height);
   min-height: var(--tg-viewport-stable-height);
-}
-
-html.telegram-mini-app .app-chrome-safe-top {
-  padding-top: max(0.75rem, var(--tg-content-safe-area-inset-top), env(safe-area-inset-top, 0px));
-}
-
-html.telegram-mini-app [data-sonner-toaster][data-y-position="top"] {
-  top: max(0.75rem, var(--tg-content-safe-area-inset-top), env(safe-area-inset-top, 0px)) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

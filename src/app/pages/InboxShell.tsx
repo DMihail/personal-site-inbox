@@ -1,8 +1,6 @@
 import { lazy, Suspense } from "react";
-import { ReplyDialog } from "../components/ReplyDialog";
 import { OfflineModal } from "../components/OfflineModal";
 import { PwaUpdateBanner } from "../components/PwaUpdateBanner";
-import { SettingsView } from "../components/SettingsView";
 import { SkipLink } from "../components/SkipLink";
 import { useInboxController } from "../hooks/inbox";
 import { useMediaQuery } from "../hooks/useMediaQuery";
@@ -19,6 +17,12 @@ const MobileInboxLayout = lazy(() =>
   import("../components/layout/MobileInboxLayout").then((m) => ({
     default: m.MobileInboxLayout,
   })),
+);
+const SettingsView = lazy(() =>
+  import("../components/SettingsView").then((m) => ({ default: m.SettingsView })),
+);
+const ReplyDialog = lazy(() =>
+  import("../components/ReplyDialog").then((m) => ({ default: m.ReplyDialog })),
 );
 
 function InboxLayoutFallback() {
@@ -48,18 +52,21 @@ export function InboxShell() {
     onCloseMobileDetail: c.onCloseMobileDetail,
   });
 
-  const settingsView = (
-    <SettingsView
-      isOnline={c.isOnline}
-      onLogout={c.handleLogout}
-      pushEnabled={c.pushHandlers.pushEnabled}
-      pushRegistering={c.pushHandlers.pushRegistering}
-      pushError={c.pushHandlers.pushError}
-      isSendingTest={c.pushHandlers.isSendingTest}
-      onPushEnabledChange={c.handlePushEnabledChange}
-      onTestPush={c.pushHandlers.onTestPush}
-    />
-  );
+  const settingsView =
+    c.currentView === "settings" ? (
+      <Suspense fallback={<InboxLayoutFallback />}>
+        <SettingsView
+          isOnline={c.isOnline}
+          onLogout={c.handleLogout}
+          pushEnabled={c.pushHandlers.pushEnabled}
+          pushRegistering={c.pushHandlers.pushRegistering}
+          pushError={c.pushHandlers.pushError}
+          isSendingTest={c.pushHandlers.isSendingTest}
+          onPushEnabledChange={c.handlePushEnabledChange}
+          onTestPush={c.pushHandlers.onTestPush}
+        />
+      </Suspense>
+    ) : null;
 
   const layoutProps = {
     isOnline: c.isOnline,
@@ -102,13 +109,17 @@ export function InboxShell() {
         lastSync={c.lastSync}
       />
 
-      <ReplyDialog
-        isOpen={c.replyDialogOpen}
-        onClose={() => c.setReplyDialogOpen(false)}
-        message={c.selectedMessage}
-        onSend={c.handleSendReply}
-        onOpenInMailClient={c.handleOpenInMailClient}
-      />
+      {c.replyDialogOpen ? (
+        <Suspense fallback={null}>
+          <ReplyDialog
+            isOpen={c.replyDialogOpen}
+            onClose={() => c.setReplyDialogOpen(false)}
+            message={c.selectedMessage}
+            onSend={c.handleSendReply}
+            onOpenInMailClient={c.handleOpenInMailClient}
+          />
+        </Suspense>
+      ) : null}
 
       <PwaUpdateBanner />
 

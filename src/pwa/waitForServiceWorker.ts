@@ -1,10 +1,5 @@
 export const SERVICE_WORKER_TIMEOUT_MS = 20_000;
 
-function workerScriptUrl(registration: ServiceWorkerRegistration): string {
-  const worker = registration.active ?? registration.installing ?? registration.waiting;
-  return worker?.scriptURL ?? "";
-}
-
 /** Rejects if `promise` does not settle within `timeoutMs`. */
 export function promiseWithTimeout<T>(
   promise: Promise<T>,
@@ -82,41 +77,4 @@ export function waitForServiceWorkerActive(
       fail("Service worker activation timed out");
     });
   });
-}
-
-export async function getActiveServiceWorkerRegistration(
-  scope = "/",
-  activationTimeoutMs = SERVICE_WORKER_TIMEOUT_MS,
-): Promise<ServiceWorkerRegistration | null> {
-  if (!("serviceWorker" in navigator)) return null;
-
-  const existing = await navigator.serviceWorker.getRegistration(scope);
-  if (existing?.active) {
-    return existing;
-  }
-
-  if (existing) {
-    try {
-      return await waitForServiceWorkerActive(existing, activationTimeoutMs);
-    } catch {
-      return existing.active ? existing : null;
-    }
-  }
-
-  // Do not await navigator.serviceWorker.ready with no registration — it never resolves.
-  return null;
-}
-
-export function isMessagingServiceWorker(registration: ServiceWorkerRegistration): boolean {
-  return workerScriptUrl(registration).includes("firebase-messaging-sw");
-}
-
-export function isWorkboxServiceWorker(registration: ServiceWorkerRegistration): boolean {
-  const url = workerScriptUrl(registration);
-  return url.includes("/sw.js") || url.includes("workbox");
-}
-
-/** Workbox `/sw.js` (imports FCM) or standalone `/firebase-messaging-sw.js`. */
-export function isPushCapableServiceWorker(registration: ServiceWorkerRegistration): boolean {
-  return isMessagingServiceWorker(registration) || isWorkboxServiceWorker(registration);
 }

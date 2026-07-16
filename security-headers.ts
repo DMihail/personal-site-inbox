@@ -19,60 +19,73 @@ function buildConnectSrc(extra: string[] = []): string {
     "wss://*.firebaseio.com",
     "https://*.firebaseapp.com",
     "https://www.gstatic.com",
+    // Portfolio reply/test-push API origin (configured via VITE_PORTFOLIO_API_URL).
     "https:",
     ...extra,
   ].join(" ");
 }
 
-const SCRIPT_SRC = [
-  "script-src 'self' 'unsafe-inline'",
-  "https://www.gstatic.com",
-  "https://storage.googleapis.com",
-  VERCEL_LIVE_ORIGIN,
-].join(" ");
+const OBJECT_SRC = "object-src 'none'";
 
-/** Production Content-Security-Policy for the inbox SPA, Firebase, Google Fonts, and reply API. */
-export function buildContentSecurityPolicy(): string {
-  return [
+/**
+ * Production: external Vite bundles only — no unsafe-inline (CSP audit).
+ * Dev: Vite HMR + @vitejs/plugin-react inject inline preamble scripts.
+ */
+const SCRIPT_SRC_PRODUCTION = "script-src 'self'";
+const SCRIPT_SRC_DEVELOPMENT = "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+
+function buildCsp(options: {
+  upgradeInsecureRequests: boolean;
+  scriptSrc: string;
+  connectExtra?: string[];
+}): string {
+  const directives = [
     "default-src 'self'",
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "object-src 'none'",
-    SCRIPT_SRC,
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    OBJECT_SRC,
+    options.scriptSrc,
+    // Tailwind + Radix use style attributes; hashes would require a build-time pipeline.
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     `img-src 'self' data: blob: https://www.gstatic.com ${VERCEL_LIVE_ORIGIN}`,
-    buildConnectSrc(),
+    buildConnectSrc(options.connectExtra),
     `frame-src 'self' ${VERCEL_LIVE_ORIGIN}`,
     "worker-src 'self' blob: https://www.gstatic.com https://storage.googleapis.com",
     "manifest-src 'self'",
-    "upgrade-insecure-requests",
-  ].join("; ");
+  ];
+
+  if (options.upgradeInsecureRequests) {
+    directives.push("upgrade-insecure-requests");
+  }
+
+  return directives.join("; ");
 }
 
-/** Dev CSP: no upgrade-insecure-requests; allows local portfolio API over HTTP. */
+/** Production Content-Security-Policy for the inbox SPA, Firebase, and reply API. */
+export function buildContentSecurityPolicy(): string {
+  return buildCsp({
+    upgradeInsecureRequests: true,
+    scriptSrc: SCRIPT_SRC_PRODUCTION,
+  });
+}
+
+/**
+ * Dev CSP for `vite` / HMR.
+ * Allows inline + eval for React Refresh preamble (not used on Vercel production).
+ */
 export function buildDevContentSecurityPolicy(): string {
-  return [
-    "default-src 'self'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "frame-ancestors 'none'",
-    "object-src 'none'",
-    SCRIPT_SRC,
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
-    `img-src 'self' data: blob: https://www.gstatic.com ${VERCEL_LIVE_ORIGIN}`,
-    buildConnectSrc([
+  return buildCsp({
+    upgradeInsecureRequests: false,
+    scriptSrc: SCRIPT_SRC_DEVELOPMENT,
+    connectExtra: [
       "http://localhost:*",
       "http://127.0.0.1:*",
       "ws://localhost:*",
       "ws://127.0.0.1:*",
-    ]),
-    `frame-src 'self' ${VERCEL_LIVE_ORIGIN}`,
-    "worker-src 'self' blob: https://www.gstatic.com https://storage.googleapis.com",
-    "manifest-src 'self'",
-  ].join("; ");
+    ],
+  });
 }
 
 const sharedSecurityHeaders: Record<string, string> = {
@@ -86,7 +99,7 @@ const sharedSecurityHeaders: Record<string, string> = {
   "Cross-Origin-Resource-Policy": "same-origin",
 };
 
-/** Local dev / Vite (no HSTS; relaxed connect-src for localhost API). */
+/** Local dev / Vite (no HSTS; relaxed connect-src + script-src for HMR). */
 export const devSecurityHeaders: Record<string, string> = {
   ...sharedSecurityHeaders,
   "Content-Security-Policy": buildDevContentSecurityPolicy(),

@@ -29,17 +29,6 @@ export async function ensurePersistentStorage(): Promise<boolean> {
   return persistRequest;
 }
 
-export async function isPersistentStorageGranted(): Promise<boolean> {
-  if (typeof navigator === "undefined" || !navigator.storage?.persisted) {
-    return false;
-  }
-  try {
-    return await navigator.storage.persisted();
-  } catch {
-    return false;
-  }
-}
-
 function openDatabase(): Promise<IDBDatabase | null> {
   if (!hasIndexedDb()) {
     return Promise.resolve(null);

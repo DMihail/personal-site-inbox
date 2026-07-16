@@ -33,11 +33,29 @@ describe("security headers", () => {
     const csp = buildContentSecurityPolicy();
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("object-src 'none'");
+    expect(csp).toContain("script-src 'self'");
+    expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
+    expect(csp).not.toMatch(/script-src[^;]*'unsafe-eval'/);
+    expect(csp).not.toMatch(/script-src[^;]*data:/);
+    expect(csp).not.toMatch(/script-src[^;]*https:/);
+    expect(csp).not.toMatch(/object-src[^;]*https:/);
     expect(csp).toContain("upgrade-insecure-requests");
     expect(csp).toContain("https://*.googleapis.com");
     expect(csp).toContain("https://storage.googleapis.com");
     expect(csp).toContain("https://vercel.live");
     expect(csp).toContain("frame-src");
+  });
+
+  it("keeps production script-src strict; relaxes only for local Vite", () => {
+    const prod = buildContentSecurityPolicy();
+    expect(prod).toMatch(/script-src 'self'(;|$)/);
+    expect(prod).not.toMatch(/script-src[^;]*'unsafe-inline'/);
+    expect(prod).not.toMatch(/script-src[^;]*'unsafe-eval'/);
+    expect(prod).toContain("object-src 'none'");
+
+    const dev = buildDevContentSecurityPolicy();
+    expect(dev).toMatch(/script-src 'self' 'unsafe-inline' 'unsafe-eval'/);
+    expect(dev).toContain("object-src 'none'");
   });
 
   it("dev CSP allows local HTTP API and skips upgrade-insecure-requests", () => {

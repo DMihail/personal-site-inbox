@@ -1,5 +1,8 @@
 export type View = "inbox" | "unread" | "important" | "archived" | "settings";
 
+export type SortOption = "newest" | "oldest" | "unread" | "important";
+export type FilterOption = "all" | "unread" | "important" | "archived";
+
 export interface Message {
   id: string;
   senderName: string;

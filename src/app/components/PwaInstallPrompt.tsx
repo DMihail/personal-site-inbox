@@ -16,7 +16,7 @@ export function PwaInstallPrompt() {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 gap-3">
-          <div className="icon-well icon-well-md shrink-0">
+          <div className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl border border-glass-border glass">
             <Smartphone className="h-4 w-4 text-cyan" aria-hidden />
           </div>
           <div className="min-w-0 space-y-1">
@@ -62,7 +62,7 @@ export function PwaInstallPrompt() {
       </div>
 
       {canNativePrompt ? (
-        <Button type="button" size="sm" className="btn-primary mt-3 w-full" onClick={() => void promptInstall()}>
+        <Button type="button" size="sm" className="mt-3 w-full bg-cyan text-background hover:bg-cyan/90" onClick={() => void promptInstall()}>
           Install app
         </Button>
       ) : null}

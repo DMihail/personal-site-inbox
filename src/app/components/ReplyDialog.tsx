@@ -20,13 +20,14 @@ interface ReplyDialogProps {
   isOpen: boolean;
   onClose: () => void;
   message: Message | null;
-  onSend: (content: string) => void | Promise<void>;
+  onSend: (content: string, signal?: AbortSignal) => void | Promise<void>;
   onOpenInMailClient: () => void;
 }
 
 export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClient }: ReplyDialogProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const apiConfigured = isPortfolioApiConfigured();
+  const abortRef = useRef<AbortController | null>(null);
 
   const [replyState, sendReplyAction] = useActionState(
     async (_previous: { error?: string } | null, formData: FormData) => {
@@ -37,12 +38,17 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
         return { error: `Reply must be at least ${MIN_REPLY_LENGTH} characters.` };
       }
 
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       try {
-        await onSend(trimmed);
+        await onSend(trimmed, controller.signal);
         formRef.current?.reset();
         onClose();
         return null;
       } catch (error) {
+        if (controller.signal.aborted) return null;
         const messageText = error instanceof Error ? error.message : "Failed to send reply.";
         return { error: messageText };
       }
@@ -57,6 +63,7 @@ export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClie
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
+          abortRef.current?.abort();
           formRef.current?.reset();
           onClose();
         }

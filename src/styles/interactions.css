@@ -3,7 +3,7 @@
   .dark {
     --surface-hover-bg: rgba(32, 32, 32, 0.92);
     --surface-hover-border: color-mix(in srgb, var(--glass-border) 55%, var(--cyan) 45%);
-    --surface-hover-shadow: 0 4px 16px rgba(0, 217, 255, 0.1);
+    --surface-hover-shadow: 0 4px 16px color-mix(in srgb, var(--cyan) 10%, transparent);
     --ghost-hover-bg: rgba(255, 255, 255, 0.08);
     --menu-hover-bg: rgba(255, 255, 255, 0.06);
   }
@@ -33,7 +33,7 @@
       background: var(--surface-hover-bg);
       border-color: var(--surface-hover-border);
       color: var(--text-primary);
-      box-shadow: 0 2px 12px rgba(0, 217, 255, 0.08);
+      box-shadow: 0 2px 12px color-mix(in srgb, var(--cyan) 8%, transparent);
     }
 
     .ui-hover-inbox:hover {
@@ -44,7 +44,7 @@
 
     .ui-hover-inbox-unread:hover {
       border-color: color-mix(in srgb, var(--cyan) 35%, var(--glass-border) 65%);
-      box-shadow: 0 4px 20px rgba(0, 217, 255, 0.14);
+      box-shadow: 0 4px 20px color-mix(in srgb, var(--cyan) 14%, transparent);
     }
 
     .ui-hover-link:hover {
@@ -73,6 +73,13 @@
   .dark [data-slot="dropdown-menu-radio-item"]:not([data-disabled]):is(:hover, :focus) {
     background-color: var(--menu-hover-bg) !important;
     color: var(--text-primary) !important;
+  }
+
+  .dark [data-slot="dropdown-menu-item"]:not([data-disabled]):focus-visible,
+  .dark [data-slot="dropdown-menu-checkbox-item"]:not([data-disabled]):focus-visible,
+  .dark [data-slot="dropdown-menu-radio-item"]:not([data-disabled]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
   }
 
   .dark [data-slot="dropdown-menu-item"][data-variant="destructive"]:not([data-disabled]):is(:hover, :focus) {

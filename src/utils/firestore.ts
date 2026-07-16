@@ -18,10 +18,11 @@ let firestorePromise: Promise<Firestore> | null = null;
 export function getFirestoreDb(): Promise<Firestore> {
   if (!firestorePromise) {
     firestorePromise = import("firebase/firestore").then(
-      ({ initializeFirestore, persistentLocalCache, persistentSingleTabManager }) =>
+      ({ initializeFirestore, persistentLocalCache, persistentMultipleTabManager }) =>
         initializeFirestore(firebaseApp, {
           localCache: persistentLocalCache({
-            tabManager: persistentSingleTabManager({}),
+            // Shared IndexedDB across tabs — avoids failed-precondition when inbox is open twice.
+            tabManager: persistentMultipleTabManager(),
             cacheSizeBytes: getFirestoreCacheSizeBytes(),
           }),
         }),

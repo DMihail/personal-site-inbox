@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { getPortfolioApiLabel, isPortfolioApiConfigured } from "@/utils/reply-api";
 import { useNotificationPermission } from "../hooks/useNotificationPermission";
 import { useRecheckPushPermission } from "../hooks/useRecheckPushPermission";
-import { useRequestPushPermission } from "../hooks/useRequestPushPermission";
+import { beginEnablePushFlow } from "../notifications/beginEnablePushFlow";
 import { NotificationPermissionHelp } from "./NotificationPermissionHelp";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
@@ -15,7 +15,6 @@ import { PwaInstallPrompt } from "./PwaInstallPrompt";
 import { isStandaloneDisplayMode } from "@/pwa/runtime";
 import { isTelegramMiniApp } from "@/telegram/detect";
 import { TelegramMiniAppNotice } from "./TelegramMiniAppNotice";
-import { getNotificationPermission, getPushNotificationSupport } from "@/push/permissions";
 
 interface SettingsViewProps {
   isOnline: boolean;
@@ -39,9 +38,6 @@ export function SettingsView({
   onTestPush,
 }: SettingsViewProps) {
   const { permission, refresh } = useNotificationPermission();
-  const requestPermissionAndEnable = useRequestPushPermission(() => {
-    onPushEnabledChange(true);
-  });
   const recheckPermission = useRecheckPushPermission(refresh);
   const isDenied = permission === "denied";
   const needsPermissionPrompt = permission === "default" || permission === "unsupported";
@@ -57,19 +53,23 @@ export function SettingsView({
   };
 
   const handleAllowNotifications = () => {
-    const support = getPushNotificationSupport();
-    if (!support.ok) {
-      toast.error("Could not enable notifications", { description: support.message });
+    const result = beginEnablePushFlow(() => onPushEnabledChange(true));
+
+    if (result.status === "unsupported") {
+      toast.error("Could not enable notifications", { description: result.message });
       return;
     }
 
-    if (getNotificationPermission() === "granted") {
-      onPushEnabledChange(true);
+    if (result.status === "blocked") {
+      return;
+    }
+
+    if (result.status === "enabled") {
       refresh();
       return;
     }
 
-    void requestPermissionAndEnable().then((ok) => {
+    void result.promise.then((ok) => {
       if (ok) refresh();
     });
   };
@@ -136,7 +136,7 @@ export function SettingsView({
               <Button
                 type="button"
                 size="sm"
-                className="btn-primary w-full"
+                className="w-full bg-cyan text-background hover:bg-cyan/90"
                 disabled={pushRegistering}
                 onClick={handleAllowNotifications}
               >

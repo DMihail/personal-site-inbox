@@ -1,11 +1,9 @@
 import type { LucideIcon } from "lucide-react";
-import { SystemMetadata } from "./SystemMetadata";
 
 interface EmptyStateProps {
   icon: LucideIcon;
   title: string;
   description?: string;
-  metadata?: string;
   titleLevel?: "h2" | "h3";
 }
 
@@ -13,7 +11,6 @@ export function EmptyState({
   icon: Icon,
   title,
   description,
-  metadata,
   titleLevel = "h3",
 }: EmptyStateProps) {
   const TitleTag = titleLevel === "h2" ? "h2" : "h3";
@@ -31,7 +28,6 @@ export function EmptyState({
           <TitleTag className="text-heading text-text-primary">{title}</TitleTag>
           {description ? <p className="text-body-sm text-text-secondary">{description}</p> : null}
         </div>
-        {metadata ? <SystemMetadata>{metadata}</SystemMetadata> : null}
       </div>
     </div>
   );

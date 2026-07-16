@@ -3,8 +3,8 @@
   .auth-input {
     height: 2.75rem !important;
     min-height: 2.75rem;
-    padding-left: 2.5rem !important;
-    padding-right: 0.75rem;
+    padding-inline-start: 2.5rem !important;
+    padding-inline-end: 0.75rem;
     background-color: var(--glass-bg) !important;
     color: var(--text-primary);
     border: 1px solid var(--glass-border);
@@ -42,22 +42,22 @@
       color 99999s ease-out 0s,
       border-color 0.2s ease,
       box-shadow 0.2s ease;
-    -webkit-box-shadow: 0 0 0 1000px #141414 inset !important;
-    box-shadow: 0 0 0 1000px #141414 inset !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--input-autofill-bg) inset !important;
+    box-shadow: 0 0 0 1000px var(--input-autofill-bg) inset !important;
   }
 
   .auth-input:-webkit-autofill:focus {
     border-color: var(--cyan) !important;
     -webkit-box-shadow:
-      0 0 0 1000px #141414 inset,
+      0 0 0 1000px var(--input-autofill-bg) inset,
       0 0 0 3px var(--glow-cyan) !important;
     box-shadow:
-      0 0 0 1000px #141414 inset,
+      0 0 0 1000px var(--input-autofill-bg) inset,
       0 0 0 3px var(--glow-cyan) !important;
   }
 
   .auth-input:autofill {
-    box-shadow: 0 0 0 1000px #141414 inset;
+    box-shadow: 0 0 0 1000px var(--input-autofill-bg) inset;
     -webkit-text-fill-color: var(--text-primary);
     caret-color: var(--text-primary);
   }
@@ -166,7 +166,7 @@
     -webkit-text-fill-color: var(--text-primary) !important;
     caret-color: var(--text-primary);
     transition: background-color 99999s ease-out 0s;
-    -webkit-box-shadow: 0 0 0 1000px #141414 inset !important;
-    box-shadow: 0 0 0 1000px #141414 inset !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--input-autofill-bg) inset !important;
+    box-shadow: 0 0 0 1000px var(--input-autofill-bg) inset !important;
   }
 }

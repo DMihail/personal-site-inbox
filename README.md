@@ -13,7 +13,7 @@ PWA inbox for contact messages: realtime list, filters, replies via a backend AP
 - Responsive desktop, mobile, and tablet layouts
 - Email replies through a configurable HTTP API
 - FCM push (optional) with in-app toast fallback
-- Installable PWA with offline shell
+- Installable PWA with offline shell (unified `/sw.js`: Workbox + FCM)
 - **Telegram Mini App** — same inbox inside Telegram (see [docs/telegram-mini-app.md](./docs/telegram-mini-app.md))
 
 ## Tech stack
@@ -54,6 +54,8 @@ firebase deploy --only firestore:rules
 ```
 
 FCM tokens are stored per device at `fcmTokens/{uid}/devices/{deviceId}` so push can reach every phone and browser. Update the portfolio API to send to all tokens — see [docs/fcm-multi-device-backend.md](./docs/fcm-multi-device-backend.md).
+
+Production registers a **single** service worker at `/sw.js` (Workbox precache + FCM via `importScripts` of generated `firebase-messaging-sw.js`). Legacy standalone messaging SW registrations are unregistered on load so tokens stay tied to one worker.
 
 ### Telegram Mini App
 
