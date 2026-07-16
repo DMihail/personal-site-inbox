@@ -28,11 +28,18 @@ function buildConnectSrc(extra: string[] = []): string {
 const OBJECT_SRC = "object-src 'none'";
 
 /**
- * Production: external Vite bundles only — no unsafe-inline (CSP audit).
+ * Hosts allowed for classic script loads (page + SW `importScripts`).
+ * FCM SW loads Firebase compat from gstatic; Vercel Live injects feedback.js on previews.
+ * `worker-src` alone is not enough — browsers enforce `script-src` for importScripts.
+ */
+const SCRIPT_SRC_HOSTS = `https://www.gstatic.com ${VERCEL_LIVE_ORIGIN}`;
+
+/**
+ * Production: no unsafe-inline / unsafe-eval (CSP audit); allow only required CDNs.
  * Dev: Vite HMR + @vitejs/plugin-react inject inline preamble scripts.
  */
-const SCRIPT_SRC_PRODUCTION = "script-src 'self'";
-const SCRIPT_SRC_DEVELOPMENT = "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+const SCRIPT_SRC_PRODUCTION = `script-src 'self' ${SCRIPT_SRC_HOSTS}`;
+const SCRIPT_SRC_DEVELOPMENT = `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${SCRIPT_SRC_HOSTS}`;
 
 function buildCsp(options: {
   upgradeInsecureRequests: boolean;
