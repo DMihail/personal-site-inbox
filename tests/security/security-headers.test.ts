@@ -37,7 +37,8 @@ describe("security headers", () => {
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-eval'/);
     expect(csp).not.toMatch(/script-src[^;]*data:/);
-    expect(csp).not.toMatch(/script-src[^;]*https:/);
+    // No wildcard https: in script-src — only explicit CDNs (gstatic + vercel.live).
+    expect(csp).not.toMatch(/script-src[^;]*\shttps:(;|$)/);
     expect(csp).not.toMatch(/object-src[^;]*https:/);
     expect(csp).toContain("upgrade-insecure-requests");
     expect(csp).toContain("https://*.googleapis.com");
@@ -46,15 +47,19 @@ describe("security headers", () => {
     expect(csp).toContain("frame-src");
   });
 
-  it("keeps production script-src strict; relaxes only for local Vite", () => {
+  it("allows FCM gstatic + Vercel Live in script-src; no unsafe-inline in prod", () => {
     const prod = buildContentSecurityPolicy();
-    expect(prod).toMatch(/script-src 'self'(;|$)/);
+    expect(prod).toMatch(
+      /script-src 'self' https:\/\/www\.gstatic\.com https:\/\/vercel\.live(;|$)/,
+    );
     expect(prod).not.toMatch(/script-src[^;]*'unsafe-inline'/);
     expect(prod).not.toMatch(/script-src[^;]*'unsafe-eval'/);
     expect(prod).toContain("object-src 'none'");
 
     const dev = buildDevContentSecurityPolicy();
-    expect(dev).toMatch(/script-src 'self' 'unsafe-inline' 'unsafe-eval'/);
+    expect(dev).toMatch(
+      /script-src 'self' 'unsafe-inline' 'unsafe-eval' https:\/\/www\.gstatic\.com https:\/\/vercel\.live/,
+    );
     expect(dev).toContain("object-src 'none'");
   });
 
