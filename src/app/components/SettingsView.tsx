@@ -136,7 +136,7 @@ export function SettingsView({
               <Button
                 type="button"
                 size="sm"
-                className="btn-primary w-full"
+                className="w-full bg-cyan text-background hover:bg-cyan/90"
                 disabled={pushRegistering}
                 onClick={handleAllowNotifications}
               >

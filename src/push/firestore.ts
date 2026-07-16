@@ -3,9 +3,9 @@ import { isIosLikeDevice } from "@/pwa/runtime";
 import { logPush, maskToken } from "@/push/debug";
 import { initDeviceId } from "@/push/device-id";
 
-export type PushPlatform = "ios" | "android" | "desktop" | "unknown";
+type PushPlatform = "ios" | "android" | "desktop" | "unknown";
 
-export function getPushPlatform(): PushPlatform {
+function getPushPlatform(): PushPlatform {
   if (typeof navigator === "undefined") return "unknown";
   if (isIosLikeDevice()) return "ios";
   if (/Android/i.test(navigator.userAgent)) return "android";

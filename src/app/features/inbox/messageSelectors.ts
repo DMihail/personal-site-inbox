@@ -70,18 +70,6 @@ export function selectMessageCounts(messages: Message[]): {
   return { inboxCount, unreadCount, importantCount };
 }
 
-export function selectInboxCount(messages: Message[]): number {
-  return selectMessageCounts(messages).inboxCount;
-}
-
-export function selectUnreadCount(messages: Message[]): number {
-  return selectMessageCounts(messages).unreadCount;
-}
-
-export function selectImportantCount(messages: Message[]): number {
-  return selectMessageCounts(messages).importantCount;
-}
-
 export function selectSelectedMessage(
   messages: Message[],
   selectedMessageId: string | null,

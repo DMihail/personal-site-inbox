@@ -17,7 +17,7 @@ function isLocalPortfolioApiUrl(base: string): boolean {
  * In dev, local API URLs are requested via same-origin `/api/*` (Vite proxy → backend).
  * Production and remote HTTPS APIs use the full `VITE_PORTFOLIO_API_URL` origin.
  */
-export function portfolioApiBase(): string {
+function portfolioApiBase(): string {
   const base = getPortfolioApiEnvBase();
   if (!base) {
     throw new Error("VITE_PORTFOLIO_API_URL is not configured");

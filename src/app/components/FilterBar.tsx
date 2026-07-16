@@ -9,8 +9,6 @@ import {
   DropdownMenuSeparator,
 } from "./ui/dropdown-menu";
 
-export type { FilterOption, SortOption };
-
 interface FilterBarProps {
   sortBy: SortOption;
   onSortChange: (sort: SortOption) => void;

@@ -1,4 +1,4 @@
-export function isPushDebugEnabled(): boolean {
+function isPushDebugEnabled(): boolean {
   return import.meta.env.DEV || import.meta.env.VITE_PUSH_DEBUG === "true";
 }
 

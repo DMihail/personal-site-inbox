@@ -2,11 +2,8 @@ import { describe, expect, it, beforeEach } from "vitest";
 import { createMessage, resetMessageIds } from "@tests/fixtures/messages";
 import {
   selectFilteredMessages,
-  selectImportantCount,
-  selectInboxCount,
   selectMessageCounts,
   selectSelectedMessage,
-  selectUnreadCount,
 } from "@/app/features/inbox/messageSelectors";
 
 describe("messageSelectors", () => {
@@ -45,24 +42,6 @@ describe("messageSelectors", () => {
         unreadCount: 1,
         importantCount: 1,
       });
-    });
-  });
-
-  describe("selectInboxCount", () => {
-    it("counts non-archived messages", () => {
-      expect(selectInboxCount(sampleMessages())).toBe(2);
-    });
-  });
-
-  describe("selectUnreadCount", () => {
-    it("counts unread non-archived messages", () => {
-      expect(selectUnreadCount(sampleMessages())).toBe(1);
-    });
-  });
-
-  describe("selectImportantCount", () => {
-    it("counts important non-archived messages", () => {
-      expect(selectImportantCount(sampleMessages())).toBe(1);
     });
   });
 

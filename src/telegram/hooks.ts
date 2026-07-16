@@ -46,7 +46,3 @@ export function useTelegramBackButton({ visible, onBack }: TelegramBackButtonOpt
     };
   }, [visible, onBack]);
 }
-
-export function useIsTelegramMiniApp(): boolean {
-  return isTelegramMiniApp();
-}
