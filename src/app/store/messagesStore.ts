@@ -1,50 +1,9 @@
 import { create } from "zustand";
 import { getFirestoreDb } from "@/utils/firestore";
-import type { Message } from "../features/inbox/types";
-import type { FilterOption, SortOption } from "../components/FilterBar";
+import type { FilterOption, Message, SortOption } from "../features/inbox/types";
+import { mapFirestoreMessage } from "../features/inbox/mapFirestoreMessage";
 import { shouldToastForMessageChange } from "../notifications/shouldToastForMessageChange";
-import { toastNewMessage } from "../notifications/toastNewMessage";
-import { notifyNewMessage } from "@/push/display";
-import { showNotificationOnce } from "@/push/dedupe";
-import { shouldNotifyViaFirestore, shouldToastNewMessage } from "@/push/fallback";
-import { usePushStore } from "@/push/store";
-
-type FirestoreMessageDoc = {
-  name: string;
-  email: string;
-  company: string | null;
-  message: string;
-  createdAt: { toDate: () => Date } | null;
-  source?: string;
-  read?: boolean;
-  archived?: boolean;
-  important?: boolean;
-  repliedAt?: { toDate: () => Date } | null;
-  lastReplyPreview?: string;
-};
-
-function toAppMessage(id: string, d: FirestoreMessageDoc): Message {
-  const timestamp = d.createdAt ? d.createdAt.toDate() : new Date(0);
-  const company = d.company ?? "—";
-  const preview = d.message;
-  return {
-    id,
-    senderName: d.name,
-    senderEmail: d.email,
-    company,
-    subject: `Message from ${d.name}`,
-    preview,
-    timestamp,
-    isRead: Boolean(d.read),
-    isImportant: Boolean(d.important),
-    isArchived: Boolean(d.archived),
-    source: d.source ?? "contact",
-    repliedAt: d.repliedAt ? d.repliedAt.toDate() : undefined,
-    lastReplyPreview:
-      typeof d.lastReplyPreview === "string" ? d.lastReplyPreview : undefined,
-    tags: d.source ? [d.source] : undefined,
-  };
-}
+import { notifyIncomingMessage } from "../notifications/notifyIncomingMessage";
 
 interface MessagesState {
   messages: Message[];
@@ -102,26 +61,22 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
             const { hasLoadedOnce } = get();
 
             for (const ch of snap.docChanges()) {
-              if (
-                !shouldToastForMessageChange(ch, { hasLoadedOnce, knownMessageIds })
-              ) {
+              if (!shouldToastForMessageChange(ch, { hasLoadedOnce, knownMessageIds })) {
                 continue;
               }
-              const msg = toAppMessage(ch.doc.id, ch.doc.data() as FirestoreMessageDoc);
-              if (shouldToastNewMessage()) {
-                toastNewMessage(msg);
-              } else if (shouldNotifyViaFirestore()) {
-                void notifyNewMessage(msg);
-              } else {
-                const { enabled, token } = usePushStore.getState();
-                if (enabled && token && msg.source === "portfolio") {
-                  void showNotificationOnce(msg.id, () => notifyNewMessage(msg));
-                }
-              }
+              const msg = mapFirestoreMessage(
+                ch.doc.id,
+                ch.doc.data() as Parameters<typeof mapFirestoreMessage>[1],
+              );
+              notifyIncomingMessage(msg, (id) => get().selectMessage(id));
             }
 
             const msgs: Message[] = [];
-            snap.forEach((d) => msgs.push(toAppMessage(d.id, d.data() as FirestoreMessageDoc)));
+            snap.forEach((d) =>
+              msgs.push(
+                mapFirestoreMessage(d.id, d.data() as Parameters<typeof mapFirestoreMessage>[1]),
+              ),
+            );
             set({ messages: msgs, isLoading: false, error: null, hasLoadedOnce: true });
           },
           (err) => {
@@ -139,7 +94,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
   stopSubscription: () => {
     const unsub = get()._unsubscribe;
     if (unsub) unsub();
-    set({ _unsubscribe: null, hasLoadedOnce: false, _subscribeInFlight: false });
+    set({ _unsubscribe: null, _subscribeInFlight: false });
   },
 
   selectMessage: (id) => {

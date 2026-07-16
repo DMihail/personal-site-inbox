@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { withSecurePersist } from "@/app/store/securePersist";
-import { migratePushPersist } from "@/app/store/persistMigrate";
+import { withSecurePersist } from "@/shared/persist/securePersist";
+import { migratePushPersist } from "@/shared/persist/persistMigrate";
 import { isPushConfigured } from "@/push/config";
 import {
   registerPushToken,
@@ -100,10 +100,10 @@ export const usePushStore = create<PushState>()(
             : (result.message ?? "Could not register push token.");
 
         set({
-          enabled: true,
+          enabled: false,
           token: null,
           isRegistering: false,
-          error: result.reason === "no-vapid" ? warning : warning,
+          error: warning,
         });
       },
 
@@ -156,3 +156,17 @@ export const usePushStore = create<PushState>()(
     }),
   ),
 );
+
+/** Resolves after IndexedDB rehydration so bootstrap sync sees persisted `enabled`. */
+export function waitForPushStoreHydration(): Promise<void> {
+  return new Promise((resolve) => {
+    if (usePushStore.persist.hasHydrated()) {
+      resolve();
+      return;
+    }
+    const unsub = usePushStore.persist.onFinishHydration(() => {
+      unsub();
+      resolve();
+    });
+  });
+}

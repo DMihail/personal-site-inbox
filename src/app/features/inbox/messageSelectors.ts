@@ -1,4 +1,4 @@
-import type { FilterOption, SortOption } from "../../components/FilterBar";
+import type { FilterOption, SortOption } from "@/app/features/inbox/types";
 import type { Message, View } from "./types";
 
 function sortMessages(messages: Message[], sortBy: SortOption) {

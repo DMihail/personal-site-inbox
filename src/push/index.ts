@@ -1,6 +1,6 @@
 export { isPushConfigured } from "@/push/config";
 export { initPushModule } from "@/push/init";
-export { usePushStore } from "@/push/store";
+export { usePushStore, waitForPushStoreHydration } from "@/push/store";
 export { initDeviceId, getDeviceId } from "@/push/device-id";
 export {
   getNotificationPermission,

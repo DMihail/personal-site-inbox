@@ -1,3 +1,4 @@
+import type { FilterOption, SortOption } from "@/app/features/inbox/types";
 import { SlidersHorizontal, ArrowUpDown } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -8,8 +9,7 @@ import {
   DropdownMenuSeparator,
 } from "./ui/dropdown-menu";
 
-export type SortOption = "newest" | "oldest" | "unread" | "important";
-export type FilterOption = "all" | "unread" | "important" | "archived";
+export type { FilterOption, SortOption };
 
 interface FilterBarProps {
   sortBy: SortOption;

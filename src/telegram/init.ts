@@ -38,8 +38,5 @@ export function initTelegramMiniApp(): boolean {
   syncTelegramViewportCss(webApp);
   captureTelegramStartParam();
 
-  const onViewport = () => syncTelegramViewportCss(webApp);
-  webApp.onEvent("viewportChanged", onViewport);
-
   return true;
 }

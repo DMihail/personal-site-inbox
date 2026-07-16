@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Message, View } from "@/app/features/inbox/types";
-import type { FilterOption, SortOption } from "@/app/components/FilterBar";
+import type { FilterOption, SortOption } from "@/app/features/inbox/types";
 
 /** Shared props for desktop + mobile inbox layouts. */
 export interface InboxLayoutBaseProps {

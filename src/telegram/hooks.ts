@@ -10,7 +10,13 @@ export function useTelegramViewport(): void {
 
     const onViewport = () => syncTelegramViewportCss(webApp);
     webApp.onEvent("viewportChanged", onViewport);
-    return () => webApp.offEvent("viewportChanged", onViewport);
+    webApp.onEvent("contentSafeAreaChanged", onViewport);
+    webApp.onEvent("safeAreaChanged", onViewport);
+    return () => {
+      webApp.offEvent("viewportChanged", onViewport);
+      webApp.offEvent("contentSafeAreaChanged", onViewport);
+      webApp.offEvent("safeAreaChanged", onViewport);
+    };
   }, []);
 }
 

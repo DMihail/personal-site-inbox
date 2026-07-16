@@ -5,7 +5,7 @@ import { SearchBar } from "../SearchBar";
 import { FilterBar } from "../FilterBar";
 import { scrollPaneClass } from "./scrollPane";
 import type { Message } from "../../features/inbox/types";
-import type { FilterOption, SortOption } from "../FilterBar";
+import type { FilterOption, SortOption } from "@/app/features/inbox/types";
 
 interface InboxMessagesPanelProps {
   listHeading: string;

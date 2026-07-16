@@ -10,8 +10,7 @@ import {
 } from "./ui/dropdown-menu";
 import { useNotificationPermission } from "../hooks/useNotificationPermission";
 import { useRecheckPushPermission } from "../hooks/useRecheckPushPermission";
-import { useRequestPushPermission } from "../hooks/useRequestPushPermission";
-import { getNotificationPermission } from "@/push/permissions";
+import { beginEnablePushFlow } from "../notifications/beginEnablePushFlow";
 import { NotificationPermissionHelp } from "./NotificationPermissionHelp";
 
 interface PushNotificationButtonProps {
@@ -34,7 +33,6 @@ export function PushNotificationButton({
   onTest,
 }: PushNotificationButtonProps) {
   const { permission, refresh } = useNotificationPermission();
-  const requestPermissionAndEnable = useRequestPushPermission(onEnable);
   const recheckPermission = useRecheckPushPermission(refresh);
 
   const isActive = enabled && permission === "granted";
@@ -42,22 +40,26 @@ export function PushNotificationButton({
   const Icon = isDenied ? BellOff : isActive ? BellRing : Bell;
 
   const handleEnable = () => {
-    const current = getNotificationPermission();
+    const result = beginEnablePushFlow(onEnable);
 
-    if (current === "denied") {
+    if (result.status === "unsupported") {
+      toast.error("Could not enable notifications", { description: result.message });
+      return;
+    }
+
+    if (result.status === "blocked") {
       toast.message("Unblock in browser settings", {
         description: "Follow the steps below, reload, then tap Check again.",
       });
       return;
     }
 
-    if (current === "granted") {
-      onEnable();
+    if (result.status === "enabled") {
       refresh();
       return;
     }
 
-    void requestPermissionAndEnable().then((ok) => {
+    void result.promise.then((ok) => {
       if (ok) refresh();
     });
   };

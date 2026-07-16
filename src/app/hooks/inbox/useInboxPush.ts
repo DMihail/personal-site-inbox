@@ -2,8 +2,6 @@ import { useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { getNotificationPermission } from "@/push/permissions";
 import { usePushStore } from "@/push/store";
-import { isPushConfigured } from "@/push/config";
-import { isTelegramMiniApp } from "@/telegram/detect";
 import type { InboxPushHandlers } from "./inbox-layout.types";
 
 export function useInboxPush(userId: string | null | undefined) {
@@ -11,7 +9,6 @@ export function useInboxPush(userId: string | null | undefined) {
   const pushRegistering = usePushStore((s) => s.isRegistering);
   const pushError = usePushStore((s) => s.error);
   const setPushEnabled = usePushStore((s) => s.setEnabled);
-  const sync = usePushStore((s) => s.sync);
   const sendTest = usePushStore((s) => s.sendTest);
   const isSendingTest = usePushStore((s) => s.isSendingTest);
 
@@ -19,16 +16,7 @@ export function useInboxPush(userId: string | null | undefined) {
     if (getNotificationPermission() === "denied" && usePushStore.getState().enabled) {
       usePushStore.setState({ enabled: false, error: null });
     }
-
-    if (!userId) {
-      void sync(null);
-      return;
-    }
-
-    if (isPushConfigured() && !isTelegramMiniApp()) {
-      void sync(userId);
-    }
-  }, [userId, sync]);
+  }, [userId]);
 
   const onEnablePush = useCallback(() => {
     void setPushEnabled(true, userId ?? null);

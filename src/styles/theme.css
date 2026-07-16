@@ -37,9 +37,10 @@
   --popover-foreground: #ffffff;
   --primary: #ffffff;
   --primary-foreground: #0a0a0a;
-  --secondary: rgba(255, 255, 255, 0.7);
+  /* Surfaces (bg) must contrast with foreground text tokens */
+  --secondary: rgba(255, 255, 255, 0.08);
   --secondary-foreground: #ffffff;
-  --muted: rgba(255, 255, 255, 0.55);
+  --muted: rgba(255, 255, 255, 0.08);
   --muted-foreground: rgba(255, 255, 255, 0.55);
   --accent: #00d9ff;
   --accent-foreground: #0a0a0a;
@@ -47,6 +48,9 @@
   --destructive-foreground: #ffffff;
   --border: rgba(255, 255, 255, 0.1);
   --input: rgba(18, 18, 18, 0.8);
+  --input-background: rgba(18, 18, 18, 0.9);
+  --switch-background: rgba(255, 255, 255, 0.2);
+  --input-autofill-bg: #141414;
   --ring: #00d9ff;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
@@ -241,8 +245,8 @@
 
   .skip-link:focus-visible {
     position: fixed;
-    top: 1rem;
-    inset-inline-start: 1rem;
+    top: max(1rem, env(safe-area-inset-top, 0px), var(--tg-content-safe-area-inset-top, 0px));
+    inset-inline-start: max(1rem, env(safe-area-inset-left, 0px));
     z-index: 100;
     width: auto;
     height: auto;
@@ -254,8 +258,8 @@
     border-radius: 0.5rem;
     background: var(--cyan);
     color: var(--background);
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     text-decoration: none;
     box-shadow: 0 4px 24px rgb(0 0 0 / 0.35);
   }

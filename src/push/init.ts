@@ -1,5 +1,5 @@
 import { useAuthStore } from "@/app/store/authStore";
-import { usePushStore } from "@/push/store";
+import { usePushStore, waitForPushStoreHydration } from "@/push/store";
 import { isPushConfigured } from "@/push/config";
 import { ensureFcmServiceWorker } from "@/push/service-worker";
 import { initDeviceId } from "@/push/device-id";
@@ -8,6 +8,7 @@ import { isTelegramMiniApp } from "@/telegram/detect";
 const VISIBILITY_DEBOUNCE_MS = 2_000;
 let visibilityTimer: ReturnType<typeof setTimeout> | undefined;
 let boundUid: string | null = null;
+let stopAuthBridge: (() => void) | null = null;
 
 function scheduleSync(uid: string): void {
   if (visibilityTimer) clearTimeout(visibilityTimer);
@@ -31,42 +32,48 @@ function bindVisibilityRefresh(uid: string): void {
   document.addEventListener("visibilitychange", onVisibilityChange);
 }
 
+async function runForUser(uid: string | null): Promise<void> {
+  await waitForPushStoreHydration();
+
+  if (!uid) {
+    void usePushStore.getState().sync(null);
+    return;
+  }
+
+  if (!isPushConfigured() || isTelegramMiniApp()) {
+    return;
+  }
+
+  bindVisibilityRefresh(uid);
+  void usePushStore.getState().sync(uid);
+}
+
 /**
- * Call once at app start (production).
+ * Call once at app start.
  * - Stable device id
- * - FCM service worker
+ * - FCM service worker (production)
  * - Token refresh when user is signed in and push is enabled
  */
 export function initPushModule(): void {
   void initDeviceId();
 
-  if (
-    isTelegramMiniApp() ||
-    !import.meta.env.PROD ||
-    !isPushConfigured() ||
-    !("serviceWorker" in navigator)
-  ) {
+  if (isTelegramMiniApp() || !("serviceWorker" in navigator)) {
     return;
   }
 
-  void ensureFcmServiceWorker();
+  if (import.meta.env.PROD && isPushConfigured()) {
+    void ensureFcmServiceWorker();
+  }
 
-  const runForUser = (uid: string | null) => {
-    if (!uid) {
-      void usePushStore.getState().sync(null);
-      return;
-    }
-    bindVisibilityRefresh(uid);
-    void usePushStore.getState().sync(uid);
-  };
+  stopAuthBridge?.();
 
   const { user, isHydrating } = useAuthStore.getState();
   if (!isHydrating && user?.uid) {
-    runForUser(user.uid);
+    void runForUser(user.uid);
   }
 
-  useAuthStore.subscribe((state) => {
+  stopAuthBridge = useAuthStore.subscribe((state) => {
     if (state.isHydrating) return;
-    runForUser(state.user?.uid ?? null);
+    void runForUser(state.user?.uid ?? null);
   });
 }
