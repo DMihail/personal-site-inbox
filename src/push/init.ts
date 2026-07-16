@@ -51,7 +51,7 @@ async function runForUser(uid: string | null): Promise<void> {
 /**
  * Call once at app start.
  * - Stable device id
- * - FCM service worker (production)
+ * - Ensure unified SW is ready when push is configured (bootstrap also registers it)
  * - Token refresh when user is signed in and push is enabled
  */
 export function initPushModule(): void {

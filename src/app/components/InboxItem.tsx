@@ -1,4 +1,4 @@
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
 import { Mail, MailOpen, Star, Trash2 } from "lucide-react";
 import { Button } from "./ui/button";
 import type { Message } from "../features/inbox/types";

@@ -51,16 +51,35 @@ export function selectFilteredMessages(
   return sortMessages(searched, sortBy);
 }
 
+export function selectMessageCounts(messages: Message[]): {
+  inboxCount: number;
+  unreadCount: number;
+  importantCount: number;
+} {
+  let inboxCount = 0;
+  let unreadCount = 0;
+  let importantCount = 0;
+
+  for (const message of messages) {
+    if (message.isArchived) continue;
+    inboxCount += 1;
+    if (!message.isRead) unreadCount += 1;
+    if (message.isImportant) importantCount += 1;
+  }
+
+  return { inboxCount, unreadCount, importantCount };
+}
+
 export function selectInboxCount(messages: Message[]): number {
-  return messages.filter((m) => !m.isArchived).length;
+  return selectMessageCounts(messages).inboxCount;
 }
 
 export function selectUnreadCount(messages: Message[]): number {
-  return messages.filter((m) => !m.isRead && !m.isArchived).length;
+  return selectMessageCounts(messages).unreadCount;
 }
 
 export function selectImportantCount(messages: Message[]): number {
-  return messages.filter((m) => m.isImportant && !m.isArchived).length;
+  return selectMessageCounts(messages).importantCount;
 }
 
 export function selectSelectedMessage(

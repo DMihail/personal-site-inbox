@@ -31,7 +31,7 @@ const SCRIPT_SRC = [
   VERCEL_LIVE_ORIGIN,
 ].join(" ");
 
-/** Production Content-Security-Policy for the inbox SPA, Firebase, Google Fonts, and reply API. */
+/** Production Content-Security-Policy for the inbox SPA, Firebase, and reply API. */
 export function buildContentSecurityPolicy(): string {
   return [
     "default-src 'self'",
@@ -40,8 +40,8 @@ export function buildContentSecurityPolicy(): string {
     "frame-ancestors 'none'",
     "object-src 'none'",
     SCRIPT_SRC,
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     `img-src 'self' data: blob: https://www.gstatic.com ${VERCEL_LIVE_ORIGIN}`,
     buildConnectSrc(),
     `frame-src 'self' ${VERCEL_LIVE_ORIGIN}`,
@@ -60,8 +60,8 @@ export function buildDevContentSecurityPolicy(): string {
     "frame-ancestors 'none'",
     "object-src 'none'",
     SCRIPT_SRC,
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     `img-src 'self' data: blob: https://www.gstatic.com ${VERCEL_LIVE_ORIGIN}`,
     buildConnectSrc([
       "http://localhost:*",

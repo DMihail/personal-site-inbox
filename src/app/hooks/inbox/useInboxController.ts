@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { pathToView, VIEW_PAGE_TITLES, viewToPath } from "@/app/features/inbox/viewRouting";
@@ -34,11 +34,7 @@ export function useInboxController() {
   const { handlers: pushHandlers, handlePushEnabledChange } = useInboxPush(user?.uid);
   const isTablet = useIsTabletLayout();
 
-  const {
-    messagesListOpen,
-    onOpenMessagesList,
-    onCloseMessagesList,
-  } = useTabletMessagesList({
+  const { messagesListOpen, onOpenMessagesList, onCloseMessagesList } = useTabletMessagesList({
     isTablet,
     currentView,
     selectedMessageId,
@@ -55,63 +51,49 @@ export function useInboxController() {
     return () => stopSubscription();
   }, [startSubscription, stopSubscription]);
 
-  const handleOnline = useCallback(() => {
-    setShowOfflineModal(false);
-    toast.success("Connection restored", { description: "You're back online" });
-    setLastSync(new Date());
-  }, []);
+  const isOnline = useOnlineStatus({
+    onOnline: () => {
+      setShowOfflineModal(false);
+      toast.success("Connection restored", { description: "You're back online" });
+      setLastSync(new Date());
+    },
+    onOffline: () => {
+      setShowOfflineModal(true);
+      toast.error("Connection lost", { description: "You're currently offline" });
+    },
+  });
 
-  const handleOffline = useCallback(() => {
-    setShowOfflineModal(true);
-    toast.error("Connection lost", { description: "You're currently offline" });
-  }, []);
-
-  const isOnline = useOnlineStatus({ onOnline: handleOnline, onOffline: handleOffline });
-
-  const handleLogout = useCallback(() => {
-    return logout().finally(() => {
+  const handleLogout = () =>
+    logout().finally(() => {
       toast.info("Signed out successfully");
       navigate("/login", { replace: true });
     });
-  }, [logout, navigate]);
 
-  const handleSelectView = useCallback(
-    (view: View) => {
-      navigate(viewToPath(view));
-      setNavMenuOpen(false);
-      setMobileDetailOpen(false);
-      if (view !== "settings") onOpenMessagesList();
-      else onCloseMessagesList();
-    },
-    [navigate, onCloseMessagesList, onOpenMessagesList],
-  );
+  const handleSelectView = (view: View) => {
+    navigate(viewToPath(view));
+    setNavMenuOpen(false);
+    setMobileDetailOpen(false);
+    if (view !== "settings") onOpenMessagesList();
+    else onCloseMessagesList();
+  };
 
-  const handleSelectMessage = useCallback(
-    (messageId: string) => {
-      selectMessage(messageId);
-      setMobileDetailOpen(true);
-      onCloseMessagesList();
-    },
-    [selectMessage, onCloseMessagesList],
-  );
+  const handleSelectMessage = (messageId: string) => {
+    selectMessage(messageId);
+    setMobileDetailOpen(true);
+    onCloseMessagesList();
+  };
 
-  const handleArchive = useCallback(
-    (messageId: string) => {
-      archive(messageId);
-      setMobileDetailOpen(false);
-    },
-    [archive],
-  );
+  const handleArchive = (messageId: string) => {
+    void archive(messageId);
+    setMobileDetailOpen(false);
+  };
 
-  const handleDelete = useCallback(
-    (messageId: string) => {
-      remove(messageId);
-      setMobileDetailOpen(false);
-    },
-    [remove],
-  );
+  const handleDelete = (messageId: string) => {
+    void remove(messageId);
+    setMobileDetailOpen(false);
+  };
 
-  const handleReply = useCallback(() => {
+  const handleReply = () => {
     if (!isPortfolioApiConfigured()) {
       toast.error("Reply API not configured", {
         description: "Set VITE_PORTFOLIO_API_URL in .env to your backend origin",
@@ -119,30 +101,28 @@ export function useInboxController() {
       return;
     }
     setReplyDialogOpen(true);
-  }, []);
+  };
 
-  const handleSendReply = useCallback(
-    async (content: string) => {
-      if (!selectedMessage) return;
-      try {
-        await sendInboxReply(selectedMessage.id, content);
-        toast.success("Reply sent", {
-          description: `Email sent to ${selectedMessage.senderEmail}`,
-        });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to send reply";
-        toast.error("Could not send reply", { description: message });
-        throw err;
-      }
-    },
-    [selectedMessage],
-  );
+  const handleSendReply = async (content: string, signal?: AbortSignal) => {
+    if (!selectedMessage) return;
+    try {
+      await sendInboxReply(selectedMessage.id, content, signal);
+      toast.success("Reply sent", {
+        description: `Email sent to ${selectedMessage.senderEmail}`,
+      });
+    } catch (err) {
+      if (signal?.aborted) return;
+      const message = err instanceof Error ? err.message : "Failed to send reply";
+      toast.error("Could not send reply", { description: message });
+      throw err;
+    }
+  };
 
-  const handleOpenInMailClient = useCallback(() => {
+  const handleOpenInMailClient = () => {
     if (!selectedMessage) return;
     window.open(`mailto:${selectedMessage.senderEmail}`, "_blank");
     toast.info("Opening mail client");
-  }, [selectedMessage]);
+  };
 
   return {
     currentView,

@@ -2,7 +2,7 @@ export const DEFAULT_SERVICE_WORKER_TIMEOUT_MS = 20_000;
 export const IOS_SERVICE_WORKER_TIMEOUT_MS = 45_000;
 export const ANDROID_SERVICE_WORKER_TIMEOUT_MS = 12_000;
 
-/** iOS / Android / desktop — production push uses standalone `/firebase-messaging-sw.js`. */
+/** iOS / Android / desktop — production push uses unified `/sw.js` (Workbox + FCM). */
 export function isMobilePushDevice(): boolean {
   return isIosLikeDevice() || isAndroidDevice();
 }

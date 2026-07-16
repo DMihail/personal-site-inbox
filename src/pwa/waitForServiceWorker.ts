@@ -113,10 +113,10 @@ export function isMessagingServiceWorker(registration: ServiceWorkerRegistration
 
 export function isWorkboxServiceWorker(registration: ServiceWorkerRegistration): boolean {
   const url = workerScriptUrl(registration);
-  return url.includes("/sw.js") || url.includes("workbox");
+  return /\/sw\.js(\?|$)/.test(url) || url.includes("workbox");
 }
 
-/** Workbox `/sw.js` (imports FCM) or standalone `/firebase-messaging-sw.js`. */
+/** Unified `/sw.js` (preferred) or legacy standalone messaging SW during migration. */
 export function isPushCapableServiceWorker(registration: ServiceWorkerRegistration): boolean {
-  return isMessagingServiceWorker(registration) || isWorkboxServiceWorker(registration);
+  return isWorkboxServiceWorker(registration) || isMessagingServiceWorker(registration);
 }

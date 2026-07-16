@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { getNotificationPermission } from "@/push/permissions";
 import { usePushStore } from "@/push/store";
@@ -18,15 +18,15 @@ export function useInboxPush(userId: string | null | undefined) {
     }
   }, [userId]);
 
-  const onEnablePush = useCallback(() => {
+  const onEnablePush = () => {
     void setPushEnabled(true, userId ?? null);
-  }, [setPushEnabled, userId]);
+  };
 
-  const onDisablePush = useCallback(() => {
+  const onDisablePush = () => {
     void setPushEnabled(false, userId ?? null);
-  }, [setPushEnabled, userId]);
+  };
 
-  const onTestPush = useCallback(() => {
+  const onTestPush = () => {
     const pending = toast.loading("Running notification test…");
     void sendTest().then((result) => {
       toast.dismiss(pending);
@@ -36,35 +36,21 @@ export function useInboxPush(userId: string | null | undefined) {
       }
       toast.error("Test failed", { description: result.message });
     });
-  }, [sendTest]);
+  };
 
-  const handlePushEnabledChange = useCallback(
-    (enabled: boolean) => {
-      void setPushEnabled(enabled, userId ?? null);
-    },
-    [setPushEnabled, userId],
-  );
+  const handlePushEnabledChange = (enabled: boolean) => {
+    void setPushEnabled(enabled, userId ?? null);
+  };
 
-  const handlers: InboxPushHandlers = useMemo(
-    () => ({
-      pushEnabled,
-      pushRegistering,
-      pushError,
-      isSendingTest,
-      onEnablePush,
-      onDisablePush,
-      onTestPush,
-    }),
-    [
-      pushEnabled,
-      pushRegistering,
-      pushError,
-      isSendingTest,
-      onEnablePush,
-      onDisablePush,
-      onTestPush,
-    ],
-  );
+  const handlers: InboxPushHandlers = {
+    pushEnabled,
+    pushRegistering,
+    pushError,
+    isSendingTest,
+    onEnablePush,
+    onDisablePush,
+    onTestPush,
+  };
 
   return { handlers, handlePushEnabledChange };
 }

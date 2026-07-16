@@ -13,6 +13,12 @@ describe("service worker", () => {
     expect(swSource).not.toContain("storage.googleapis.com/workbox-cdn");
   });
 
+  it("handles SKIP_WAITING for controlled updates", () => {
+    const swSource = readFileSync(path.join(process.cwd(), "src/sw.js"), "utf8");
+    expect(swSource).toContain('type === "SKIP_WAITING"');
+    expect(swSource).toContain("skipWaiting()");
+  });
+
   it("registers clientsClaim at top level, not inside activate", () => {
     const swSource = readFileSync(path.join(process.cwd(), "src/sw.js"), "utf8");
     expect(swSource).toMatch(/clientsClaim\(\)/);

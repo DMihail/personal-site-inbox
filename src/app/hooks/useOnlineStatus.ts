@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 
 interface UseOnlineStatusOptions {
   onOnline?: () => void;
@@ -7,20 +7,21 @@ interface UseOnlineStatusOptions {
 
 export function useOnlineStatus(options: UseOnlineStatusOptions = {}) {
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
-  const optionsRef = useRef(options);
-
-  useEffect(() => {
-    optionsRef.current = options;
-  }, [options]);
+  const onOnline = useEffectEvent(() => {
+    options.onOnline?.();
+  });
+  const onOffline = useEffectEvent(() => {
+    options.onOffline?.();
+  });
 
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      optionsRef.current.onOnline?.();
+      onOnline();
     };
     const handleOffline = () => {
       setIsOnline(false);
-      optionsRef.current.onOffline?.();
+      onOffline();
     };
 
     window.addEventListener("online", handleOnline);
@@ -34,4 +35,3 @@ export function useOnlineStatus(options: UseOnlineStatusOptions = {}) {
 
   return isOnline;
 }
-

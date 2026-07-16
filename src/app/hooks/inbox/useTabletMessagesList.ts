@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useState } from "react";
 import type { View } from "@/app/features/inbox/types";
 
 interface UseTabletMessagesListOptions {
@@ -22,21 +22,21 @@ export function useTabletMessagesList({
 
   const userOverride = overrideKey === contextKey ? userOpen : null;
 
-  const messagesListOpen = useMemo(() => {
+  const messagesListOpen = (() => {
     if (!isTablet || currentView === "settings") return false;
     if (userOverride !== null) return userOverride;
     return !selectedMessageId;
-  }, [isTablet, currentView, selectedMessageId, userOverride]);
+  })();
 
-  const onOpenMessagesList = useCallback(() => {
+  const onOpenMessagesList = () => {
     setOverrideKey(contextKey);
     setUserOpen(true);
-  }, [contextKey]);
+  };
 
-  const onCloseMessagesList = useCallback(() => {
+  const onCloseMessagesList = () => {
     setOverrideKey(contextKey);
     setUserOpen(false);
-  }, [contextKey]);
+  };
 
   return {
     messagesListOpen,

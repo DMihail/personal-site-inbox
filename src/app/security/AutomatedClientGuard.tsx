@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { BotBlockedScreen } from "../components/BotBlockedScreen";
 import { isLikelyAutomatedClient } from "./automatedClient";
 
@@ -7,7 +7,7 @@ interface AutomatedClientGuardProps {
 }
 
 export function AutomatedClientGuard({ children }: AutomatedClientGuardProps) {
-  const blocked = useMemo(() => isLikelyAutomatedClient(), []);
+  const [blocked] = useState(() => isLikelyAutomatedClient());
 
   if (blocked) {
     return <BotBlockedScreen />;

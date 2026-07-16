@@ -4,6 +4,7 @@ import {
   selectFilteredMessages,
   selectImportantCount,
   selectInboxCount,
+  selectMessageCounts,
   selectSelectedMessage,
   selectUnreadCount,
 } from "@/app/features/inbox/messageSelectors";
@@ -36,6 +37,16 @@ describe("messageSelectors", () => {
       isArchived: true,
     }),
   ];
+
+  describe("selectMessageCounts", () => {
+    it("counts inbox/unread/important in one pass", () => {
+      expect(selectMessageCounts(sampleMessages())).toEqual({
+        inboxCount: 2,
+        unreadCount: 1,
+        importantCount: 1,
+      });
+    });
+  });
 
   describe("selectInboxCount", () => {
     it("counts non-archived messages", () => {
