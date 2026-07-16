@@ -37,3 +37,7 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # CI does not ship .env; use a disposable key so validate-production-env passes.
+          # Production (Vercel) must set the real VITE_ZUSTAND_STORAGE_KEY.
+          VITE_ZUSTAND_STORAGE_KEY: ci-only-zustand-storage-key
