@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { MailX } from "lucide-react";
 import { InboxItem } from "../InboxItem";
 import { EmptyState } from "../EmptyState";
 import { SearchBar } from "../SearchBar";
 import { FilterBar } from "../FilterBar";
+import { MessageVirtualList } from "../MessageVirtualList";
 import { scrollPaneClass } from "./scrollPane";
 import type { Message } from "../../features/inbox/types";
 import type { FilterOption, SortOption } from "@/app/features/inbox/types";
@@ -20,9 +22,13 @@ interface InboxMessagesPanelProps {
   onFilterChange: (value: FilterOption) => void;
   onSelectMessage: (messageId: string) => void;
   onToggleImportant: (messageId: string) => void;
+  onArchive: (messageId: string) => void;
   onDelete: (messageId: string) => void;
+  /** Tablet drawer: swipe actions; desktop column: hover actions */
+  enableSwipe?: boolean;
   headingId?: string;
   className?: string;
+  isSearchPending?: boolean;
 }
 
 export function InboxMessagesPanel({
@@ -38,10 +44,15 @@ export function InboxMessagesPanel({
   onFilterChange,
   onSelectMessage,
   onToggleImportant,
+  onArchive,
   onDelete,
+  enableSwipe = false,
   headingId = "inbox-list-heading",
   className = "",
+  isSearchPending = false,
 }: InboxMessagesPanelProps) {
+  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
+
   const emptyDescription =
     searchQuery
       ? "No results found for your search"
@@ -77,23 +88,36 @@ export function InboxMessagesPanel({
         />
       </section>
 
-      <div className={scrollPaneClass}>
+      <div
+        className={`flex min-h-0 flex-1 flex-col${isSearchPending ? " opacity-70" : ""}`.trim()}
+        aria-busy={isSearchPending || undefined}
+      >
         {filteredMessages.length > 0 ? (
-          <ul className="m-0 list-none space-y-2 p-3 md:p-4" aria-labelledby={headingId}>
-            {filteredMessages.map((message) => (
+          <MessageVirtualList
+            items={filteredMessages}
+            getKey={(message) => message.id}
+            scrollClassName={scrollPaneClass}
+            listClassName="m-0 list-none space-y-2 p-3 md:p-4"
+            labelledBy={headingId}
+            renderItem={(message) => (
               <InboxItem
-                key={message.id}
                 message={message}
                 isActive={message.id === selectedMessageId}
                 onClick={() => onSelectMessage(message.id)}
                 onToggleImportant={onToggleImportant}
+                onArchive={onArchive}
                 onDelete={onDelete}
-                showActions
+                showActions={!enableSwipe}
+                enableSwipe={enableSwipe}
+                swipeOpen={openSwipeId === message.id}
+                onSwipeOpenChange={(open) => setOpenSwipeId(open ? message.id : null)}
               />
-            ))}
-          </ul>
+            )}
+          />
         ) : (
-          <EmptyState icon={MailX} title="No messages" description={emptyDescription} />
+          <div className={scrollPaneClass}>
+            <EmptyState icon={MailX} title="No messages" description={emptyDescription} />
+          </div>
         )}
       </div>
     </div>

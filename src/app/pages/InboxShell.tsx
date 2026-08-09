@@ -52,21 +52,21 @@ export function InboxShell() {
     onCloseMobileDetail: c.onCloseMobileDetail,
   });
 
-  const settingsView =
-    c.currentView === "settings" ? (
-      <Suspense fallback={<InboxLayoutFallback />}>
-        <SettingsView
-          isOnline={c.isOnline}
-          onLogout={c.handleLogout}
-          pushEnabled={c.pushHandlers.pushEnabled}
-          pushRegistering={c.pushHandlers.pushRegistering}
-          pushError={c.pushHandlers.pushError}
-          isSendingTest={c.pushHandlers.isSendingTest}
-          onPushEnabledChange={c.handlePushEnabledChange}
-          onTestPush={c.pushHandlers.onTestPush}
-        />
-      </Suspense>
-    ) : null;
+  // Always provide settings so Activity can keep state when leaving /settings.
+  const settingsView = (
+    <Suspense fallback={<InboxLayoutFallback />}>
+      <SettingsView
+        isOnline={c.isOnline}
+        onLogout={c.handleLogout}
+        pushEnabled={c.pushHandlers.pushEnabled}
+        pushRegistering={c.pushHandlers.pushRegistering}
+        pushError={c.pushHandlers.pushError}
+        isSendingTest={c.pushHandlers.isSendingTest}
+        onPushEnabledChange={c.handlePushEnabledChange}
+        onTestPush={c.pushHandlers.onTestPush}
+      />
+    </Suspense>
+  );
 
   const layoutProps = {
     isOnline: c.isOnline,
@@ -96,6 +96,7 @@ export function InboxShell() {
     onMarkAsRead: c.markAsRead,
     onReply: c.handleReply,
     settingsView,
+    isSearchPending: c.isSearchPending,
     ...c.pushHandlers,
   };
 

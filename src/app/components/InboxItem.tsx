@@ -1,15 +1,24 @@
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
-import { Mail, MailOpen, Star, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Mail, MailOpen, MoreHorizontal, Star, Trash2 } from "lucide-react";
+import { useCallback } from "react";
 import { Button } from "./ui/button";
 import type { Message } from "../features/inbox/types";
+import { useSwipeRowActions } from "../hooks/useSwipeRowActions";
+import { SWIPE_ACTION_WIDTH } from "../hooks/swipeRowGesture";
 
 interface InboxItemProps {
   message: Message;
   isActive: boolean;
   onClick: () => void;
   onToggleImportant?: (id: string) => void;
+  onArchive?: (id: string) => void;
   onDelete?: (id: string) => void;
+  /** Desktop hover quick-actions */
   showActions?: boolean;
+  /** Mobile / tablet Mail-style swipe actions */
+  enableSwipe?: boolean;
+  swipeOpen?: boolean;
+  onSwipeOpenChange?: (open: boolean) => void;
 }
 
 export function InboxItem({
@@ -17,25 +26,120 @@ export function InboxItem({
   isActive,
   onClick,
   onToggleImportant,
+  onArchive,
   onDelete,
   showActions = false,
+  enableSwipe = false,
+  swipeOpen = false,
+  onSwipeOpenChange,
 }: InboxItemProps) {
   const itemLabel = `${message.isRead ? "" : "Unread: "}${message.senderName}, ${message.company}`;
+  const swipeEnabled =
+    enableSwipe && Boolean(onToggleImportant || onArchive || onDelete);
+  const actionCount = [onToggleImportant, onArchive, onDelete].filter(Boolean).length;
+  const maxReveal = actionCount * SWIPE_ACTION_WIDTH;
+  const actionsRevealed = swipeOpen;
+
+  const handleSwipeOpenChange = useCallback(
+    (open: boolean) => {
+      onSwipeOpenChange?.(open);
+    },
+    [onSwipeOpenChange],
+  );
+
+  const swipe = useSwipeRowActions({
+    enabled: swipeEnabled,
+    open: swipeOpen,
+    onOpenChange: handleSwipeOpenChange,
+    maxReveal,
+  });
+
+  const surfaceClass = [
+    "inbox-row-surface group flex w-full items-start gap-1 rounded-xl border",
+    isActive
+      ? "inbox-row-surface--active border-cyan/40"
+      : message.isRead
+        ? "inbox-row-surface--read ui-hover-inbox border-glass-border"
+        : "inbox-row-surface--unread ui-hover-inbox-unread border-cyan/20",
+  ].join(" ");
+
+  const runAction = (action?: (id: string) => void) => {
+    action?.(message.id);
+    onSwipeOpenChange?.(false);
+  };
 
   return (
-    <li className="list-none">
+    <li className="inbox-row list-none">
+      {swipeEnabled ? (
+        <div
+          className="inbox-row-actions absolute inset-y-0 end-0 flex items-stretch overflow-hidden rounded-xl"
+          style={{ width: swipe.maxReveal }}
+          aria-hidden={!actionsRevealed}
+        >
+          {onToggleImportant ? (
+            <button
+              type="button"
+              data-swipe-action
+              tabIndex={actionsRevealed ? 0 : -1}
+              className="inbox-swipe-action inbox-swipe-action--important"
+              style={{ width: SWIPE_ACTION_WIDTH }}
+              aria-label={message.isImportant ? "Remove star" : "Mark important"}
+              onClick={() => runAction(onToggleImportant)}
+            >
+              <Star
+                className={`h-5 w-5 ${message.isImportant ? "fill-current" : ""}`}
+                aria-hidden="true"
+              />
+            </button>
+          ) : null}
+          {onArchive ? (
+            <button
+              type="button"
+              data-swipe-action
+              tabIndex={actionsRevealed ? 0 : -1}
+              className="inbox-swipe-action inbox-swipe-action--archive"
+              style={{ width: SWIPE_ACTION_WIDTH }}
+              aria-label={message.isArchived ? "Move to inbox" : "Archive message"}
+              onClick={() => runAction(onArchive)}
+            >
+              {message.isArchived ? (
+                <ArchiveRestore className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Archive className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
+          ) : null}
+          {onDelete ? (
+            <button
+              type="button"
+              data-swipe-action
+              tabIndex={actionsRevealed ? 0 : -1}
+              className="inbox-swipe-action inbox-swipe-action--delete"
+              style={{ width: SWIPE_ACTION_WIDTH }}
+              aria-label={`Delete message from ${message.senderName}`}
+              onClick={() => runAction(onDelete)}
+            >
+              <Trash2 className="h-5 w-5" aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
       <div
-        className={`group ui-transition flex w-full items-start gap-1 rounded-xl border ${
-          isActive
-            ? "glass-elevated border-cyan/40 shadow-lg shadow-cyan/5"
-            : message.isRead
-              ? "glass ui-hover-inbox border-glass-border"
-              : "glass-elevated ui-hover-inbox-unread border-cyan/20 shadow-md shadow-cyan/5"
-        }`}
+        className={surfaceClass}
+        style={swipeEnabled ? swipe.surfaceStyle : undefined}
+        {...(swipeEnabled ? swipe.surfaceHandlers : {})}
       >
         <button
           type="button"
-          onClick={onClick}
+          onClick={() => {
+            if (swipeEnabled && swipe.consumeSuppressedClick()) return;
+            if (swipeEnabled && swipeOpen) {
+              onSwipeOpenChange?.(false);
+              return;
+            }
+            onClick();
+          }}
           aria-current={isActive ? "true" : undefined}
           aria-label={itemLabel}
           className="min-w-0 flex-1 cursor-pointer rounded-xl p-4 text-left"
@@ -103,7 +207,27 @@ export function InboxItem({
           </div>
         </button>
 
-        {showActions ? (
+        {swipeEnabled ? (
+          <div className="flex shrink-0 items-center self-center pe-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              data-swipe-action
+              className="ui-hover-ghost h-8 w-8 p-0"
+              aria-expanded={swipeOpen}
+              aria-label={swipeOpen ? "Hide message actions" : "Show message actions"}
+              onClick={(event) => {
+                event.stopPropagation();
+                onSwipeOpenChange?.(!swipeOpen);
+              }}
+            >
+              <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </div>
+        ) : null}
+
+        {showActions && !enableSwipe ? (
           <div className="flex shrink-0 items-center gap-1 self-center pe-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
             {onToggleImportant ? (
               <Button

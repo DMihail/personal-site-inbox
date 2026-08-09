@@ -137,6 +137,7 @@ export function useDrawerGesture({
     panelStyle: {
       transform: `translateX(${offset}px)`,
       transition: isDragging ? "none" : "transform 0.32s cubic-bezier(0.32, 0.72, 0, 1)",
+      willChange: isDragging ? "transform" : "auto",
     } as const,
     rootHandlers: {
       onPointerDown,

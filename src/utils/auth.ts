@@ -1,18 +1,20 @@
-import {
-  signInWithEmailAndPassword,
-  signOut,
-  setPersistence,
-  browserLocalPersistence,
-} from "firebase/auth";
-import { firebaseAuth } from "@/utils/firebaseAuth";
+import type { UserCredential } from "firebase/auth";
+import { getFirebaseAuth } from "./firebaseAuth";
 
-const persistenceReady = setPersistence(firebaseAuth, browserLocalPersistence);
-
-export const firebaseSignIn = async ({ email, password }: { email: string; password: string }) => {
-  await persistenceReady;
-  return signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
+export const firebaseSignIn = async ({
+  email,
+  password,
+}: {
+  email: string;
+  password: string;
+}): Promise<UserCredential> => {
+  const [{ signInWithEmailAndPassword, setPersistence, browserLocalPersistence }, auth] =
+    await Promise.all([import("firebase/auth"), getFirebaseAuth()]);
+  await setPersistence(auth, browserLocalPersistence);
+  return signInWithEmailAndPassword(auth, email.trim(), password);
 };
 
 export const firebaseSignOut = async () => {
-  await signOut(firebaseAuth);
+  const [{ signOut }, auth] = await Promise.all([import("firebase/auth"), getFirebaseAuth()]);
+  await signOut(auth);
 };

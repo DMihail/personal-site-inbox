@@ -3,8 +3,7 @@ import { persist } from "zustand/middleware";
 import { withSecurePersist } from "@/shared/persist/securePersist";
 import { migrateAuthPersist } from "@/shared/persist/persistMigrate";
 import type { User } from "firebase/auth";
-import { onAuthStateChanged } from "firebase/auth";
-import { firebaseAuth } from "@/utils/firebaseAuth";
+import { getFirebaseAuth } from "@/utils/firebaseAuth";
 import { firebaseSignIn, firebaseSignOut } from "@/utils/auth";
 import { getFirebaseAuthErrorMessage } from "@/utils/firebaseAuthErrors";
 
@@ -27,19 +26,33 @@ export const useAuthStore = create<AuthState>()(
       lastKnownUid: null,
 
       startAuthListener: () => {
-        const unsub = onAuthStateChanged(
-          firebaseAuth,
-          (user) => {
-            set((state) => ({
-              user,
-              lastKnownUid: user?.uid ?? state.lastKnownUid ?? null,
-              isHydrating: false,
-              authError: user ? null : state.authError,
-            }));
-          },
-          (err) => set({ authError: err.message, isHydrating: false }),
-        );
-        return unsub;
+        let cancelled = false;
+        let unsub: (() => void) | undefined;
+
+        void (async () => {
+          const [{ onAuthStateChanged }, auth] = await Promise.all([
+            import("firebase/auth"),
+            getFirebaseAuth(),
+          ]);
+          if (cancelled) return;
+          unsub = onAuthStateChanged(
+            auth,
+            (user) => {
+              set((state) => ({
+                user,
+                lastKnownUid: user?.uid ?? state.lastKnownUid ?? null,
+                isHydrating: false,
+                authError: user ? null : state.authError,
+              }));
+            },
+            (err) => set({ authError: err.message, isHydrating: false }),
+          );
+        })();
+
+        return () => {
+          cancelled = true;
+          unsub?.();
+        };
       },
 
       login: async (email, password) => {
@@ -72,4 +85,3 @@ export const useAuthStore = create<AuthState>()(
     }),
   ),
 );
-

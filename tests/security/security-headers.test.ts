@@ -37,20 +37,23 @@ describe("security headers", () => {
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-eval'/);
     expect(csp).not.toMatch(/script-src[^;]*data:/);
-    // No wildcard https: in script-src — only explicit CDNs (gstatic + vercel.live).
     expect(csp).not.toMatch(/script-src[^;]*\shttps:(;|$)/);
     expect(csp).not.toMatch(/object-src[^;]*https:/);
     expect(csp).toContain("upgrade-insecure-requests");
     expect(csp).toContain("https://*.googleapis.com");
-    expect(csp).toContain("https://storage.googleapis.com");
     expect(csp).toContain("https://vercel.live");
+    expect(csp).toContain("https://apis.google.com");
     expect(csp).toContain("frame-src");
+    expect(csp).toContain("https://*.firebaseapp.com");
+    expect(csp).toMatch(/style-src 'self' 'unsafe-inline'/);
+    expect(csp).not.toMatch(/script-src[^;]*gstatic/);
+    expect(csp).not.toMatch(/worker-src[^;]*gstatic/);
   });
 
-  it("allows FCM gstatic + Vercel Live in script-src; no unsafe-inline in prod", () => {
+  it("allows Firebase Auth GAPI + Vercel Live in script-src; no unsafe-inline in prod", () => {
     const prod = buildContentSecurityPolicy();
     expect(prod).toMatch(
-      /script-src 'self' https:\/\/www\.gstatic\.com https:\/\/vercel\.live(;|$)/,
+      /script-src 'self' https:\/\/vercel\.live https:\/\/apis\.google\.com(;|$)/,
     );
     expect(prod).not.toMatch(/script-src[^;]*'unsafe-inline'/);
     expect(prod).not.toMatch(/script-src[^;]*'unsafe-eval'/);
@@ -58,7 +61,7 @@ describe("security headers", () => {
 
     const dev = buildDevContentSecurityPolicy();
     expect(dev).toMatch(
-      /script-src 'self' 'unsafe-inline' 'unsafe-eval' https:\/\/www\.gstatic\.com https:\/\/vercel\.live/,
+      /script-src 'self' 'unsafe-inline' 'unsafe-eval' https:\/\/vercel\.live https:\/\/apis\.google\.com/,
     );
     expect(dev).toContain("object-src 'none'");
   });

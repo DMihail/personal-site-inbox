@@ -1,5 +1,5 @@
 import { format } from "date-fns/format";
-import { Archive, CheckCheck, Mail, Star, Trash2, Reply, ExternalLink, MailCheck } from "lucide-react";
+import { Archive, ArchiveRestore, CheckCheck, Mail, Star, Trash2, Reply, ExternalLink, MailCheck } from "lucide-react";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { EmptyState } from "./EmptyState";
@@ -121,8 +121,12 @@ export function MessageDetail({
             onClick={() => onArchive(message.id)}
             className="glass ui-hover-glass border-glass-border"
           >
-            <Archive className="me-2 h-4 w-4" aria-hidden="true" />
-            Archive
+            {message.isArchived ? (
+              <ArchiveRestore className="me-2 h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Archive className="me-2 h-4 w-4" aria-hidden="true" />
+            )}
+            {message.isArchived ? "Move to inbox" : "Archive"}
           </Button>
           <Button
             type="button"

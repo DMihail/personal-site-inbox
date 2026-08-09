@@ -3,7 +3,6 @@ import tailwindcss from "@tailwindcss/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
 import { VitePWA } from "vite-plugin-pwa";
-import { firebaseMessagingSwPlugin } from "./src/vite-plugins/firebaseMessagingSw";
 import { createAliases } from "./alias.config";
 import {
   devSecurityHeaders,
@@ -22,7 +21,6 @@ export default defineConfig(({ mode }) => {
         presets: [reactCompilerPreset()],
       }),
       tailwindcss(),
-      firebaseMessagingSwPlugin(),
       VitePWA({
         strategies: "injectManifest",
         srcDir: "src",

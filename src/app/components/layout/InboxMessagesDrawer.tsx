@@ -20,8 +20,10 @@ interface InboxMessagesDrawerProps {
   onFilterChange: (value: FilterOption) => void;
   onSelectMessage: (messageId: string) => void;
   onToggleImportant: (messageId: string) => void;
+  onArchive: (messageId: string) => void;
   onDelete: (messageId: string) => void;
   onClose: () => void;
+  isSearchPending?: boolean;
 }
 
 export function InboxMessagesDrawer({
@@ -39,8 +41,10 @@ export function InboxMessagesDrawer({
   onFilterChange,
   onSelectMessage,
   onToggleImportant,
+  onArchive,
   onDelete,
   onClose,
+  isSearchPending = false,
 }: InboxMessagesDrawerProps) {
   const headingId = "inbox-messages-drawer-heading";
 
@@ -79,7 +83,10 @@ export function InboxMessagesDrawer({
         onFilterChange={onFilterChange}
         onSelectMessage={onSelectMessage}
         onToggleImportant={onToggleImportant}
+        onArchive={onArchive}
         onDelete={onDelete}
+        enableSwipe
+        isSearchPending={isSearchPending}
         headingId={headingId}
       />
     </SlideDrawer>

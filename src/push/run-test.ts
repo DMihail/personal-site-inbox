@@ -5,7 +5,7 @@ import {
   getNotificationPermissionError,
 } from "@/push/permissions";
 import { isPushConfigured } from "@/push/config";
-import { firebaseAuth } from "@/utils/firebaseAuth";
+import { getFirebaseAuth } from "@/utils/firebaseAuth";
 import { sendInboxTestPush } from "@/utils/push-api";
 import { isPortfolioApiConfigured } from "@/utils/reply-api";
 
@@ -39,7 +39,8 @@ export async function runPushTest(pushEnabled: boolean): Promise<PushTestResult>
   }
 
   let tokenRegistered = false;
-  const uid = firebaseAuth.currentUser?.uid;
+  const auth = await getFirebaseAuth();
+  const uid = auth.currentUser?.uid;
   if (uid && isPushConfigured()) {
     tokenRegistered = (await registerPushToken(uid)).ok;
   }

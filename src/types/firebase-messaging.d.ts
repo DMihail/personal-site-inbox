@@ -16,3 +16,14 @@ declare module "firebase/messaging" {
     handler: (payload: MessagePayload) => void,
   ): () => void;
 }
+
+declare module "firebase/messaging/sw" {
+  import type { FirebaseApp } from "firebase/app";
+  import type { MessagePayload } from "firebase/messaging";
+
+  export function getMessaging(app?: FirebaseApp): unknown;
+  export function onBackgroundMessage(
+    messaging: unknown,
+    handler: (payload: MessagePayload) => void | Promise<void>,
+  ): () => void;
+}

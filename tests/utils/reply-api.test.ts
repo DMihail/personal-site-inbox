@@ -5,7 +5,7 @@ const mockFirebaseAuth = vi.hoisted(() => ({
 }));
 
 vi.mock("@/utils/firebaseAuth", () => ({
-  firebaseAuth: mockFirebaseAuth,
+  getFirebaseAuth: async () => mockFirebaseAuth,
 }));
 
 import { getPortfolioApiLabel, isPortfolioApiConfigured, sendInboxReply } from "@/utils/reply-api";

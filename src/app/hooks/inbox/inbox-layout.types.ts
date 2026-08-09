@@ -31,6 +31,7 @@ export interface InboxLayoutBaseProps {
   onMarkAsRead: (messageId: string) => void;
   onReply: () => void;
   settingsView: ReactNode;
+  isSearchPending?: boolean;
   pushEnabled: boolean;
   pushRegistering: boolean;
   pushError: string | null;

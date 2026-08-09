@@ -10,6 +10,9 @@ const PERMISSIONS_POLICY =
 /** Vercel Preview Comments / Live toolbar (injected on preview deployments only). */
 const VERCEL_LIVE_ORIGIN = "https://vercel.live";
 
+/** Firebase Auth loads GAPI (`api.js`) to host the auth iframe handshake. */
+const GOOGLE_APIS_ORIGIN = "https://apis.google.com";
+
 function buildConnectSrc(extra: string[] = []): string {
   return [
     "connect-src 'self'",
@@ -28,16 +31,12 @@ function buildConnectSrc(extra: string[] = []): string {
 const OBJECT_SRC = "object-src 'none'";
 
 /**
- * Hosts allowed for classic script loads (page + SW `importScripts`).
- * FCM SW loads Firebase compat from gstatic; Vercel Live injects feedback.js on previews.
- * `worker-src` alone is not enough — browsers enforce `script-src` for importScripts.
+ * Production: no unsafe-inline / unsafe-eval.
+ * - vercel.live: Preview Live toolbar
+ * - apis.google.com: Firebase Auth GAPI loader (email/password iframe relay)
+ * Dev: Vite HMR + React Refresh need unsafe-inline / unsafe-eval.
  */
-const SCRIPT_SRC_HOSTS = `https://www.gstatic.com ${VERCEL_LIVE_ORIGIN}`;
-
-/**
- * Production: no unsafe-inline / unsafe-eval (CSP audit); allow only required CDNs.
- * Dev: Vite HMR + @vitejs/plugin-react inject inline preamble scripts.
- */
+const SCRIPT_SRC_HOSTS = `${VERCEL_LIVE_ORIGIN} ${GOOGLE_APIS_ORIGIN}`;
 const SCRIPT_SRC_PRODUCTION = `script-src 'self' ${SCRIPT_SRC_HOSTS}`;
 const SCRIPT_SRC_DEVELOPMENT = `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${SCRIPT_SRC_HOSTS}`;
 
@@ -53,13 +52,14 @@ function buildCsp(options: {
     "frame-ancestors 'none'",
     OBJECT_SRC,
     options.scriptSrc,
-    // Tailwind + Radix use style attributes; hashes would require a build-time pipeline.
+    // Sonner + Vite HMR inject <style> tags; Radix uses style attributes.
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     `img-src 'self' data: blob: https://www.gstatic.com ${VERCEL_LIVE_ORIGIN}`,
     buildConnectSrc(options.connectExtra),
-    `frame-src 'self' ${VERCEL_LIVE_ORIGIN}`,
-    "worker-src 'self' blob: https://www.gstatic.com https://storage.googleapis.com",
+    // Auth Domain iframe + GAPI + Google accounts (OAuth / relay).
+    `frame-src 'self' ${VERCEL_LIVE_ORIGIN} ${GOOGLE_APIS_ORIGIN} https://*.firebaseapp.com https://accounts.google.com`,
+    "worker-src 'self' blob:",
     "manifest-src 'self'",
   ];
 
