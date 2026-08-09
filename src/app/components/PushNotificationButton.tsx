@@ -103,14 +103,10 @@ export function PushNotificationButton({
                 {isSendingTest ? "Testing…" : "Send test notification"}
               </DropdownMenuItem>
             ) : null}
-            <DropdownMenuItem onClick={onDisable}>
-              Turn off
-            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onDisable}>Turn off</DropdownMenuItem>
           </>
         ) : isDenied ? (
-          <DropdownMenuItem onSelect={recheckPermission}>
-            Check permission again
-          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={recheckPermission}>Check permission again</DropdownMenuItem>
         ) : (
           <DropdownMenuItem
             disabled={isRegistering}

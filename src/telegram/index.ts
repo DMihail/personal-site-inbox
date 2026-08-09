@@ -1,4 +1,3 @@
-export { isTelegramMiniApp, getTelegramWebApp, resetTelegramDetectionForTests } from "@/telegram/detect";
-export { initTelegramMiniApp } from "@/telegram/init";
-export { captureTelegramStartParam, consumeTelegramStartPath } from "@/telegram/start-param";
-export { useTelegramViewport, useTelegramBackButton } from "@/telegram/hooks";
+/** Narrow barrel — prefer `@/telegram/<module>` for everything else. */
+export { isTelegramMiniApp } from "@/telegram/detect";
+export { consumeTelegramStartPath } from "@/telegram/start-param";

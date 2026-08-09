@@ -19,7 +19,12 @@ export function PwaUpdateBanner() {
     >
       <div className="pointer-events-auto glass-elevated flex max-w-lg items-center gap-3 rounded-xl border border-cyan/30 px-4 py-3 shadow-lg">
         <p className="text-body-sm text-text-primary">A new version of Inbox is ready.</p>
-        <Button type="button" size="sm" className="shrink-0 bg-cyan text-background hover:bg-cyan/90" onClick={applyUpdate}>
+        <Button
+          type="button"
+          size="sm"
+          className="shrink-0 bg-cyan text-background hover:bg-cyan/90"
+          onClick={applyUpdate}
+        >
           <RefreshCw className="me-1.5 h-3.5 w-3.5" aria-hidden />
           Update
         </Button>

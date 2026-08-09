@@ -1,4 +1,4 @@
-import { Activity, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { MailX, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { InboxItem } from "../InboxItem";
@@ -8,9 +8,22 @@ import { FilterBar } from "../FilterBar";
 import { SearchBar } from "../SearchBar";
 import { MessageVirtualList } from "../MessageVirtualList";
 import { scrollPaneClass } from "./scrollPane";
+import { KeepAlivePane } from "./KeepAlivePane";
 import { InboxAppHeader } from "./InboxAppHeader";
 import { InboxNavDrawer } from "./InboxNavDrawer";
 import type { InboxLayoutBaseProps } from "@/app/hooks/inbox/inbox-layout.types";
+
+const SettingsView = lazy(() =>
+  import("../SettingsView").then((m) => ({ default: m.SettingsView })),
+);
+
+function SettingsFallback() {
+  return (
+    <div className="flex min-h-0 flex-1 items-center justify-center text-text-muted" role="status">
+      Loading settings…
+    </div>
+  );
+}
 
 interface MobileInboxLayoutProps extends InboxLayoutBaseProps {
   mobileDetailOpen: boolean;
@@ -46,7 +59,8 @@ export function MobileInboxLayout({
   onDelete,
   onMarkAsRead,
   onReply,
-  settingsView,
+  onLogout,
+  onPushEnabledChange,
   pushEnabled,
   pushRegistering,
   isSendingTest,
@@ -60,6 +74,11 @@ export function MobileInboxLayout({
   const showSettings = currentView === "settings";
   const showList = !showSettings && !mobileDetailOpen;
   const showDetail = !showSettings && mobileDetailOpen;
+
+  const [settingsMounted, setSettingsMounted] = useState(showSettings);
+  const [detailMounted, setDetailMounted] = useState(showDetail);
+  if (showSettings && !settingsMounted) setSettingsMounted(true);
+  if (showDetail && !detailMounted) setDetailMounted(true);
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden md:hidden">
@@ -88,13 +107,26 @@ export function MobileInboxLayout({
       />
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <Activity mode={showSettings ? "visible" : "hidden"}>
-          <main id={showSettings ? "app-main" : undefined} className={scrollPaneClass} aria-label="Settings">
-            {settingsView}
-          </main>
-        </Activity>
+        {settingsMounted ? (
+          <KeepAlivePane mode={showSettings ? "visible" : "hidden"} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <main id={showSettings ? "app-main" : undefined} className={scrollPaneClass} aria-label="Settings">
+              <Suspense fallback={<SettingsFallback />}>
+                <SettingsView
+                  isOnline={isOnline}
+                  onLogout={onLogout}
+                  pushEnabled={pushEnabled}
+                  pushRegistering={pushRegistering}
+                  pushError={pushError}
+                  isSendingTest={isSendingTest}
+                  onPushEnabledChange={onPushEnabledChange}
+                  onTestPush={onTestPush}
+                />
+              </Suspense>
+            </main>
+          </KeepAlivePane>
+        ) : null}
 
-        <Activity mode={showList ? "visible" : "hidden"}>
+        <KeepAlivePane mode={showList ? "visible" : "hidden"} className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <main
             id={showList ? "app-main" : undefined}
             className="flex min-h-0 flex-1 flex-col overflow-hidden"
@@ -122,7 +154,7 @@ export function MobileInboxLayout({
                 renderItem={(message) => (
                   <InboxItem
                     message={message}
-                    isActive={false}
+                    isActive={selectedMessage?.id === message.id}
                     onClick={() => {
                       onSelectMessage(message.id);
                       onOpenDetail();
@@ -156,44 +188,46 @@ export function MobileInboxLayout({
               </div>
             )}
           </main>
-        </Activity>
+        </KeepAlivePane>
 
-        <Activity mode={showDetail ? "visible" : "hidden"}>
-          <main
-            id={showDetail ? "app-main" : undefined}
-            className="flex min-h-0 flex-1 flex-col overflow-hidden"
-            aria-label="Message details"
-          >
-            <div className="shrink-0 border-b border-glass-border p-3 glass">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onCloseDetail}
-                className="ui-hover-ghost"
-              >
-                <X className="me-2 h-4 w-4" aria-hidden="true" />
-                Back to inbox
-              </Button>
-            </div>
-            <div className={scrollPaneClass}>
-              <MessageDetail
-                message={selectedMessage}
-                onMarkAsRead={onMarkAsRead}
-                onArchive={(id) => {
-                  onArchive(id);
-                  onCloseDetail();
-                }}
-                onToggleImportant={onToggleImportant}
-                onDelete={(id) => {
-                  onDelete(id);
-                  onCloseDetail();
-                }}
-                onReply={onReply}
-              />
-            </div>
-          </main>
-        </Activity>
+        {detailMounted ? (
+          <KeepAlivePane mode={showDetail ? "visible" : "hidden"} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <main
+              id={showDetail ? "app-main" : undefined}
+              className="flex min-h-0 flex-1 flex-col overflow-hidden"
+              aria-label="Message details"
+            >
+              <div className="shrink-0 border-b border-glass-border p-3 glass">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onCloseDetail}
+                  className="ui-hover-ghost"
+                >
+                  <X className="me-2 h-4 w-4" aria-hidden="true" />
+                  Back to inbox
+                </Button>
+              </div>
+              <div className={scrollPaneClass}>
+                <MessageDetail
+                  message={selectedMessage}
+                  onMarkAsRead={onMarkAsRead}
+                  onArchive={(id) => {
+                    onArchive(id);
+                    onCloseDetail();
+                  }}
+                  onToggleImportant={onToggleImportant}
+                  onDelete={(id) => {
+                    onDelete(id);
+                    onCloseDetail();
+                  }}
+                  onReply={onReply}
+                />
+              </div>
+            </main>
+          </KeepAlivePane>
+        ) : null}
       </div>
     </div>
   );

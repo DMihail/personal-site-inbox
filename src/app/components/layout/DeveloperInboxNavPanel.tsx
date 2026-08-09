@@ -87,19 +87,9 @@ export function DeveloperInboxNavPanel({
             count={importantCount}
             onSelect={onSelectView}
           />
-          <NavItem
-            icon={Archive}
-            label="Archived"
-            view="archived"
-            onSelect={onSelectView}
-          />
+          <NavItem icon={Archive} label="Archived" view="archived" onSelect={onSelectView} />
           <Separator className="my-3 bg-glass-border" />
-          <NavItem
-            icon={Settings}
-            label="Settings"
-            view="settings"
-            onSelect={onSelectView}
-          />
+          <NavItem icon={Settings} label="Settings" view="settings" onSelect={onSelectView} />
         </nav>
 
         {showDesktopMeta ? <AppVersion className="mt-6 px-1" /> : null}

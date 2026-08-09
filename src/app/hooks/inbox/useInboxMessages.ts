@@ -1,7 +1,4 @@
-import {
-  useDeferredValue,
-  useTransition,
-} from "react";
+import { useDeferredValue, useTransition } from "react";
 import { useShallow } from "zustand/react/shallow";
 import {
   selectFilteredMessages,

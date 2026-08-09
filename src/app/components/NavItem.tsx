@@ -30,11 +30,8 @@ export function NavItem({ icon: Icon, label, view, count, onSelect }: NavItemPro
       <Icon className="h-4 w-4" aria-hidden="true" />
       <span className="flex-1 text-left">{label}</span>
       {count !== undefined && count > 0 && (
-        <Badge variant="secondary" className="bg-cyan/20 text-cyan border border-cyan/30 text-xs">
-          {count}
-        </Badge>
+        <Badge className="border border-cyan/30 bg-cyan/20 text-xs text-cyan">{count}</Badge>
       )}
     </NavLink>
   );
 }
-

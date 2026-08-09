@@ -7,12 +7,7 @@ interface EmptyStateProps {
   titleLevel?: "h2" | "h3";
 }
 
-export function EmptyState({
-  icon: Icon,
-  title,
-  description,
-  titleLevel = "h3",
-}: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, description, titleLevel = "h3" }: EmptyStateProps) {
   const TitleTag = titleLevel === "h2" ? "h2" : "h3";
 
   return (

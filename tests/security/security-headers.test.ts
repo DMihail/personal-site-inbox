@@ -24,8 +24,12 @@ describe("security headers", () => {
   });
 
   it("uses production CSP on production headers (not dev localhost rules)", () => {
-    expect(productionSecurityHeaders["Content-Security-Policy"]).toContain("upgrade-insecure-requests");
-    expect(productionSecurityHeaders["Content-Security-Policy"]).not.toContain("http://localhost:*");
+    expect(productionSecurityHeaders["Content-Security-Policy"]).toContain(
+      "upgrade-insecure-requests",
+    );
+    expect(productionSecurityHeaders["Content-Security-Policy"]).not.toContain(
+      "http://localhost:*",
+    );
     expect(devSecurityHeaders["Content-Security-Policy"]).toContain("http://localhost:*");
   });
 

@@ -1,7 +1,11 @@
 /* App service worker — FCM (bundled) must register before Workbox precache. */
 import { registerFirebaseMessagingBackground } from "./pwa/firebaseMessagingBackground";
 import { clientsClaim } from "workbox-core";
-import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from "workbox-precaching";
+import {
+  cleanupOutdatedCaches,
+  createHandlerBoundToURL,
+  precacheAndRoute,
+} from "workbox-precaching";
 import { NavigationRoute, registerRoute } from "workbox-routing";
 import { CacheFirst } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
@@ -21,11 +25,13 @@ self.addEventListener("message", (event) => {
 /** Drop legacy duplicate runtime cache (precache already covers JS/CSS). */
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((name) => name.includes("app-shell")).map((name) => caches.delete(name)),
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys.filter((name) => name.includes("app-shell")).map((name) => caches.delete(name)),
+        ),
       ),
-    ),
   );
 });
 

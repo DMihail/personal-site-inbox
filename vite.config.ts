@@ -4,10 +4,7 @@ import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
 import { VitePWA } from "vite-plugin-pwa";
 import { createAliases } from "./alias.config";
-import {
-  devSecurityHeaders,
-  productionSecurityHeaders,
-} from "./security-headers";
+import { devSecurityHeaders, productionSecurityHeaders } from "./security-headers";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -34,7 +31,8 @@ export default defineConfig(({ mode }) => {
         manifest: {
           name: "Developer Inbox",
           short_name: "Inbox",
-          description: "Contact message inbox with push notifications",
+          description:
+            "Private operator inbox for contact messages. Sign-in required — not a public site.",
           start_url: "/",
           scope: "/",
           display: "standalone",
@@ -45,19 +43,13 @@ export default defineConfig(({ mode }) => {
           icons: [
             {
               src: "/icon.png",
-              sizes: "192x192",
+              sizes: "150x150",
               type: "image/png",
               purpose: "any",
             },
             {
               src: "/icon.png",
-              sizes: "512x512",
-              type: "image/png",
-              purpose: "any",
-            },
-            {
-              src: "/icon.png",
-              sizes: "512x512",
+              sizes: "150x150",
               type: "image/png",
               purpose: "maskable",
             },
@@ -123,6 +115,6 @@ export default defineConfig(({ mode }) => {
     preview: {
       headers: productionSecurityHeaders,
     },
-    assetsInclude: ["**/*.svg", "**/*.csv"],
+    assetsInclude: ["**/*.svg"],
   };
 });

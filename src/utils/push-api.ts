@@ -4,9 +4,7 @@ import { isPortfolioApiConfigured } from "@/utils/reply-api";
 import { portfolioApiUrl } from "@/utils/portfolio-api-url";
 
 export type InboxTestPushResult =
-  | { status: "sent" }
-  | { status: "not-configured" }
-  | { status: "not-available" };
+  { status: "sent" } | { status: "not-configured" } | { status: "not-available" };
 
 function testPushErrorMessage(status: number, serverMessage?: string): string {
   if (serverMessage) return serverMessage;

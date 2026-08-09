@@ -1,6 +1,6 @@
 /** Max left-swipe reveal width (px) for inbox row actions. */
 export const SWIPE_ACTION_WIDTH = 72;
-export const SWIPE_ACTION_COUNT = 3;
+const SWIPE_ACTION_COUNT = 3;
 export const SWIPE_MAX_REVEAL = SWIPE_ACTION_WIDTH * SWIPE_ACTION_COUNT;
 
 /** Horizontal movement before we treat the gesture as a swipe (not a tap). */

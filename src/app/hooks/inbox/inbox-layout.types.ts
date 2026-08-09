@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import type { Message, View } from "@/app/features/inbox/types";
 import type { FilterOption, SortOption } from "@/app/features/inbox/types";
 
@@ -30,7 +29,8 @@ export interface InboxLayoutBaseProps {
   onDelete: (messageId: string) => void;
   onMarkAsRead: (messageId: string) => void;
   onReply: () => void;
-  settingsView: ReactNode;
+  onLogout: () => void | Promise<void>;
+  onPushEnabledChange: (enabled: boolean) => void;
   isSearchPending?: boolean;
   pushEnabled: boolean;
   pushRegistering: boolean;

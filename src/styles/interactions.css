@@ -64,23 +64,14 @@
   }
 
   /* Dropdown items — softer than full cyan accent */
-  .dark [data-slot="dropdown-menu-item"]:not([data-disabled]):is(:hover, :focus),
-  .dark [data-slot="dropdown-menu-checkbox-item"]:not([data-disabled]):is(:hover, :focus),
-  .dark [data-slot="dropdown-menu-radio-item"]:not([data-disabled]):is(:hover, :focus) {
+  .dark [data-slot="dropdown-menu-item"]:not([data-disabled]):is(:hover, :focus) {
     background-color: var(--menu-hover-bg) !important;
     color: var(--text-primary) !important;
   }
 
-  .dark [data-slot="dropdown-menu-item"]:not([data-disabled]):focus-visible,
-  .dark [data-slot="dropdown-menu-checkbox-item"]:not([data-disabled]):focus-visible,
-  .dark [data-slot="dropdown-menu-radio-item"]:not([data-disabled]):focus-visible {
+  .dark [data-slot="dropdown-menu-item"]:not([data-disabled]):focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: -2px;
-  }
-
-  .dark [data-slot="dropdown-menu-item"][data-variant="destructive"]:not([data-disabled]):is(:hover, :focus) {
-    background-color: color-mix(in srgb, var(--error) 12%, transparent) !important;
-    color: var(--error) !important;
   }
 
   @media (hover: hover) {

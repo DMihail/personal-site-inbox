@@ -1,7 +1,10 @@
 import { create } from "zustand";
 import { getFirestoreDb } from "@/utils/firestore";
 import type { FilterOption, Message, SortOption } from "../features/inbox/types";
-import { mapFirestoreMessage, type FirestoreMessageDoc } from "../features/inbox/mapFirestoreMessage";
+import {
+  mapFirestoreMessage,
+  type FirestoreMessageDoc,
+} from "../features/inbox/mapFirestoreMessage";
 import { shouldToastForMessageChange } from "../notifications/shouldToastForMessageChange";
 import { notifyIncomingMessage } from "../notifications/notifyIncomingMessage";
 
@@ -32,11 +35,7 @@ interface MessagesState {
   remove: (id: string) => Promise<void>;
 }
 
-function patchMessage(
-  messages: Message[],
-  id: string,
-  patch: Partial<Message>,
-): Message[] {
+function patchMessage(messages: Message[], id: string, patch: Partial<Message>): Message[] {
   return messages.map((message) => (message.id === id ? { ...message, ...patch } : message));
 }
 
@@ -78,7 +77,9 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
             }
 
             const msgs: Message[] = [];
-            snap.forEach((d) => msgs.push(mapFirestoreMessage(d.id, d.data() as FirestoreMessageDoc)));
+            snap.forEach((d) =>
+              msgs.push(mapFirestoreMessage(d.id, d.data() as FirestoreMessageDoc)),
+            );
             set({ messages: msgs, isLoading: false, error: null, hasLoadedOnce: true });
           },
           (err) => {

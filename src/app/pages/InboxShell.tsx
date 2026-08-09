@@ -18,9 +18,6 @@ const MobileInboxLayout = lazy(() =>
     default: m.MobileInboxLayout,
   })),
 );
-const SettingsView = lazy(() =>
-  import("../components/SettingsView").then((m) => ({ default: m.SettingsView })),
-);
 const ReplyDialog = lazy(() =>
   import("../components/ReplyDialog").then((m) => ({ default: m.ReplyDialog })),
 );
@@ -52,22 +49,6 @@ export function InboxShell() {
     onCloseMobileDetail: c.onCloseMobileDetail,
   });
 
-  // Always provide settings so Activity can keep state when leaving /settings.
-  const settingsView = (
-    <Suspense fallback={<InboxLayoutFallback />}>
-      <SettingsView
-        isOnline={c.isOnline}
-        onLogout={c.handleLogout}
-        pushEnabled={c.pushHandlers.pushEnabled}
-        pushRegistering={c.pushHandlers.pushRegistering}
-        pushError={c.pushHandlers.pushError}
-        isSendingTest={c.pushHandlers.isSendingTest}
-        onPushEnabledChange={c.handlePushEnabledChange}
-        onTestPush={c.pushHandlers.onTestPush}
-      />
-    </Suspense>
-  );
-
   const layoutProps = {
     isOnline: c.isOnline,
     currentView: c.currentView,
@@ -95,7 +76,8 @@ export function InboxShell() {
     onDelete: c.handleDelete,
     onMarkAsRead: c.markAsRead,
     onReply: c.handleReply,
-    settingsView,
+    onLogout: c.handleLogout,
+    onPushEnabledChange: c.handlePushEnabledChange,
     isSearchPending: c.isSearchPending,
     ...c.pushHandlers,
   };

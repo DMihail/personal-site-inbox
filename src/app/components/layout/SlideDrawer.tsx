@@ -1,4 +1,12 @@
-import { useEffect, useEffectEvent, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useDrawerGesture } from "../../hooks/useDrawerGesture";
 import type { DrawerSide } from "../../hooks/drawerGesture";
 
@@ -146,8 +154,7 @@ export function SlideDrawer({
 
   if (!mounted) return null;
 
-  const sideClass =
-    side === "start" ? "inset-y-0 start-0 border-e" : "inset-y-0 end-0 border-s";
+  const sideClass = side === "start" ? "inset-y-0 start-0 border-e" : "inset-y-0 end-0 border-s";
 
   return (
     <div

@@ -62,7 +62,12 @@ export function PwaInstallPrompt() {
       </div>
 
       {canNativePrompt ? (
-        <Button type="button" size="sm" className="mt-3 w-full bg-cyan text-background hover:bg-cyan/90" onClick={() => void promptInstall()}>
+        <Button
+          type="button"
+          size="sm"
+          className="mt-3 w-full bg-cyan text-background hover:bg-cyan/90"
+          onClick={() => void promptInstall()}
+        >
           Install app
         </Button>
       ) : null}

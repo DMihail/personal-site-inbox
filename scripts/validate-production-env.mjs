@@ -36,9 +36,7 @@ const required = ["VITE_ZUSTAND_STORAGE_KEY"];
 const missing = required.filter((name) => !process.env[name]?.trim());
 
 if (missing.length > 0) {
-  console.error(
-    `[build] Missing required environment variable(s): ${missing.join(", ")}`,
-  );
+  console.error(`[build] Missing required environment variable(s): ${missing.join(", ")}`);
   console.error(
     "[build] Set them in .env / Vercel env. Zustand persist is skipped without VITE_ZUSTAND_STORAGE_KEY.",
   );

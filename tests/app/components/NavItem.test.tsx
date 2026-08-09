@@ -5,10 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { Inbox } from "lucide-react";
 import { NavItem } from "@/app/components/NavItem";
 
-function renderNavItem(
-  props: Parameters<typeof NavItem>[0],
-  initialPath = "/inbox",
-) {
+function renderNavItem(props: Parameters<typeof NavItem>[0], initialPath = "/inbox") {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
       <NavItem {...props} />

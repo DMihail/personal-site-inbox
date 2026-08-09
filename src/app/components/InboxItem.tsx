@@ -1,5 +1,13 @@
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
-import { Archive, ArchiveRestore, Mail, MailOpen, MoreHorizontal, Star, Trash2 } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  Mail,
+  MailOpen,
+  MoreHorizontal,
+  Star,
+  Trash2,
+} from "lucide-react";
 import { useCallback } from "react";
 import { Button } from "./ui/button";
 import type { Message } from "../features/inbox/types";
@@ -34,8 +42,7 @@ export function InboxItem({
   onSwipeOpenChange,
 }: InboxItemProps) {
   const itemLabel = `${message.isRead ? "" : "Unread: "}${message.senderName}, ${message.company}`;
-  const swipeEnabled =
-    enableSwipe && Boolean(onToggleImportant || onArchive || onDelete);
+  const swipeEnabled = enableSwipe && Boolean(onToggleImportant || onArchive || onDelete);
   const actionCount = [onToggleImportant, onArchive, onDelete].filter(Boolean).length;
   const maxReveal = actionCount * SWIPE_ACTION_WIDTH;
   const actionsRevealed = swipeOpen;
@@ -156,9 +163,7 @@ export function InboxItem({
             <div className="min-w-0 flex-1 space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
                 <span
-                  className={
-                    message.isRead ? "text-text-primary" : "font-medium text-text-primary"
-                  }
+                  className={message.isRead ? "text-text-primary" : "font-medium text-text-primary"}
                 >
                   {message.senderName}
                 </span>

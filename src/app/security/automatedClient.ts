@@ -17,5 +17,4 @@ export function isLikelyAutomatedClient(): boolean {
   if (BOT_USER_AGENT.test(ua)) return true;
 
   return /HeadlessChrome/i.test(ua);
-
 }

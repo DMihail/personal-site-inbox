@@ -59,9 +59,7 @@ function showPushNotification(payload: BackgroundPayload) {
 export function registerFirebaseMessagingBackground(): void {
   self.addEventListener("notificationclick", (event) => {
     event.notification.close();
-    const targetUrl = safeInAppUrl(
-      (event.notification.data as { url?: string } | undefined)?.url,
-    );
+    const targetUrl = safeInAppUrl((event.notification.data as { url?: string } | undefined)?.url);
 
     event.waitUntil(
       self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {

@@ -95,81 +95,82 @@ export function SettingsView({
         {inTelegram ? <TelegramMiniAppNotice /> : <PwaInstallPrompt />}
 
         {!inTelegram ? (
-        <section className="space-y-3" aria-labelledby="settings-notifications">
-          <h3 id="settings-notifications" className="text-body text-text-primary">
-            Notifications
-          </h3>
-          <div className="glass-elevated space-y-4 rounded-xl border border-glass-border p-5">
-            <div className="flex items-center justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Bell className="h-4 w-4 text-cyan" aria-hidden="true" />
-                  <Label htmlFor={pushSwitchId} className="text-body text-text-primary">
-                    Push notifications
-                  </Label>
+          <section className="space-y-3" aria-labelledby="settings-notifications">
+            <h3 id="settings-notifications" className="text-body text-text-primary">
+              Notifications
+            </h3>
+            <div className="glass-elevated space-y-4 rounded-xl border border-glass-border p-5">
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Bell className="h-4 w-4 text-cyan" aria-hidden="true" />
+                    <Label htmlFor={pushSwitchId} className="text-body text-text-primary">
+                      Push notifications
+                    </Label>
+                  </div>
+                  <p className="text-meta text-text-muted">Browser alerts for new messages</p>
+                  {isDenied ? null : pushError ? (
+                    <p className="text-meta max-w-xs text-error">{pushError}</p>
+                  ) : pushRegistering ? (
+                    <p className="text-meta text-text-muted">
+                      Enabling push… usually under 15 seconds.
+                    </p>
+                  ) : pushEnabled ? (
+                    <p className="text-meta text-mint">
+                      Enabled — alerts for new messages in this browser.
+                    </p>
+                  ) : (
+                    <p className="text-meta text-text-muted">
+                      Tap Allow below — the browser will ask for permission. FCM is needed when the
+                      app is closed.
+                    </p>
+                  )}
                 </div>
-                <p className="text-meta text-text-muted">Browser alerts for new messages</p>
-                {isDenied ? null : pushError ? (
-                  <p className="text-meta max-w-xs text-error">{pushError}</p>
-                ) : pushRegistering ? (
-                  <p className="text-meta text-text-muted">Enabling push… usually under 15 seconds.</p>
-                ) : pushEnabled ? (
-                  <p className="text-meta text-mint">
-                    Enabled — alerts for new messages in this browser.
-                  </p>
-                ) : (
-                  <p className="text-meta text-text-muted">
-                    Tap Allow below — the browser will ask for permission. FCM is needed when the app is closed.
-                  </p>
-                )}
+                <Switch
+                  id={pushSwitchId}
+                  checked={pushEnabled && !isDenied}
+                  disabled={pushRegistering || isDenied || needsPermissionPrompt}
+                  onCheckedChange={handlePushSwitchChange}
+                  aria-label="Push notifications enabled"
+                />
               </div>
-              <Switch
-                id={pushSwitchId}
-                checked={pushEnabled && !isDenied}
-                disabled={pushRegistering || isDenied || needsPermissionPrompt}
-                onCheckedChange={handlePushSwitchChange}
-                aria-label="Push notifications enabled"
-              />
-            </div>
 
-            {needsPermissionPrompt && !isDenied ? (
-              <Button
-                type="button"
-                size="sm"
-                className="w-full bg-cyan text-background hover:bg-cyan/90"
-                disabled={pushRegistering}
-                onClick={handleAllowNotifications}
-              >
-                Allow notifications
-              </Button>
-            ) : null}
-
-            {isDenied ? (
-              <NotificationPermissionHelp onRecheck={recheckPermission} />
-            ) : null}
-
-            {pushEnabled && onTestPush ? (
-              <div className="space-y-2">
+              {needsPermissionPrompt && !isDenied ? (
                 <Button
                   type="button"
-                  variant="outline"
                   size="sm"
-                  className="glass ui-hover-glass w-full border-glass-border"
-                  disabled={isSendingTest}
-                  aria-busy={isSendingTest}
-                  onClick={onTestPush}
+                  className="w-full bg-cyan text-background hover:bg-cyan/90"
+                  disabled={pushRegistering}
+                  onClick={handleAllowNotifications}
                 >
-                  {isSendingTest ? "Testing…" : "Send test notification"}
+                  Allow notifications
                 </Button>
-                <p className="text-meta text-text-muted">
-                  Refreshes FCM token, shows a local alert, and POSTs to{" "}
-                  <code className="text-text-secondary">/api/inbox/test-push</code> when{" "}
-                  <code className="text-text-secondary">VITE_PORTFOLIO_API_URL</code> is set.
-                </p>
-              </div>
-            ) : null}
-          </div>
-        </section>
+              ) : null}
+
+              {isDenied ? <NotificationPermissionHelp onRecheck={recheckPermission} /> : null}
+
+              {pushEnabled && onTestPush ? (
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="glass ui-hover-glass w-full border-glass-border"
+                    disabled={isSendingTest}
+                    aria-busy={isSendingTest}
+                    onClick={onTestPush}
+                  >
+                    {isSendingTest ? "Testing…" : "Send test notification"}
+                  </Button>
+                  <p className="text-meta text-text-muted">
+                    Refreshes FCM token, shows a local alert, and POSTs to{" "}
+                    <code className="text-text-secondary">/api/inbox/test-push</code> when{" "}
+                    <code className="text-text-secondary">VITE_PORTFOLIO_API_URL</code> is set.
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </section>
         ) : null}
 
         <section className="space-y-3" aria-labelledby="settings-reply-api">
@@ -184,7 +185,9 @@ export function SettingsView({
               />
               <span className="text-body text-text-primary">Reply API</span>
             </div>
-            <p className="text-meta text-text-muted">Sends replies through the configured backend</p>
+            <p className="text-meta text-text-muted">
+              Sends replies through the configured backend
+            </p>
             <p
               className={`text-body-sm ${isPortfolioApiConfigured() ? "text-mint" : "text-error"}`}
             >
@@ -223,7 +226,9 @@ export function SettingsView({
                 <Database className="h-4 w-4 text-cyan" aria-hidden="true" />
                 <span className="text-body text-text-primary">Live updates</span>
               </div>
-              <p className="text-meta text-text-muted">Messages refresh automatically while you are signed in</p>
+              <p className="text-meta text-text-muted">
+                Messages refresh automatically while you are signed in
+              </p>
               <p className="text-body-sm text-cyan">Active</p>
             </div>
 
@@ -247,7 +252,11 @@ export function SettingsView({
               <p
                 className={`text-body-sm ${isStandaloneDisplayMode() && !inTelegram ? "text-mint" : inTelegram ? "text-cyan" : "text-text-muted"}`}
               >
-                {inTelegram ? "Telegram Mini App" : isStandaloneDisplayMode() ? "Installed" : "Browser tab"}
+                {inTelegram
+                  ? "Telegram Mini App"
+                  : isStandaloneDisplayMode()
+                    ? "Installed"
+                    : "Browser tab"}
               </p>
             </div>
           </div>

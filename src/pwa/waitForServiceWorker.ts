@@ -1,4 +1,4 @@
-export const SERVICE_WORKER_TIMEOUT_MS = 20_000;
+import { DEFAULT_SERVICE_WORKER_TIMEOUT_MS } from "./runtime";
 
 /** Rejects if `promise` does not settle within `timeoutMs`. */
 export function promiseWithTimeout<T>(
@@ -27,7 +27,7 @@ export function promiseWithTimeout<T>(
 /** Resolves when `registration` has an active worker (or the page is already controlled). */
 export function waitForServiceWorkerActive(
   registration: ServiceWorkerRegistration,
-  timeoutMs = SERVICE_WORKER_TIMEOUT_MS,
+  timeoutMs = DEFAULT_SERVICE_WORKER_TIMEOUT_MS,
 ): Promise<ServiceWorkerRegistration> {
   if (registration.active) {
     return Promise.resolve(registration);

@@ -32,8 +32,7 @@ export function mapFirestoreMessage(id: string, d: FirestoreMessageDoc): Message
     isArchived: Boolean(d.archived),
     source: d.source ?? "contact",
     repliedAt: d.repliedAt ? d.repliedAt.toDate() : undefined,
-    lastReplyPreview:
-      typeof d.lastReplyPreview === "string" ? d.lastReplyPreview : undefined,
+    lastReplyPreview: typeof d.lastReplyPreview === "string" ? d.lastReplyPreview : undefined,
     tags: d.source ? [d.source] : undefined,
   };
 }

@@ -1,8 +1,9 @@
-import { Activity, useRef } from "react";
+import { lazy, Suspense, useRef, useState } from "react";
 import { List } from "lucide-react";
 import { Button } from "../ui/button";
 import { MessageDetail } from "../MessageDetail";
 import { scrollPaneClass } from "./scrollPane";
+import { KeepAlivePane } from "./KeepAlivePane";
 import { InboxAppHeader } from "./InboxAppHeader";
 import { InboxNavDrawer } from "./InboxNavDrawer";
 import { InboxMessagesDrawer } from "./InboxMessagesDrawer";
@@ -11,6 +12,18 @@ import { VIEW_SECTION_HEADINGS } from "../../features/inbox/viewRouting";
 import { useEdgeDrawerOpenGesture } from "../../hooks/useEdgeDrawerOpenGesture";
 import { useIsTabletLayout } from "../../hooks/useMediaQuery";
 import type { InboxLayoutBaseProps } from "@/app/hooks/inbox/inbox-layout.types";
+
+const SettingsView = lazy(() =>
+  import("../SettingsView").then((m) => ({ default: m.SettingsView })),
+);
+
+function SettingsFallback() {
+  return (
+    <div className="flex min-h-0 flex-1 items-center justify-center text-text-muted" role="status">
+      Loading settings…
+    </div>
+  );
+}
 
 interface DesktopInboxLayoutProps extends InboxLayoutBaseProps {
   onSelectMessage: (messageId: string) => void;
@@ -44,7 +57,8 @@ export function DesktopInboxLayout({
   onDelete,
   onMarkAsRead,
   onReply,
-  settingsView,
+  onLogout,
+  onPushEnabledChange,
   isSearchPending = false,
   pushEnabled,
   pushRegistering,
@@ -63,6 +77,9 @@ export function DesktopInboxLayout({
     : VIEW_SECTION_HEADINGS[currentView as keyof typeof VIEW_SECTION_HEADINGS];
 
   const showMessagesDrawer = isTablet && !showSettings;
+
+  const [settingsMounted, setSettingsMounted] = useState(showSettings);
+  if (showSettings && !settingsMounted) setSettingsMounted(true);
 
   useEdgeDrawerOpenGesture({
     enabled: showMessagesDrawer && !messagesListOpen,
@@ -94,8 +111,6 @@ export function DesktopInboxLayout({
         isOnline={isOnline}
         unreadCount={unreadCount}
         onOpenNav={onOpenNavMenu}
-        showMessagesListToggle={false}
-        onOpenMessagesList={onOpenMessagesList}
         pushEnabled={pushEnabled}
         pushRegistering={pushRegistering}
         isSendingTest={isSendingTest}
@@ -126,24 +141,39 @@ export function DesktopInboxLayout({
       ) : null}
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
-        <Activity mode={showSettings ? "visible" : "hidden"}>
-          <main
-            id={showSettings ? "app-main" : undefined}
-            className={`${scrollPaneClass} w-full tablet-detail-scroll`}
-            aria-label="Settings"
-          >
-            {settingsView}
-          </main>
-        </Activity>
-
-        <Activity mode={showSettings ? "hidden" : "visible"}>
-          <div className="flex min-h-0 min-w-0 flex-1">
-            <aside
-              className="hidden w-[28rem] shrink-0 flex-col border-e border-glass-border glass backdrop-blur-xl lg:flex xl:w-[32rem]"
-              aria-label="Message list"
+        {settingsMounted ? (
+          <KeepAlivePane mode={showSettings ? "visible" : "hidden"} className="flex min-h-0 flex-1 overflow-hidden">
+            <main
+              id={showSettings ? "app-main" : undefined}
+              className={`${scrollPaneClass} w-full tablet-detail-scroll`}
+              aria-label="Settings"
             >
-              <InboxMessagesPanel {...messagesPanelProps} />
-            </aside>
+              <Suspense fallback={<SettingsFallback />}>
+                <SettingsView
+                  isOnline={isOnline}
+                  onLogout={onLogout}
+                  pushEnabled={pushEnabled}
+                  pushRegistering={pushRegistering}
+                  pushError={pushError}
+                  isSendingTest={isSendingTest}
+                  onPushEnabledChange={onPushEnabledChange}
+                  onTestPush={onTestPush}
+                />
+              </Suspense>
+            </main>
+          </KeepAlivePane>
+        ) : null}
+
+        <KeepAlivePane mode={showSettings ? "hidden" : "visible"} className="flex min-h-0 min-w-0 flex-1">
+          <div className="flex min-h-0 min-w-0 flex-1">
+            {!showMessagesDrawer ? (
+              <aside
+                className="flex w-[28rem] shrink-0 flex-col border-e border-glass-border glass backdrop-blur-xl xl:w-[32rem]"
+                aria-label="Message list"
+              >
+                <InboxMessagesPanel {...messagesPanelProps} />
+              </aside>
+            ) : null}
 
             <main
               ref={detailRef}
@@ -178,7 +208,7 @@ export function DesktopInboxLayout({
               </div>
             </main>
           </div>
-        </Activity>
+        </KeepAlivePane>
       </div>
     </div>
   );

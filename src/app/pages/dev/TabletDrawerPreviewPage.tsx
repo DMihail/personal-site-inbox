@@ -8,11 +8,37 @@ import { createMessage, resetMessageIds } from "@tests/fixtures/messages";
 const MOCK_MESSAGES = (() => {
   resetMessageIds();
   return [
-    createMessage({ id: "msg-1", senderName: "Alex Rivera", subject: "Senior role — backend", isRead: false }),
-    createMessage({ id: "msg-2", senderName: "Sam Chen", subject: "Contract opportunity", isRead: true }),
-    createMessage({ id: "msg-3", senderName: "Jordan Lee", subject: "Follow-up from contact form", isRead: false, isImportant: true }),
-    createMessage({ id: "msg-4", senderName: "Taylor Kim", subject: "Quick question", isRead: true }),
-    createMessage({ id: "msg-5", senderName: "Morgan Blake", subject: "Interview scheduling", isRead: false }),
+    createMessage({
+      id: "msg-1",
+      senderName: "Alex Rivera",
+      subject: "Senior role — backend",
+      isRead: false,
+    }),
+    createMessage({
+      id: "msg-2",
+      senderName: "Sam Chen",
+      subject: "Contract opportunity",
+      isRead: true,
+    }),
+    createMessage({
+      id: "msg-3",
+      senderName: "Jordan Lee",
+      subject: "Follow-up from contact form",
+      isRead: false,
+      isImportant: true,
+    }),
+    createMessage({
+      id: "msg-4",
+      senderName: "Taylor Kim",
+      subject: "Quick question",
+      isRead: true,
+    }),
+    createMessage({
+      id: "msg-5",
+      senderName: "Morgan Blake",
+      subject: "Interview scheduling",
+      isRead: false,
+    }),
   ];
 })();
 
@@ -24,11 +50,7 @@ export function TabletDrawerPreviewPage() {
   const [navMenuOpen, setNavMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const {
-    messagesListOpen,
-    onOpenMessagesList,
-    onCloseMessagesList,
-  } = useTabletMessagesList({
+  const { messagesListOpen, onOpenMessagesList, onCloseMessagesList } = useTabletMessagesList({
     isTablet,
     currentView,
     selectedMessageId,
@@ -91,7 +113,8 @@ export function TabletDrawerPreviewPage() {
           onDelete={() => {}}
           onMarkAsRead={() => {}}
           onReply={() => {}}
-          settingsView={<p className="p-6 text-text-secondary">Settings preview</p>}
+          onLogout={() => {}}
+          onPushEnabledChange={() => {}}
           pushEnabled={false}
           pushRegistering={false}
           isSendingTest={false}

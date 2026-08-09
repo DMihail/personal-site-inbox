@@ -3,9 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { RequireAuth } from "./auth/RequireAuth";
 import { RouteLoadingScreen } from "./components/RouteLoadingScreen";
 
-const LoginPage = lazy(() =>
-  import("./pages/LoginPage").then((m) => ({ default: m.LoginPage })),
-);
+const LoginPage = lazy(() => import("./pages/LoginPage").then((m) => ({ default: m.LoginPage })));
 const InboxShell = lazy(() =>
   import("./pages/InboxShell").then((m) => ({ default: m.InboxShell })),
 );

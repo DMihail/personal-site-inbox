@@ -102,8 +102,7 @@ export function useDrawerGesture({
       if (!isDragging || event.pointerId !== dragRef.current.pointerId) return;
       const { startX, startOffset } = dragRef.current;
       const delta = event.clientX - startX;
-      const next =
-        side === "start" ? startOffset + delta : startOffset - delta;
+      const next = side === "start" ? startOffset + delta : startOffset - delta;
       setDragOffset(clampOffset(next, closedOffset));
       dragRef.current.lastX = event.clientX;
       dragRef.current.lastTime = Date.now();
@@ -127,8 +126,7 @@ export function useDrawerGesture({
     [finishDrag, isDragging],
   );
 
-  const progress =
-    closedOffset === 0 ? 1 : 1 - Math.abs(offset) / Math.abs(closedOffset);
+  const progress = closedOffset === 0 ? 1 : 1 - Math.abs(offset) / Math.abs(closedOffset);
 
   return {
     offset,

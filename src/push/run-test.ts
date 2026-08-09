@@ -1,9 +1,6 @@
 import { registerPushToken } from "@/push/messaging";
 import { notifyNewMessage, type ShowBrowserNotificationResult } from "@/push/display";
-import {
-  getNotificationPermission,
-  getNotificationPermissionError,
-} from "@/push/permissions";
+import { getNotificationPermission, getNotificationPermissionError } from "@/push/permissions";
 import { isPushConfigured } from "@/push/config";
 import { getFirebaseAuth } from "@/utils/firebaseAuth";
 import { sendInboxTestPush } from "@/utils/push-api";

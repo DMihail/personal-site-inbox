@@ -4,9 +4,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { cn } from "../ui/utils";
 
-const inputClassName = cn(
-  "auth-input h-11 w-full pl-10 shadow-none focus-visible:ring-0",
-);
+const inputClassName = cn("auth-input h-11 w-full pl-10 shadow-none focus-visible:ring-0");
 
 interface LoginFormFieldsProps {
   email: string;

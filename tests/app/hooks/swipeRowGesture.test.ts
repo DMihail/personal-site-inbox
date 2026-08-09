@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  clampSwipeOffset,
-  resolveSwipeOpen,
-  SWIPE_MAX_REVEAL,
-} from "@/app/hooks/swipeRowGesture";
+import { clampSwipeOffset, resolveSwipeOpen, SWIPE_MAX_REVEAL } from "@/app/hooks/swipeRowGesture";
 
 describe("swipeRowGesture", () => {
   it("clamps offset to the left reveal range", () => {

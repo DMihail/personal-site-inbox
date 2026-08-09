@@ -1,6 +1,13 @@
 import { WifiOff, RefreshCw } from "lucide-react";
 import { Button } from "./ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 interface OfflineModalProps {
   isOpen: boolean;
   onRetry: () => void;
@@ -10,7 +17,13 @@ interface OfflineModalProps {
 
 export function OfflineModal({ isOpen, onRetry, onContinue, lastSync }: OfflineModalProps) {
   return (
-    <Dialog open={isOpen}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onContinue();
+      }}
+    >
+      {" "}
       <DialogContent className="glass-elevated border-glass-border max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
@@ -23,7 +36,8 @@ export function OfflineModal({ isOpen, onRetry, onContinue, lastSync }: OfflineM
             </div>
           </div>
           <DialogDescription className="text-text-secondary">
-            Connection to the communication service was lost. Some features may be temporarily unavailable.
+            Connection to the communication service was lost. Some features may be temporarily
+            unavailable.
           </DialogDescription>
           {lastSync && (
             <div className="mt-3 border-t border-glass-border pt-3">
@@ -41,10 +55,7 @@ export function OfflineModal({ isOpen, onRetry, onContinue, lastSync }: OfflineM
           >
             Continue Offline
           </Button>
-          <Button
-            onClick={onRetry}
-            className="ui-hover-cyan ui-transition bg-cyan text-background"
-          >
+          <Button onClick={onRetry} className="ui-hover-cyan ui-transition bg-cyan text-background">
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry Connection
           </Button>

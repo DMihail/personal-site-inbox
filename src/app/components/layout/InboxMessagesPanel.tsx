@@ -53,16 +53,15 @@ export function InboxMessagesPanel({
 }: InboxMessagesPanelProps) {
   const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
 
-  const emptyDescription =
-    searchQuery
-      ? "No results found for your search"
-      : currentView === "unread"
-        ? "All messages have been read"
-        : currentView === "important"
-          ? "No important messages"
-          : currentView === "archived"
-            ? "No archived messages"
-            : "Your inbox is empty";
+  const emptyDescription = searchQuery
+    ? "No results found for your search"
+    : currentView === "unread"
+      ? "All messages have been read"
+      : currentView === "important"
+        ? "No important messages"
+        : currentView === "archived"
+          ? "No archived messages"
+          : "Your inbox is empty";
 
   return (
     <div className={`flex min-h-0 flex-1 flex-col ${className}`.trim()}>
@@ -74,7 +73,11 @@ export function InboxMessagesPanel({
           <h2 id={headingId} className="text-text-primary capitalize md:text-heading-sm">
             {listHeading}
           </h2>
-          <output className="text-meta tabular-nums text-text-muted" aria-live="polite" aria-atomic="true">
+          <output
+            className="text-meta tabular-nums text-text-muted"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             <span className="sr-only">Message count: </span>
             {filteredMessages.length}
           </output>
