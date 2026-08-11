@@ -45,7 +45,6 @@ body {
   [data-sonner-toaster][data-x-position="right"] {
     inset-inline-end: max(0.75rem, env(safe-area-inset-right, 0px)) !important;
   }
-
 }
 
 html.telegram-mini-app .app-telegram-viewport {

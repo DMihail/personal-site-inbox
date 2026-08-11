@@ -7,7 +7,10 @@ interface NotificationPermissionHelpProps {
   compact?: boolean;
 }
 
-export function NotificationPermissionHelp({ onRecheck, compact }: NotificationPermissionHelpProps) {
+export function NotificationPermissionHelp({
+  onRecheck,
+  compact,
+}: NotificationPermissionHelpProps) {
   const steps = getNotificationUnblockSteps();
 
   return (
@@ -33,8 +36,8 @@ export function NotificationPermissionHelp({ onRecheck, compact }: NotificationP
           className={`mt-3 w-full glass border-glass-border ${compact ? "h-8" : ""}`}
           onClick={onRecheck}
         >
-          <RefreshCw className="me-2 h-3.5 w-3.5" aria-hidden />
-          I allowed notifications — check again
+          <RefreshCw className="me-2 h-3.5 w-3.5" aria-hidden />I allowed notifications — check
+          again
         </Button>
       ) : null}
     </div>

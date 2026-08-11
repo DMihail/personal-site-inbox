@@ -24,10 +24,7 @@ function formatDescription(message: Message): string {
   return `${meta}\n${short}`;
 }
 
-export function toastNewMessage(
-  message: Message,
-  onOpen: (messageId: string) => void,
-): void {
+export function toastNewMessage(message: Message, onOpen: (messageId: string) => void): void {
   if (shouldSkipDuplicateToast(message.id)) return;
 
   toast("New message", {

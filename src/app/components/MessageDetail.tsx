@@ -1,5 +1,15 @@
 import { format } from "date-fns/format";
-import { Archive, CheckCheck, Mail, Star, Trash2, Reply, ExternalLink, MailCheck } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  CheckCheck,
+  Mail,
+  Star,
+  Trash2,
+  Reply,
+  ExternalLink,
+  MailCheck,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { EmptyState } from "./EmptyState";
@@ -40,7 +50,10 @@ export function MessageDetail({
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 id="message-from-heading" className="text-heading text-text-primary md:text-heading-lg">
+                <h2
+                  id="message-from-heading"
+                  className="text-heading text-text-primary md:text-heading-lg"
+                >
                   {message.senderName}
                 </h2>
                 {message.isImportant ? (
@@ -121,8 +134,12 @@ export function MessageDetail({
             onClick={() => onArchive(message.id)}
             className="glass ui-hover-glass border-glass-border"
           >
-            <Archive className="me-2 h-4 w-4" aria-hidden="true" />
-            Archive
+            {message.isArchived ? (
+              <ArchiveRestore className="me-2 h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Archive className="me-2 h-4 w-4" aria-hidden="true" />
+            )}
+            {message.isArchived ? "Move to inbox" : "Archive"}
           </Button>
           <Button
             type="button"

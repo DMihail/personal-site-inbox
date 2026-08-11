@@ -1,9 +1,11 @@
+import { useDeferredValue, useTransition } from "react";
+import { useShallow } from "zustand/react/shallow";
 import {
   selectFilteredMessages,
   selectMessageCounts,
   selectSelectedMessage,
 } from "@/app/features/inbox/messageSelectors";
-import type { View } from "@/app/features/inbox/types";
+import type { FilterOption, SortOption, View } from "@/app/features/inbox/types";
 import { useMessagesStore } from "@/app/store/messagesStore";
 
 export function useInboxMessages(currentView: View) {
@@ -12,9 +14,9 @@ export function useInboxMessages(currentView: View) {
   const searchQuery = useMessagesStore((s) => s.searchQuery);
   const sortBy = useMessagesStore((s) => s.sortBy);
   const filterBy = useMessagesStore((s) => s.filterBy);
-  const setSearchQuery = useMessagesStore((s) => s.setSearchQuery);
-  const setSortBy = useMessagesStore((s) => s.setSortBy);
-  const setFilterBy = useMessagesStore((s) => s.setFilterBy);
+  const storeSetSearchQuery = useMessagesStore((s) => s.setSearchQuery);
+  const storeSetSortBy = useMessagesStore((s) => s.setSortBy);
+  const storeSetFilterBy = useMessagesStore((s) => s.setFilterBy);
   const selectMessage = useMessagesStore((s) => s.selectMessage);
   const markAsRead = useMessagesStore((s) => s.markAsRead);
   const archive = useMessagesStore((s) => s.archive);
@@ -23,20 +25,40 @@ export function useInboxMessages(currentView: View) {
   const startSubscription = useMessagesStore((s) => s.startSubscription);
   const stopSubscription = useMessagesStore((s) => s.stopSubscription);
 
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+  const [, startTransition] = useTransition();
+
+  const { inboxCount, unreadCount, importantCount } = useMessagesStore(
+    useShallow((s) => selectMessageCounts(s.messages)),
+  );
+
   const filteredMessages = selectFilteredMessages(
     messages,
     currentView,
     filterBy,
-    searchQuery,
+    deferredSearchQuery,
     sortBy,
   );
   const selectedMessage = selectSelectedMessage(messages, selectedMessageId);
-  const { inboxCount, unreadCount, importantCount } = selectMessageCounts(messages);
+  const isSearchPending = searchQuery !== deferredSearchQuery;
+
+  const setSearchQuery = (value: string) => {
+    storeSetSearchQuery(value);
+  };
+
+  const setSortBy = (value: SortOption) => {
+    startTransition(() => storeSetSortBy(value));
+  };
+
+  const setFilterBy = (value: FilterOption) => {
+    startTransition(() => storeSetFilterBy(value));
+  };
 
   return {
     selectedMessageId,
     selectedMessage,
     filteredMessages,
+    isSearchPending,
     inboxCount,
     unreadCount,
     importantCount,

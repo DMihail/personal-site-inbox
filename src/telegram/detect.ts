@@ -3,7 +3,9 @@ import type { TelegramWebApp } from "@/telegram/types";
 let cachedWebApp: TelegramWebApp | null | undefined;
 
 function isUsableWebApp(webApp: TelegramWebApp | undefined): webApp is TelegramWebApp {
-  return Boolean(webApp?.version && typeof webApp.ready === "function" && typeof webApp.expand === "function");
+  return Boolean(
+    webApp?.version && typeof webApp.ready === "function" && typeof webApp.expand === "function",
+  );
 }
 
 function readWebApp(): TelegramWebApp | null {

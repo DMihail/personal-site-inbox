@@ -2,14 +2,10 @@ import type { Message } from "@/app/features/inbox/types";
 import type { PushPayload } from "@/push/types";
 import { getActiveFcmRegistration } from "@/push/service-worker";
 import { showNotificationOnce } from "@/push/dedupe";
-import {
-  getNotificationPermission,
-  getNotificationPermissionError,
-} from "@/push/permissions";
+import { getNotificationPermission, getNotificationPermissionError } from "@/push/permissions";
 
 export type ShowBrowserNotificationResult =
-  | { ok: true }
-  | { ok: false; reason: "permission" | "unsupported" | "error"; message: string };
+  { ok: true } | { ok: false; reason: "permission" | "unsupported" | "error"; message: string };
 
 const ICON = "/favicon.png";
 

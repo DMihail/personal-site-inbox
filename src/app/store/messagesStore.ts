@@ -1,7 +1,10 @@
 import { create } from "zustand";
 import { getFirestoreDb } from "@/utils/firestore";
 import type { FilterOption, Message, SortOption } from "../features/inbox/types";
-import { mapFirestoreMessage, type FirestoreMessageDoc } from "../features/inbox/mapFirestoreMessage";
+import {
+  mapFirestoreMessage,
+  type FirestoreMessageDoc,
+} from "../features/inbox/mapFirestoreMessage";
 import { shouldToastForMessageChange } from "../notifications/shouldToastForMessageChange";
 import { notifyIncomingMessage } from "../notifications/notifyIncomingMessage";
 
@@ -26,9 +29,14 @@ interface MessagesState {
   setFilterBy: (f: FilterOption) => void;
 
   markAsRead: (id: string) => Promise<void>;
+  /** Toggles archived; optimistic local update. */
   archive: (id: string) => Promise<void>;
   toggleImportant: (id: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
+}
+
+function patchMessage(messages: Message[], id: string, patch: Partial<Message>): Message[] {
+  return messages.map((message) => (message.id === id ? { ...message, ...patch } : message));
 }
 
 export const useMessagesStore = create<MessagesState>((set, get) => ({
@@ -69,7 +77,9 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
             }
 
             const msgs: Message[] = [];
-            snap.forEach((d) => msgs.push(mapFirestoreMessage(d.id, d.data() as FirestoreMessageDoc)));
+            snap.forEach((d) =>
+              msgs.push(mapFirestoreMessage(d.id, d.data() as FirestoreMessageDoc)),
+            );
             set({ messages: msgs, isLoading: false, error: null, hasLoadedOnce: true });
           },
           (err) => {
@@ -103,26 +113,66 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
   setFilterBy: (f) => set({ filterBy: f }),
 
   markAsRead: async (id) => {
-    const firestoreDb = await getFirestoreDb();
-    const { doc, updateDoc } = await import("firebase/firestore");
-    await updateDoc(doc(firestoreDb, "messages", id), { read: true });
+    const previous = get().messages;
+    set({ messages: patchMessage(previous, id, { isRead: true }) });
+    try {
+      const firestoreDb = await getFirestoreDb();
+      const { doc, updateDoc } = await import("firebase/firestore");
+      await updateDoc(doc(firestoreDb, "messages", id), { read: true });
+    } catch (error) {
+      set({ messages: previous });
+      throw error;
+    }
   },
+
   archive: async (id) => {
-    const firestoreDb = await getFirestoreDb();
-    const { doc, updateDoc } = await import("firebase/firestore");
-    await updateDoc(doc(firestoreDb, "messages", id), { archived: true });
-    if (get().selectedMessageId === id) set({ selectedMessageId: null });
+    const previous = get().messages;
+    const previousSelected = get().selectedMessageId;
+    const current = previous.find((m) => m.id === id);
+    const nextArchived = !current?.isArchived;
+    set({
+      messages: patchMessage(previous, id, { isArchived: nextArchived }),
+      selectedMessageId: nextArchived && previousSelected === id ? null : previousSelected,
+    });
+    try {
+      const firestoreDb = await getFirestoreDb();
+      const { doc, updateDoc } = await import("firebase/firestore");
+      await updateDoc(doc(firestoreDb, "messages", id), { archived: nextArchived });
+    } catch (error) {
+      set({ messages: previous, selectedMessageId: previousSelected });
+      throw error;
+    }
   },
+
   toggleImportant: async (id) => {
-    const current = get().messages.find((m) => m.id === id);
-    const firestoreDb = await getFirestoreDb();
-    const { doc, updateDoc } = await import("firebase/firestore");
-    await updateDoc(doc(firestoreDb, "messages", id), { important: !current?.isImportant });
+    const previous = get().messages;
+    const current = previous.find((m) => m.id === id);
+    const nextImportant = !current?.isImportant;
+    set({ messages: patchMessage(previous, id, { isImportant: nextImportant }) });
+    try {
+      const firestoreDb = await getFirestoreDb();
+      const { doc, updateDoc } = await import("firebase/firestore");
+      await updateDoc(doc(firestoreDb, "messages", id), { important: nextImportant });
+    } catch (error) {
+      set({ messages: previous });
+      throw error;
+    }
   },
+
   remove: async (id) => {
-    const firestoreDb = await getFirestoreDb();
-    const { deleteDoc, doc } = await import("firebase/firestore");
-    await deleteDoc(doc(firestoreDb, "messages", id));
-    if (get().selectedMessageId === id) set({ selectedMessageId: null });
+    const previous = get().messages;
+    const previousSelected = get().selectedMessageId;
+    set({
+      messages: previous.filter((m) => m.id !== id),
+      selectedMessageId: previousSelected === id ? null : previousSelected,
+    });
+    try {
+      const firestoreDb = await getFirestoreDb();
+      const { deleteDoc, doc } = await import("firebase/firestore");
+      await deleteDoc(doc(firestoreDb, "messages", id));
+    } catch (error) {
+      set({ messages: previous, selectedMessageId: previousSelected });
+      throw error;
+    }
   },
 }));

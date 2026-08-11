@@ -74,14 +74,14 @@ This app is a **single-operator** inbox, not multi-tenant. Before going public:
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Development server |
-| `npm run build` | Production build |
-| `npm run typecheck` | TypeScript |
-| `npm run lint` | ESLint |
-| `npm run test:run` | Vitest (CI) |
-| `npm run test` | Vitest (watch) |
+| Command             | Description        |
+| ------------------- | ------------------ |
+| `npm run dev`       | Development server |
+| `npm run build`     | Production build   |
+| `npm run typecheck` | TypeScript         |
+| `npm run lint`      | ESLint             |
+| `npm run test:run`  | Vitest (CI)        |
+| `npm run test`      | Vitest (watch)     |
 
 ## Tests
 

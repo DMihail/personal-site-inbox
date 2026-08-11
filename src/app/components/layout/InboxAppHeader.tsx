@@ -1,14 +1,14 @@
-import { List, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { isTelegramMiniApp } from "@/telegram/detect";
 import { PushNotificationButton } from "../PushNotificationButton";
+import { APP_NAME } from "@/utils/app-info";
+
 interface InboxAppHeaderProps {
   isOnline: boolean;
   unreadCount: number;
   onOpenNav: () => void;
-  showMessagesListToggle?: boolean;
-  onOpenMessagesList?: () => void;
   compact?: boolean;
   pushEnabled: boolean;
   pushRegistering: boolean;
@@ -23,8 +23,6 @@ export function InboxAppHeader({
   isOnline,
   unreadCount,
   onOpenNav,
-  showMessagesListToggle = false,
-  onOpenMessagesList,
   compact,
   pushEnabled,
   pushRegistering,
@@ -51,24 +49,11 @@ export function InboxAppHeader({
           <Menu className="h-5 w-5" aria-hidden="true" />
         </Button>
         <div className="min-w-0">
-          <h1 className="truncate text-body text-text-primary md:text-heading-sm">Developer Inbox</h1>
+          <h1 className="truncate text-body text-text-primary md:text-heading-sm">{APP_NAME}</h1>
         </div>
       </div>
 
       <div className="flex shrink-0 items-center gap-2 md:gap-4">
-        {showMessagesListToggle && onOpenMessagesList ? (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onOpenMessagesList}
-            className="tablet-messages-toggle glass ui-hover-glass border-glass-border lg:hidden"
-            aria-label="Open message list"
-          >
-            <List className="me-2 shrink-0" aria-hidden="true" />
-            <span className="hidden md:inline">All messages</span>
-          </Button>
-        ) : null}
-
         {!compact ? (
           <div className="hidden items-center gap-4 md:flex lg:flex">
             <span
@@ -88,7 +73,11 @@ export function InboxAppHeader({
         ) : null}
 
         {!inTelegram ? (
-          <div className={compact ? "app-chrome-touch-icon flex items-center justify-center" : undefined}>
+          <div
+            className={
+              compact ? "app-chrome-touch-icon flex items-center justify-center" : undefined
+            }
+          >
             <PushNotificationButton
               enabled={pushEnabled}
               isRegistering={pushRegistering}
@@ -103,7 +92,6 @@ export function InboxAppHeader({
 
         {unreadCount > 0 ? (
           <Badge
-            variant="secondary"
             className="border border-cyan/30 bg-cyan/20 text-cyan"
             aria-label={`${unreadCount} unread messages`}
           >

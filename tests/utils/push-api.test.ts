@@ -2,11 +2,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { sendInboxTestPush } from "@/utils/push-api";
 
 vi.mock("@/utils/firebaseAuth", () => ({
-  firebaseAuth: {
+  getFirebaseAuth: async () => ({
     currentUser: {
       getIdToken: vi.fn().mockResolvedValue("test-token"),
     },
-  },
+  }),
 }));
 
 vi.mock("@/utils/reply-api", () => ({

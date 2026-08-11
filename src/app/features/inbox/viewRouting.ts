@@ -36,4 +36,3 @@ export function pathToView(pathname: string): View {
   if (p === "/settings") return "settings";
   return DEFAULT_VIEW;
 }
-

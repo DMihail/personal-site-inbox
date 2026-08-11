@@ -31,7 +31,8 @@ export function LoginPage() {
 
       if (!isFirebaseConfigured()) {
         return {
-          error: "Firebase is not configured. Add VITE_FIREBASE_* variables to .env and restart the dev server.",
+          error:
+            "Firebase is not configured. Add VITE_FIREBASE_* variables to .env and restart the dev server.",
         };
       }
 

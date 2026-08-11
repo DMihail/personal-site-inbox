@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" translate="no" class="notranslate">
   <head>
     <meta charset="UTF-8" />
@@ -8,8 +8,8 @@
     <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#0a0a0a" />
     <meta name="format-detection" content="telephone=no, email=no, address=no" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/icon.png" sizes="180x180" />
+    <link rel="icon" type="image/jpeg" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/icon.png" sizes="150x150" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Inbox" />
@@ -20,20 +20,14 @@
       name="description"
       content="Private operator inbox for contact messages. Sign-in required — not a public site."
     />
-    <meta name="referrer" content="no-referrer" />
+    <!-- Matches Referrer-Policy HTTP header (security-headers.ts / vercel.json). -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta
       name="robots"
       content="noindex, nofollow, noarchive, nosnippet, noimageindex, max-snippet:0, max-image-preview:none, max-video-preview:0"
     />
     <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
     <meta name="bingbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
-    <!-- Private app: do not encourage social previews as indexed content -->
-    <meta property="og:title" content="Developer Inbox" />
-    <meta property="og:description" content="Private operator inbox — sign-in required." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Developer Inbox" />
-    <meta name="twitter:description" content="Private operator inbox — sign-in required." />
   </head>
   <body class="dark antialiased">
     <div id="root"></div>

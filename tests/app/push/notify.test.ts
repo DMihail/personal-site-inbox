@@ -25,7 +25,9 @@ describe("showBrowserNotification", () => {
 
   it("returns permission error when not granted", async () => {
     vi.stubGlobal("Notification", { permission: "default", requestPermission: vi.fn() });
-    vi.stubGlobal("window", { Notification: { permission: "default", requestPermission: vi.fn() } });
+    vi.stubGlobal("window", {
+      Notification: { permission: "default", requestPermission: vi.fn() },
+    });
 
     const result = await showBrowserNotification("Test", {});
 

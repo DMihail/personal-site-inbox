@@ -1,4 +1,4 @@
-import { firebaseAuth } from "@/utils/firebaseAuth";
+import { getFirebaseAuth } from "@/utils/firebaseAuth";
 import { getPortfolioApiEnvBase, portfolioApiUrl } from "@/utils/portfolio-api-url";
 
 const MIN_REPLY_LENGTH = 2;
@@ -45,7 +45,8 @@ export async function sendInboxReply(
     throw new Error("Reply is too short");
   }
 
-  const user = firebaseAuth.currentUser;
+  const auth = await getFirebaseAuth();
+  const user = auth.currentUser;
   if (!user) {
     throw new Error("You must be signed in to send a reply");
   }

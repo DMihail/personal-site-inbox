@@ -1,5 +1,6 @@
 /**
- * Push uses the unified app service worker (`/sw.js`), which loads FCM via importScripts.
+ * Push uses the unified app service worker (`/sw.js`), which bundles FCM via
+ * `firebase/messaging/sw` (no remote gstatic importScripts).
  */
 export {
   ensureAppServiceWorker as ensureFcmServiceWorker,

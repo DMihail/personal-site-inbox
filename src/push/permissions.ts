@@ -14,12 +14,15 @@ export function canShowBrowserNotifications(): boolean {
 }
 
 export type PushNotificationSupport =
-  | { ok: true }
-  | { ok: false; message: string; permission: NotificationPermissionState };
+  { ok: true } | { ok: false; message: string; permission: NotificationPermissionState };
 
 export function getPushNotificationSupport(): PushNotificationSupport {
   if (typeof window === "undefined") {
-    return { ok: false, message: "Notifications are unavailable during SSR.", permission: "unsupported" };
+    return {
+      ok: false,
+      message: "Notifications are unavailable during SSR.",
+      permission: "unsupported",
+    };
   }
 
   if (!window.isSecureContext) {
@@ -50,9 +53,7 @@ export function getPushNotificationSupport(): PushNotificationSupport {
   return { ok: true };
 }
 
-export function getNotificationPermissionError(
-  permission: NotificationPermissionState,
-): string {
+export function getNotificationPermissionError(permission: NotificationPermissionState): string {
   switch (permission) {
     case "granted":
       return "";

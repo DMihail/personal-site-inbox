@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-
-const APP_NAME = "Developer Inbox";
+import { APP_NAME } from "@/utils/app-info";
 
 export function useDocumentTitle(pageTitle: string) {
   useEffect(() => {

@@ -1,12 +1,10 @@
 import { initDeviceId } from "@/push/device-id";
-import { firebaseAuth } from "@/utils/firebaseAuth";
+import { getFirebaseAuth } from "@/utils/firebaseAuth";
 import { isPortfolioApiConfigured } from "@/utils/reply-api";
 import { portfolioApiUrl } from "@/utils/portfolio-api-url";
 
 export type InboxTestPushResult =
-  | { status: "sent" }
-  | { status: "not-configured" }
-  | { status: "not-available" };
+  { status: "sent" } | { status: "not-configured" } | { status: "not-available" };
 
 function testPushErrorMessage(status: number, serverMessage?: string): string {
   if (serverMessage) return serverMessage;
@@ -31,7 +29,8 @@ export async function sendInboxTestPush(): Promise<InboxTestPushResult> {
     return { status: "not-configured" };
   }
 
-  const user = firebaseAuth.currentUser;
+  const auth = await getFirebaseAuth();
+  const user = auth.currentUser;
   if (!user) {
     throw new Error("You must be signed in to request a server test push");
   }

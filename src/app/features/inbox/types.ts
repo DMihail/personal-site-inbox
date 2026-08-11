@@ -19,4 +19,3 @@ export interface Message {
   lastReplyPreview?: string;
   tags?: string[];
 }
-

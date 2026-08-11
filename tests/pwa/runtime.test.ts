@@ -1,8 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  getPwaInstallPlatform,
-  isStandaloneDisplayMode,
-} from "@/pwa/runtime";
+import { getPwaInstallPlatform, isStandaloneDisplayMode } from "@/pwa/runtime";
 
 describe("pwa/runtime", () => {
   afterEach(() => {

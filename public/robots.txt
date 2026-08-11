@@ -36,6 +36,9 @@ Disallow: /
 User-agent: anthropic-ai
 Disallow: /
 
+User-agent: Google-Extended
+Disallow: /
+
 User-agent: CCBot
 Disallow: /
 
@@ -48,8 +51,23 @@ Disallow: /
 User-agent: Applebot
 Disallow: /
 
+User-agent: Applebot-Extended
+Disallow: /
+
 User-agent: FacebookBot
 Disallow: /
 
 User-agent: meta-externalagent
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: ImagesiftBot
 Disallow: /

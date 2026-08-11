@@ -2,10 +2,7 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "../store/authStore";
 import { usePushStore } from "@/push/store";
-import {
-  getNotificationPermission,
-  getNotificationPermissionError,
-} from "@/push/permissions";
+import { getNotificationPermission, getNotificationPermissionError } from "@/push/permissions";
 import { useRequestPushPermission } from "./useRequestPushPermission";
 
 export function useRecheckPushPermission(refreshPermission: () => void) {

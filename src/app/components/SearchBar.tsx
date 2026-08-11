@@ -9,11 +9,7 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-export function SearchBar({
-  value,
-  onChange,
-  placeholder = "Search messages…",
-}: SearchBarProps) {
+export function SearchBar({ value, onChange, placeholder = "Search messages…" }: SearchBarProps) {
   const inputId = useId();
 
   return (
@@ -21,7 +17,10 @@ export function SearchBar({
       <label htmlFor={inputId} className="sr-only">
         Search messages
       </label>
-      <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" aria-hidden="true" />
+      <Search
+        className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
+        aria-hidden="true"
+      />
       <Input
         id={inputId}
         type="search"

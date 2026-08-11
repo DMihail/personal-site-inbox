@@ -9,10 +9,7 @@ import { usePushStore } from "@/push/store";
  * Decides how to alert the operator about a newly arrived message.
  * Kept outside messagesStore so the store stays a data layer.
  */
-export function notifyIncomingMessage(
-  message: Message,
-  onOpen: (messageId: string) => void,
-): void {
+export function notifyIncomingMessage(message: Message, onOpen: (messageId: string) => void): void {
   if (shouldToastNewMessage()) {
     toastNewMessage(message, onOpen);
     return;

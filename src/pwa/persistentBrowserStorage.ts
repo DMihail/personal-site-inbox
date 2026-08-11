@@ -17,7 +17,10 @@ export async function ensurePersistentStorage(): Promise<boolean> {
 
   persistRequest ??= (async () => {
     try {
-      if (typeof navigator.storage.persisted === "function" && (await navigator.storage.persisted())) {
+      if (
+        typeof navigator.storage.persisted === "function" &&
+        (await navigator.storage.persisted())
+      ) {
         return true;
       }
       return await navigator.storage.persist();

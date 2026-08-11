@@ -108,9 +108,8 @@ export function createSecurePersistStorage<S>(): PersistStorage<S> {
       }
 
       try {
-        const json =
-          raw.startsWith(ENCRYPTED_PREFIX) ?
-            await decryptPayload(raw, name, secret)
+        const json = raw.startsWith(ENCRYPTED_PREFIX)
+          ? await decryptPayload(raw, name, secret)
           : raw;
         return JSON.parse(json) as StorageValue<S>;
       } catch {

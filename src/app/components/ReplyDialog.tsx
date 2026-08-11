@@ -24,7 +24,13 @@ interface ReplyDialogProps {
   onOpenInMailClient: () => void;
 }
 
-export function ReplyDialog({ isOpen, onClose, message, onSend, onOpenInMailClient }: ReplyDialogProps) {
+export function ReplyDialog({
+  isOpen,
+  onClose,
+  message,
+  onSend,
+  onOpenInMailClient,
+}: ReplyDialogProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const apiConfigured = isPortfolioApiConfigured();
   const abortRef = useRef<AbortController | null>(null);

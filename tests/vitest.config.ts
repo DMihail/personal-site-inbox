@@ -21,12 +21,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "html"],
       include: ["src/**/*.{ts,tsx}"],
-      exclude: [
-        "tests/**",
-        "src/main.tsx",
-        "src/vite-plugins/**",
-        "src/app/pages/dev/**",
-      ],
+      exclude: ["tests/**", "src/main.tsx", "src/app/pages/dev/**"],
     },
   },
 });

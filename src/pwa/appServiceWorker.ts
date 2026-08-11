@@ -11,7 +11,7 @@ function scriptUrl(reg: ServiceWorkerRegistration): string {
   return w?.scriptURL ?? "";
 }
 
-/** Primary app SW — Workbox precache that `importScripts` FCM handlers. */
+/** Primary app SW — Workbox precache that bundles FCM (`firebase/messaging/sw`). */
 export function isAppServiceWorker(reg: ServiceWorkerRegistration): boolean {
   const url = scriptUrl(reg);
   return url.includes("/sw.js") && !url.includes("firebase-messaging-sw");

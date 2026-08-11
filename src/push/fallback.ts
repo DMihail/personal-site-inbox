@@ -2,7 +2,7 @@ import { MEDIA_QUERIES } from "@/shared/constants/media-queries";
 import { usePushStore } from "@/push/store";
 import { canShowBrowserNotifications } from "@/push/permissions";
 
-export function isDesktopViewport(): boolean {
+function isDesktopViewport(): boolean {
   if (typeof window === "undefined") return false;
   return window.matchMedia(MEDIA_QUERIES.desktop).matches;
 }
