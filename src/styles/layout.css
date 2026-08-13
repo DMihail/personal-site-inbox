@@ -47,18 +47,18 @@
     z-index: 1;
     overflow: hidden;
     touch-action: pan-y;
-    background-color: #121212;
+    background-color: oklch(0.177 0 0);
     background-clip: padding-box;
     backface-visibility: hidden;
   }
 
   .inbox-row-surface--read {
-    background-color: #101010;
+    background-color: oklch(0.16 0 0);
   }
 
   .inbox-row-surface--unread,
   .inbox-row-surface--active {
-    background-color: #181818;
+    background-color: oklch(0.21 0 0);
   }
 
   .inbox-row-actions {
@@ -79,7 +79,7 @@
     justify-content: center;
     gap: 0.25rem;
     border: 0;
-    color: #0a0a0a;
+    color: var(--background);
     cursor: pointer;
     font-size: 0.65rem;
     font-weight: 600;
@@ -101,7 +101,7 @@
 
   .inbox-swipe-action--delete {
     background: var(--error);
-    color: #fff;
+    color: oklch(1 0 0);
   }
 
   @media (prefers-reduced-motion: reduce) {

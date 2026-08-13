@@ -1,3 +1,13 @@
 /* Self-hosted via @fontsource — no render-blocking Google CSS @import. */
 @import "@fontsource-variable/inter/wght.css";
 @import "@fontsource/jetbrains-mono/latin-400.css";
+
+/* Metric-matched fallback so swap does not shift the UI (Inter vs Arial). */
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial"), local("Helvetica Neue"), local("Helvetica");
+  size-adjust: 107.64%;
+  ascent-override: 90%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}

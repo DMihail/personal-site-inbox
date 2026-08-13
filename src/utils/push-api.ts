@@ -45,6 +45,7 @@ export async function sendInboxTestPush(): Promise<InboxTestPushResult> {
         Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({ deviceId: await initDeviceId() }),
+      signal: AbortSignal.timeout(20_000),
     });
   } catch {
     throw new Error(

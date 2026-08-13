@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
+    "lib": ["ES2024", "DOM"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "skipLibCheck": true,
@@ -10,6 +10,9 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
     "ignoreDeprecations": "6.0",
     "types": ["node"],
     "baseUrl": ".",

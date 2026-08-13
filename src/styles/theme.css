@@ -2,42 +2,42 @@
 
 /* Dark-only app — tokens live on :root (body still has .dark for Tailwind dark: variants). */
 :root {
-  --background: #0a0a0a;
-  --foreground: #ffffff;
-  --card: rgba(18, 18, 18, 0.6);
-  --card-foreground: #ffffff;
-  --popover: rgba(18, 18, 18, 0.95);
-  --popover-foreground: #ffffff;
-  --primary: #ffffff;
-  --primary-foreground: #0a0a0a;
-  --secondary: rgba(255, 255, 255, 0.08);
-  --secondary-foreground: #ffffff;
-  --muted: rgba(255, 255, 255, 0.08);
-  --muted-foreground: rgba(255, 255, 255, 0.55);
-  --accent: #00d9ff;
-  --accent-foreground: #0a0a0a;
-  --destructive: #ff3b5c;
-  --destructive-foreground: #ffffff;
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(18, 18, 18, 0.8);
-  --input-background: rgba(18, 18, 18, 0.9);
-  --switch-background: rgba(255, 255, 255, 0.2);
-  --input-autofill-bg: #141414;
-  --ring: #00d9ff;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(1 0 0);
+  --card: oklch(0.177 0 0 / 0.6);
+  --card-foreground: oklch(1 0 0);
+  --popover: oklch(0.177 0 0 / 0.95);
+  --popover-foreground: oklch(1 0 0);
+  --primary: oklch(1 0 0);
+  --primary-foreground: oklch(0.145 0 0);
+  --secondary: oklch(1 0 0 / 0.08);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(1 0 0 / 0.08);
+  --muted-foreground: oklch(1 0 0 / 0.55);
+  --accent: oklch(0.84 0.14 209);
+  --accent-foreground: oklch(0.145 0 0);
+  --destructive: oklch(0.66 0.22 18);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(1 0 0 / 0.1);
+  --input: oklch(0.177 0 0 / 0.8);
+  --input-background: oklch(0.177 0 0 / 0.9);
+  --switch-background: oklch(1 0 0 / 0.2);
+  --input-autofill-bg: oklch(0.19 0 0);
+  --ring: oklch(0.84 0.14 209);
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --radius: 0.625rem;
-  --glass-bg: rgba(18, 18, 18, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-elevated: rgba(24, 24, 24, 0.7);
-  --cyan: #00d9ff;
-  --mint: #00ff9f;
-  --glow-cyan: rgba(0, 217, 255, 0.3);
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.72);
-  --text-muted: rgba(255, 255, 255, 0.55);
-  --warning: #ffb800;
-  --error: #ff3b5c;
+  --glass-bg: oklch(0.177 0 0 / 0.6);
+  --glass-border: oklch(1 0 0 / 0.12);
+  --glass-elevated: oklch(0.21 0 0 / 0.7);
+  --cyan: oklch(0.84 0.14 209);
+  --mint: oklch(0.87 0.19 163);
+  --glow-cyan: oklch(0.84 0.14 209 / 0.3);
+  --text-primary: oklch(1 0 0);
+  --text-secondary: oklch(1 0 0 / 0.72);
+  --text-muted: oklch(1 0 0 / 0.55);
+  --warning: oklch(0.82 0.16 82);
+  --error: oklch(0.66 0.22 18);
 }
 
 @theme inline {
@@ -76,7 +76,7 @@
   --color-text-muted: var(--text-muted);
   --color-warning: var(--warning);
   --color-error: var(--error);
-  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", "Inter Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
@@ -108,11 +108,11 @@
 
   @media (max-width: 767px) {
     .glass {
-      background: #121212;
+      background: oklch(0.177 0 0);
     }
 
     .glass-elevated {
-      background: #181818;
+      background: oklch(0.21 0 0);
     }
 
     .slide-drawer-backdrop {

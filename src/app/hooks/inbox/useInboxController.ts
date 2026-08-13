@@ -269,7 +269,11 @@ export function useInboxController() {
       setShowOfflineModal(false);
       toast.info("Reconnecting…");
       restartSubscription();
-      void fetch(window.location.origin, { method: "HEAD", cache: "no-store" }).catch(() => {
+      void fetch(window.location.origin, {
+        method: "HEAD",
+        cache: "no-store",
+        signal: AbortSignal.timeout(8_000),
+      }).catch(() => {
         /* network probe — success is optional; subscription restart is the real work */
       });
     },

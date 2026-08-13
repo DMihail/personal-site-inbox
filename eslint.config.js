@@ -22,7 +22,7 @@ export default [
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 2024,
       sourceType: "module",
       globals: globals.browser,
     },
@@ -58,7 +58,7 @@ export default [
   {
     files: ["src/sw.js"],
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 2024,
       sourceType: "script",
       globals: {
         ...globals.serviceworker,
@@ -78,7 +78,7 @@ export default [
   {
     files: ["scripts/**/*.{js,mjs,cjs}", "*.config.{js,mjs,cjs}", "security-headers.ts"],
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 2024,
       sourceType: "module",
       globals: globals.node,
     },

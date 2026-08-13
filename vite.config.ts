@@ -38,12 +38,14 @@ export default defineConfig(({ mode }) => {
           "icon.png",
           "icon-192.png",
           "icon-512.png",
+          "icon-512-maskable.png",
           "robots.txt",
         ],
         devOptions: {
           enabled: false,
         },
         manifest: {
+          id: "/",
           name: "Developer Inbox",
           short_name: "Inbox",
           description:
@@ -51,7 +53,7 @@ export default defineConfig(({ mode }) => {
           start_url: "/",
           scope: "/",
           display: "standalone",
-          orientation: "portrait",
+          display_override: ["standalone", "minimal-ui"],
           background_color: "#0a0a0a",
           theme_color: "#0a0a0a",
           ...({ gcm_sender_id: "103953800507" } as { gcm_sender_id: string }),
@@ -69,7 +71,7 @@ export default defineConfig(({ mode }) => {
               purpose: "any",
             },
             {
-              src: "/icon-512.png",
+              src: "/icon-512-maskable.png",
               sizes: "512x512",
               type: "image/png",
               purpose: "maskable",
@@ -87,6 +89,7 @@ export default defineConfig(({ mode }) => {
     build: {
       target: "es2022",
       cssMinify: true,
+      reportCompressedSize: false,
       modulePreload: {
         resolveDependencies(_filename, deps) {
           return deps.filter(
@@ -125,6 +128,13 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      warmup: {
+        clientFiles: [
+          "./src/app/pages/InboxShell.tsx",
+          "./src/app/components/layout/MobileInboxLayout.tsx",
+          "./src/app/components/layout/DesktopInboxLayout.tsx",
+        ],
+      },
       headers: buildDevSecurityHeaders(),
       proxy: {
         "/api": {
@@ -136,6 +146,5 @@ export default defineConfig(({ mode }) => {
     preview: {
       headers: buildProductionSecurityHeaders(),
     },
-    assetsInclude: ["**/*.svg"],
   };
 });

@@ -228,6 +228,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     const index = messages.findIndex((message) => message.id === id);
     if (index < 0) return false;
     const message = messages[index];
+    if (!message) return false;
     set({
       messages: messages.filter((item) => item.id !== id),
       selectedMessageId: selectedMessageId === id ? null : selectedMessageId,
