@@ -3,11 +3,19 @@ import tailwindcss from "@tailwindcss/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
 import { VitePWA } from "vite-plugin-pwa";
-import { createAliases } from "./alias.config";
-import { devSecurityHeaders, productionSecurityHeaders } from "./security-headers";
+import { createAliases } from "./alias.config.ts";
+import {
+  buildDevSecurityHeaders,
+  buildProductionSecurityHeaders,
+} from "./security-headers.ts";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  for (const [key, value] of Object.entries(env)) {
+    if (process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
   const portfolioApiProxyTarget =
     env.VITE_PORTFOLIO_API_URL?.trim().replace(/\/$/, "") || "http://localhost:3000";
 
@@ -110,7 +118,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      headers: devSecurityHeaders,
+      headers: buildDevSecurityHeaders(),
       proxy: {
         "/api": {
           target: portfolioApiProxyTarget,
@@ -119,7 +127,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     preview: {
-      headers: productionSecurityHeaders,
+      headers: buildProductionSecurityHeaders(),
     },
     assetsInclude: ["**/*.svg"],
   };

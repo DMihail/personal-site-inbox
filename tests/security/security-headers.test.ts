@@ -2,13 +2,14 @@ import { describe, expect, it } from "vitest";
 import {
   buildContentSecurityPolicy,
   buildDevContentSecurityPolicy,
-  devSecurityHeaders,
-  productionSecurityHeaders,
+  buildDevSecurityHeaders,
+  buildProductionSecurityHeaders,
+  portfolioApiConnectOrigin,
 } from "@security/headers";
 
 describe("security headers", () => {
   it("includes baseline hardening headers in dev and production", () => {
-    for (const headers of [devSecurityHeaders, productionSecurityHeaders]) {
+    for (const headers of [buildDevSecurityHeaders(), buildProductionSecurityHeaders()]) {
       expect(headers["X-Content-Type-Options"]).toBe("nosniff");
       expect(headers["X-Frame-Options"]).toBe("DENY");
       expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
@@ -19,18 +20,18 @@ describe("security headers", () => {
   });
 
   it("adds HSTS only for production", () => {
-    expect(devSecurityHeaders["Strict-Transport-Security"]).toBeUndefined();
-    expect(productionSecurityHeaders["Strict-Transport-Security"]).toMatch(/max-age=/);
+    expect(buildDevSecurityHeaders()["Strict-Transport-Security"]).toBeUndefined();
+    expect(buildProductionSecurityHeaders()["Strict-Transport-Security"]).toMatch(/max-age=/);
   });
 
   it("uses production CSP on production headers (not dev localhost rules)", () => {
-    expect(productionSecurityHeaders["Content-Security-Policy"]).toContain(
+    expect(buildProductionSecurityHeaders()["Content-Security-Policy"]).toContain(
       "upgrade-insecure-requests",
     );
-    expect(productionSecurityHeaders["Content-Security-Policy"]).not.toContain(
+    expect(buildProductionSecurityHeaders()["Content-Security-Policy"]).not.toContain(
       "http://localhost:*",
     );
-    expect(devSecurityHeaders["Content-Security-Policy"]).toContain("http://localhost:*");
+    expect(buildDevSecurityHeaders()["Content-Security-Policy"]).toContain("http://localhost:*");
   });
 
   it("builds a CSP that blocks framing and object embeds", () => {
@@ -74,6 +75,26 @@ describe("security headers", () => {
     const csp = buildDevContentSecurityPolicy();
     expect(csp).toContain("http://localhost:*");
     expect(csp).not.toContain("upgrade-insecure-requests");
-    expect(devSecurityHeaders["Content-Security-Policy"]).toBe(csp);
+    expect(buildDevSecurityHeaders()["Content-Security-Policy"]).toBe(csp);
+  });
+
+  it("resolves portfolio API connect origins from https URLs only", () => {
+    expect(portfolioApiConnectOrigin("https://api.example.com/v1")).toBe("https://api.example.com");
+    expect(portfolioApiConnectOrigin("http://localhost:3000")).toBeNull();
+    expect(portfolioApiConnectOrigin("")).toBeNull();
+    expect(portfolioApiConnectOrigin("not-a-url")).toBeNull();
+  });
+
+  it("uses exact portfolio origin in connect-src when env is set", () => {
+    const previous = process.env.VITE_PORTFOLIO_API_URL;
+    process.env.VITE_PORTFOLIO_API_URL = "https://api.example.com/";
+    try {
+      const csp = buildContentSecurityPolicy();
+      expect(csp).toContain("https://api.example.com");
+      expect(csp).not.toMatch(/connect-src[^;]*\shttps:(;|$)/);
+    } finally {
+      if (previous === undefined) delete process.env.VITE_PORTFOLIO_API_URL;
+      else process.env.VITE_PORTFOLIO_API_URL = previous;
+    }
   });
 });

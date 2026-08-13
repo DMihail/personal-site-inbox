@@ -1,6 +1,9 @@
 /**
  * Shared HTTP security headers for Vite dev/preview and Vercel (`vercel.json`).
  * Keep `vercel.json` in sync — run `npm run sync:security-headers` after edits.
+ *
+ * For a tight portfolio API allowlist, set `VITE_PORTFOLIO_API_URL` before syncing
+ * (or when starting Vite) so `connect-src` includes that origin instead of `https:`.
  */
 
 /** Standard features only — `notifications` / `push` are not valid Permissions-Policy tokens in Chromium. */
@@ -13,7 +16,25 @@ const VERCEL_LIVE_ORIGIN = "https://vercel.live";
 /** Firebase Auth loads GAPI (`api.js`) to host the auth iframe handshake. */
 const GOOGLE_APIS_ORIGIN = "https://apis.google.com";
 
+/** HTTPS origin for `VITE_PORTFOLIO_API_URL`, or null if unset / invalid / same-origin proxy only. */
+export function portfolioApiConnectOrigin(
+  raw: string | undefined | null = typeof process !== "undefined"
+    ? process.env.VITE_PORTFOLIO_API_URL
+    : undefined,
+): string | null {
+  const value = raw?.trim();
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:") return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
 function buildConnectSrc(extra: string[] = []): string {
+  const portfolioOrigin = portfolioApiConnectOrigin();
   return [
     "connect-src 'self'",
     VERCEL_LIVE_ORIGIN,
@@ -22,8 +43,8 @@ function buildConnectSrc(extra: string[] = []): string {
     "wss://*.firebaseio.com",
     "https://*.firebaseapp.com",
     "https://www.gstatic.com",
-    // Portfolio reply/test-push API origin (configured via VITE_PORTFOLIO_API_URL).
-    "https:",
+    // Prefer exact portfolio API origin; fall back to https: when unset (local / pre-sync).
+    portfolioOrigin ?? "https:",
     ...extra,
   ].join(" ");
 }
@@ -107,19 +128,32 @@ const sharedSecurityHeaders: Record<string, string> = {
 };
 
 /** Local dev / Vite (no HSTS; relaxed connect-src + script-src for HMR). */
-export const devSecurityHeaders: Record<string, string> = {
-  ...sharedSecurityHeaders,
-  "Content-Security-Policy": buildDevContentSecurityPolicy(),
-};
+export function buildDevSecurityHeaders(): Record<string, string> {
+  return {
+    ...sharedSecurityHeaders,
+    "Content-Security-Policy": buildDevContentSecurityPolicy(),
+  };
+}
 
 /** Production (Vercel + `vite preview`). */
-export const productionSecurityHeaders: Record<string, string> = {
-  ...sharedSecurityHeaders,
-  "Content-Security-Policy": buildContentSecurityPolicy(),
-  "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-};
+export function buildProductionSecurityHeaders(): Record<string, string> {
+  return {
+    ...sharedSecurityHeaders,
+    "Content-Security-Policy": buildContentSecurityPolicy(),
+    "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+  };
+}
+
+/** @deprecated Prefer buildDevSecurityHeaders() so CSP picks up env at call time. */
+export const devSecurityHeaders: Record<string, string> = buildDevSecurityHeaders();
+
+/** @deprecated Prefer buildProductionSecurityHeaders() so CSP picks up env at call time. */
+export const productionSecurityHeaders: Record<string, string> = buildProductionSecurityHeaders();
 
 /** Ordered pairs for `vercel.json` `headers` array. */
 export function vercelHeaderEntries(): Array<{ key: string; value: string }> {
-  return Object.entries(productionSecurityHeaders).map(([key, value]) => ({ key, value }));
+  return Object.entries(buildProductionSecurityHeaders()).map(([key, value]) => ({
+    key,
+    value,
+  }));
 }

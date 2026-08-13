@@ -251,6 +251,25 @@ export function InboxItem({
                 />
               </Button>
             ) : null}
+            {onArchive ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onArchive(message.id);
+                }}
+                className="ui-hover-ghost h-7 w-7 p-0"
+                aria-label={message.isArchived ? "Move to inbox" : "Archive message"}
+              >
+                {message.isArchived ? (
+                  <ArchiveRestore className="h-4 w-4 text-text-muted" aria-hidden="true" />
+                ) : (
+                  <Archive className="h-4 w-4 text-text-muted" aria-hidden="true" />
+                )}
+              </Button>
+            ) : null}
             {onDelete ? (
               <Button
                 type="button"

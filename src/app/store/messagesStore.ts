@@ -3,7 +3,6 @@ import { getFirestoreDb } from "@/utils/firestore";
 import type { FilterOption, Message, SortOption } from "../features/inbox/types";
 import {
   mapFirestoreMessage,
-  type FirestoreMessageDoc,
 } from "../features/inbox/mapFirestoreMessage";
 import { shouldToastForMessageChange } from "../notifications/shouldToastForMessageChange";
 import { notifyIncomingMessage } from "../notifications/notifyIncomingMessage";
@@ -86,14 +85,16 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
               if (!shouldToastForMessageChange(ch, { hasLoadedOnce, knownMessageIds })) {
                 continue;
               }
-              const msg = mapFirestoreMessage(ch.doc.id, ch.doc.data() as FirestoreMessageDoc);
+              const msg = mapFirestoreMessage(ch.doc.id, ch.doc.data());
+              if (!msg) continue;
               notifyIncomingMessage(msg, (id) => get().selectMessage(id));
             }
 
             const msgs: Message[] = [];
-            snap.forEach((d) =>
-              msgs.push(mapFirestoreMessage(d.id, d.data() as FirestoreMessageDoc)),
-            );
+            snap.forEach((d) => {
+              const mapped = mapFirestoreMessage(d.id, d.data());
+              if (mapped) msgs.push(mapped);
+            });
             set({ messages: msgs, isLoading: false, error: null, hasLoadedOnce: true });
           },
           (err) => {

@@ -9,6 +9,7 @@ import { MessageVirtualList } from "../MessageVirtualList";
 import { MessagesListStatus } from "../MessagesListStatus";
 import { scrollPaneClass } from "./scrollPane";
 import { KeepAlivePane } from "./KeepAlivePane";
+import { SettingsFallback } from "./SettingsFallback";
 import { InboxAppHeader } from "./InboxAppHeader";
 import { InboxNavDrawer } from "./InboxNavDrawer";
 import type { InboxLayoutBaseProps } from "@/app/hooks/inbox/inbox-layout.types";
@@ -16,14 +17,6 @@ import type { InboxLayoutBaseProps } from "@/app/hooks/inbox/inbox-layout.types"
 const SettingsView = lazy(() =>
   import("../SettingsView").then((m) => ({ default: m.SettingsView })),
 );
-
-function SettingsFallback() {
-  return (
-    <div className="flex min-h-0 flex-1 items-center justify-center text-text-muted" role="status">
-      Loading settings…
-    </div>
-  );
-}
 
 interface MobileInboxLayoutProps extends InboxLayoutBaseProps {
   mobileDetailOpen: boolean;
@@ -83,6 +76,8 @@ export function MobileInboxLayout({
   if (showSettings && !settingsMounted) setSettingsMounted(true);
   if (showDetail && !detailMounted) setDetailMounted(true);
 
+  const mainLabel = showSettings ? "Settings" : showDetail ? "Message details" : "Inbox";
+
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden md:hidden">
       <InboxAppHeader
@@ -109,10 +104,17 @@ export function MobileInboxLayout({
         onClose={onCloseNavMenu}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <main
+        id="app-main"
+        className="flex min-h-0 flex-1 flex-col overflow-hidden"
+        aria-label={mainLabel}
+      >
         {settingsMounted ? (
-          <KeepAlivePane mode={showSettings ? "visible" : "hidden"} className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <main id={showSettings ? "app-main" : undefined} className={scrollPaneClass} aria-label="Settings">
+          <KeepAlivePane
+            mode={showSettings ? "visible" : "hidden"}
+            className="flex min-h-0 flex-1 flex-col overflow-hidden"
+          >
+            <section className={scrollPaneClass} aria-label="Settings">
               <Suspense fallback={<SettingsFallback />}>
                 <SettingsView
                   isOnline={isOnline}
@@ -125,17 +127,19 @@ export function MobileInboxLayout({
                   onTestPush={onTestPush}
                 />
               </Suspense>
-            </main>
+            </section>
           </KeepAlivePane>
         ) : null}
 
-        <KeepAlivePane mode={showList ? "visible" : "hidden"} className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <main
-            id={showList ? "app-main" : undefined}
+        <KeepAlivePane
+          mode={showList ? "visible" : "hidden"}
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
+        >
+          <section
             className="flex min-h-0 flex-1 flex-col overflow-hidden"
             aria-label="Inbox"
           >
-            <section
+            <div
               className="shrink-0 space-y-2 border-b border-glass-border p-3"
               aria-label="Search and filters"
             >
@@ -147,7 +151,7 @@ export function MobileInboxLayout({
                 onFilterChange={onFilterChange}
                 currentView={currentView}
               />
-            </section>
+            </div>
             {filteredMessages.length > 0 && !isLoading && !messagesError ? (
               <MessageVirtualList
                 items={filteredMessages}
@@ -193,13 +197,15 @@ export function MobileInboxLayout({
                 />
               </div>
             )}
-          </main>
+          </section>
         </KeepAlivePane>
 
         {detailMounted ? (
-          <KeepAlivePane mode={showDetail ? "visible" : "hidden"} className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <main
-              id={showDetail ? "app-main" : undefined}
+          <KeepAlivePane
+            mode={showDetail ? "visible" : "hidden"}
+            className="flex min-h-0 flex-1 flex-col overflow-hidden"
+          >
+            <section
               className="flex min-h-0 flex-1 flex-col overflow-hidden"
               aria-label="Message details"
             >
@@ -231,10 +237,10 @@ export function MobileInboxLayout({
                   onReply={onReply}
                 />
               </div>
-            </main>
+            </section>
           </KeepAlivePane>
         ) : null}
-      </div>
+      </main>
     </div>
   );
 }
