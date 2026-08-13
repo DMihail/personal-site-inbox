@@ -34,12 +34,13 @@
 
     .ui-hover-inbox:hover {
       border-color: var(--surface-hover-border);
-      background-color: var(--surface-hover-bg);
+      background-color: #202020;
       box-shadow: var(--surface-hover-shadow);
     }
 
     .ui-hover-inbox-unread:hover {
       border-color: color-mix(in srgb, var(--cyan) 35%, var(--glass-border) 65%);
+      background-color: #222222;
       box-shadow: 0 4px 20px color-mix(in srgb, var(--cyan) 14%, transparent);
     }
 
@@ -64,12 +65,14 @@
   }
 
   /* Dropdown items — softer than full cyan accent */
-  .dark [data-slot="dropdown-menu-item"]:not([data-disabled]):is(:hover, :focus) {
+  .dark [data-slot="dropdown-menu-item"]:not([data-disabled]):is(:hover, :focus),
+  .dark [data-slot="dropdown-menu-radio-item"]:not([data-disabled]):is(:hover, :focus) {
     background-color: var(--menu-hover-bg) !important;
     color: var(--text-primary) !important;
   }
 
-  .dark [data-slot="dropdown-menu-item"]:not([data-disabled]):focus-visible {
+  .dark [data-slot="dropdown-menu-item"]:not([data-disabled]):focus-visible,
+  .dark [data-slot="dropdown-menu-radio-item"]:not([data-disabled]):focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: -2px;
   }

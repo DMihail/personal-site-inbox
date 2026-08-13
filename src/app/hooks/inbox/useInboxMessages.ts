@@ -24,7 +24,9 @@ export function useInboxMessages(currentView: View) {
   const markAsRead = useMessagesStore((s) => s.markAsRead);
   const archive = useMessagesStore((s) => s.archive);
   const toggleImportant = useMessagesStore((s) => s.toggleImportant);
-  const remove = useMessagesStore((s) => s.remove);
+  const queueDelete = useMessagesStore((s) => s.queueDelete);
+  const undoDelete = useMessagesStore((s) => s.undoDelete);
+  const commitDelete = useMessagesStore((s) => s.commitDelete);
   const startSubscription = useMessagesStore((s) => s.startSubscription);
   const stopSubscription = useMessagesStore((s) => s.stopSubscription);
   const restartSubscription = useMessagesStore((s) => s.restartSubscription);
@@ -79,7 +81,9 @@ export function useInboxMessages(currentView: View) {
     markAsRead,
     archive,
     toggleImportant,
-    remove,
+    queueDelete,
+    undoDelete,
+    commitDelete,
     startSubscription,
     stopSubscription,
     restartSubscription,

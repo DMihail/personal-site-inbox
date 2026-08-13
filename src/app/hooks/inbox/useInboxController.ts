@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { pathToView, VIEW_PAGE_TITLES, viewToPath } from "@/app/features/inbox/viewRouting";
@@ -28,7 +28,9 @@ export function useInboxController() {
     restartSubscription,
     selectMessage,
     archive,
-    remove,
+    queueDelete,
+    undoDelete,
+    commitDelete,
     markAsRead,
     toggleImportant,
     selectedMessage,
@@ -46,6 +48,7 @@ export function useInboxController() {
 
   const [navMenuOpen, setNavMenuOpen] = useState(false);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const pendingDeleteTimers = useRef(new Map<string, number>());
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [lastSync, setLastSync] = useState(() => new Date());
@@ -130,32 +133,43 @@ export function useInboxController() {
     setMobileDetailOpen(false);
   };
 
-  const runDelete = (messageId: string) => {
-    void remove(messageId)
-      .then(() => {
-        toast.success("Message deleted");
-      })
-      .catch((error: unknown) => {
-        toast.error("Could not delete message", {
-          description: mutationErrorMessage(error),
-        });
-      });
-    setMobileDetailOpen(false);
-  };
-
   const handleDelete = (messageId: string) => {
-    toast.message("Delete this message?", {
-      description: "This cannot be undone.",
-      duration: 8_000,
+    if (!queueDelete(messageId)) return;
+    setMobileDetailOpen(false);
+
+    const previousTimer = pendingDeleteTimers.current.get(messageId);
+    if (previousTimer !== undefined) window.clearTimeout(previousTimer);
+
+    const cancelPendingDelete = () => {
+      const timer = pendingDeleteTimers.current.get(messageId);
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+        pendingDeleteTimers.current.delete(messageId);
+      }
+    };
+
+    toast.success("Message deleted", {
+      duration: 6_000,
       action: {
-        label: "Delete",
-        onClick: () => runDelete(messageId),
-      },
-      cancel: {
-        label: "Cancel",
-        onClick: () => undefined,
+        label: "Undo",
+        onClick: () => {
+          cancelPendingDelete();
+          undoDelete(messageId);
+        },
       },
     });
+
+    pendingDeleteTimers.current.set(
+      messageId,
+      window.setTimeout(() => {
+        pendingDeleteTimers.current.delete(messageId);
+        void commitDelete(messageId).catch((error: unknown) => {
+          toast.error("Could not delete message", {
+            description: mutationErrorMessage(error),
+          });
+        });
+      }, 6_000),
+    );
   };
 
   const handleToggleImportant = (messageId: string) => {

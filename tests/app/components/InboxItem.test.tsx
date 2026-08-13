@@ -30,6 +30,11 @@ describe("InboxItem swipe a11y", () => {
 
     await user.click(screen.getByRole("button", { name: "Show message actions" }));
     expect(onSwipeOpenChange).toHaveBeenCalledWith(true);
+    expect(screen.queryByRole("button", { name: "Archive message" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Mark important" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Delete message from Alex" }),
+    ).not.toBeInTheDocument();
 
     rerender(
       <ul>

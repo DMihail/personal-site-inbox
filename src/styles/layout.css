@@ -33,33 +33,43 @@
     }
   }
 
-  /* Message list rows — no backdrop-filter (blur is expensive on long lists) */
+  /* Message list rows — opaque surface so swipe actions never bleed through. */
   .inbox-row {
     position: relative;
+    isolation: isolate;
     overflow: hidden;
-    content-visibility: auto;
-    contain-intrinsic-size: auto 7.5rem;
-    contain: layout paint;
+    border-radius: 0.75rem;
+    background-color: var(--background);
   }
 
   .inbox-row-surface {
     position: relative;
     z-index: 1;
+    overflow: hidden;
     touch-action: pan-y;
-    background: rgba(18, 18, 18, 0.92);
+    background-color: #121212;
+    background-clip: padding-box;
+    backface-visibility: hidden;
   }
 
   .inbox-row-surface--read {
-    background: rgba(18, 18, 18, 0.88);
+    background-color: #101010;
   }
 
   .inbox-row-surface--unread,
   .inbox-row-surface--active {
-    background: rgba(24, 24, 24, 0.96);
+    background-color: #181818;
   }
 
   .inbox-row-actions {
     z-index: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  .inbox-row-actions--revealed {
+    pointer-events: auto;
+    visibility: visible;
   }
 
   .inbox-swipe-action {

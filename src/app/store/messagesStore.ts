@@ -7,6 +7,12 @@ import {
 import { shouldToastForMessageChange } from "../notifications/shouldToastForMessageChange";
 import { notifyIncomingMessage } from "../notifications/notifyIncomingMessage";
 
+type PendingDelete = {
+  message: Message;
+  index: number;
+  selectedMessageId: string | null;
+};
+
 interface MessagesState {
   messages: Message[];
   selectedMessageId: string | null;
@@ -19,6 +25,7 @@ interface MessagesState {
   _unsubscribe: (() => void) | null;
   _subscribeInFlight: boolean;
   _subscribeGeneration: number;
+  _pendingDeletes: Record<string, PendingDelete>;
 
   startSubscription: () => void;
   stopSubscription: () => void;
@@ -35,10 +42,20 @@ interface MessagesState {
   archive: (id: string) => Promise<void>;
   toggleImportant: (id: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
+  /** Hide locally and wait for undo; Firestore delete happens in `commitDelete`. */
+  queueDelete: (id: string) => boolean;
+  undoDelete: (id: string) => boolean;
+  commitDelete: (id: string) => Promise<void>;
 }
 
 function patchMessage(messages: Message[], id: string, patch: Partial<Message>): Message[] {
   return messages.map((message) => (message.id === id ? { ...message, ...patch } : message));
+}
+
+function insertAt(messages: Message[], index: number, message: Message): Message[] {
+  const next = messages.slice();
+  next.splice(Math.min(index, next.length), 0, message);
+  return next;
 }
 
 export const useMessagesStore = create<MessagesState>((set, get) => ({
@@ -53,6 +70,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
   _unsubscribe: null,
   _subscribeInFlight: false,
   _subscribeGeneration: 0,
+  _pendingDeletes: {},
 
   startSubscription: () => {
     if (get()._unsubscribe || get()._subscribeInFlight) return;
@@ -90,8 +108,10 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
               notifyIncomingMessage(msg, (id) => get().selectMessage(id));
             }
 
+            const pendingIds = new Set(Object.keys(get()._pendingDeletes));
             const msgs: Message[] = [];
             snap.forEach((d) => {
+              if (pendingIds.has(d.id)) return;
               const mapped = mapFirestoreMessage(d.id, d.data());
               if (mapped) msgs.push(mapped);
             });
@@ -198,18 +218,53 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
   },
 
   remove: async (id) => {
-    const previous = get().messages;
-    const previousSelected = get().selectedMessageId;
+    if (!get().queueDelete(id)) return;
+    await get().commitDelete(id);
+  },
+
+  queueDelete: (id) => {
+    const { messages, selectedMessageId, _pendingDeletes } = get();
+    if (_pendingDeletes[id]) return true;
+    const index = messages.findIndex((message) => message.id === id);
+    if (index < 0) return false;
+    const message = messages[index];
     set({
-      messages: previous.filter((m) => m.id !== id),
-      selectedMessageId: previousSelected === id ? null : previousSelected,
+      messages: messages.filter((item) => item.id !== id),
+      selectedMessageId: selectedMessageId === id ? null : selectedMessageId,
+      _pendingDeletes: {
+        ..._pendingDeletes,
+        [id]: { message, index, selectedMessageId },
+      },
     });
+    return true;
+  },
+
+  undoDelete: (id) => {
+    const pending = get()._pendingDeletes[id];
+    if (!pending) return false;
+    const { [id]: _, ...rest } = get()._pendingDeletes;
+    set({
+      messages: insertAt(get().messages, pending.index, pending.message),
+      selectedMessageId: pending.selectedMessageId,
+      _pendingDeletes: rest,
+    });
+    return true;
+  },
+
+  commitDelete: async (id) => {
+    const pending = get()._pendingDeletes[id];
+    if (!pending) return;
+    const { [id]: _, ...rest } = get()._pendingDeletes;
+    set({ _pendingDeletes: rest });
     try {
       const firestoreDb = await getFirestoreDb();
       const { deleteDoc, doc } = await import("firebase/firestore");
       await deleteDoc(doc(firestoreDb, "messages", id));
     } catch (error) {
-      set({ messages: previous, selectedMessageId: previousSelected });
+      set({
+        messages: insertAt(get().messages, pending.index, pending.message),
+        selectedMessageId: pending.selectedMessageId,
+      });
       throw error;
     }
   },

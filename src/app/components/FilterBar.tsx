@@ -5,7 +5,8 @@ import { Button } from "./ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "./ui/dropdown-menu";
@@ -68,31 +69,16 @@ export function FilterBar({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="glass-elevated border-glass-border">
-          <DropdownMenuItem
-            onClick={() => onSortChange("newest")}
-            aria-checked={sortBy === "newest"}
+          <DropdownMenuRadioGroup
+            value={sortBy}
+            onValueChange={(value) => onSortChange(value as SortOption)}
           >
-            Newest First
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onSortChange("oldest")}
-            aria-checked={sortBy === "oldest"}
-          >
-            Oldest First
-          </DropdownMenuItem>
-          <DropdownMenuSeparator className="bg-glass-border" />
-          <DropdownMenuItem
-            onClick={() => onSortChange("unread")}
-            aria-checked={sortBy === "unread"}
-          >
-            Unread First
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onSortChange("important")}
-            aria-checked={sortBy === "important"}
-          >
-            Important First
-          </DropdownMenuItem>
+            <DropdownMenuRadioItem value="newest">Newest First</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="oldest">Oldest First</DropdownMenuRadioItem>
+            <DropdownMenuSeparator className="bg-glass-border" />
+            <DropdownMenuRadioItem value="unread">Unread First</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="important">Important First</DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -110,35 +96,20 @@ export function FilterBar({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="glass-elevated border-glass-border">
-          <DropdownMenuItem
-            onClick={() => onFilterChange("all")}
-            aria-checked={effectiveFilter === "all"}
+          <DropdownMenuRadioGroup
+            value={effectiveFilter}
+            onValueChange={(value) => onFilterChange(value as FilterOption)}
           >
-            All Messages
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onFilterChange("unread")}
-            aria-checked={effectiveFilter === "unread"}
-          >
-            Unread Only
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onFilterChange("important")}
-            aria-checked={effectiveFilter === "important"}
-          >
-            Important Only
-          </DropdownMenuItem>
-          {showArchivedFilter ? (
-            <>
-              <DropdownMenuSeparator className="bg-glass-border" />
-              <DropdownMenuItem
-                onClick={() => onFilterChange("archived")}
-                aria-checked={effectiveFilter === "archived"}
-              >
-                Archived
-              </DropdownMenuItem>
-            </>
-          ) : null}
+            <DropdownMenuRadioItem value="all">All Messages</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="unread">Unread Only</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="important">Important Only</DropdownMenuRadioItem>
+            {showArchivedFilter ? (
+              <>
+                <DropdownMenuSeparator className="bg-glass-border" />
+                <DropdownMenuRadioItem value="archived">Archived</DropdownMenuRadioItem>
+              </>
+            ) : null}
+          </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>
     </fieldset>

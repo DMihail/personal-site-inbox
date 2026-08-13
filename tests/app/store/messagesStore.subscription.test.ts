@@ -24,6 +24,7 @@ describe("messagesStore subscription lifecycle", () => {
       _unsubscribe: null,
       _subscribeInFlight: false,
       _subscribeGeneration: 0,
+      _pendingDeletes: {},
     });
   });
 
@@ -51,5 +52,50 @@ describe("messagesStore subscription lifecycle", () => {
     const state = useMessagesStore.getState();
     expect(state.isLoading).toBe(true);
     expect(state._subscribeInFlight).toBe(true);
+  });
+
+  it("queueDelete hides a message and undoDelete restores it", () => {
+    const message = {
+      id: "m1",
+      senderName: "Ada",
+      senderEmail: "ada@example.com",
+      company: "—",
+      subject: "Message from Ada",
+      preview: "Hello",
+      timestamp: new Date("2024-01-01T00:00:00.000Z"),
+      isRead: false,
+      isImportant: false,
+      isArchived: false,
+      source: "contact",
+    };
+    useMessagesStore.setState({ messages: [message], selectedMessageId: "m1" });
+    expect(useMessagesStore.getState().queueDelete("m1")).toBe(true);
+    expect(useMessagesStore.getState().messages).toEqual([]);
+    expect(useMessagesStore.getState().selectedMessageId).toBeNull();
+    expect(useMessagesStore.getState().undoDelete("m1")).toBe(true);
+    expect(useMessagesStore.getState().messages).toEqual([message]);
+    expect(useMessagesStore.getState().selectedMessageId).toBe("m1");
+  });
+
+  it("commitDelete is a no-op after undo", async () => {
+    const message = {
+      id: "m1",
+      senderName: "Ada",
+      senderEmail: "ada@example.com",
+      company: "—",
+      subject: "Message from Ada",
+      preview: "Hello",
+      timestamp: new Date("2024-01-01T00:00:00.000Z"),
+      isRead: false,
+      isImportant: false,
+      isArchived: false,
+      source: "contact",
+    };
+    useMessagesStore.setState({ messages: [message], selectedMessageId: "m1" });
+    expect(useMessagesStore.getState().queueDelete("m1")).toBe(true);
+    expect(useMessagesStore.getState().undoDelete("m1")).toBe(true);
+    await expect(useMessagesStore.getState().commitDelete("m1")).resolves.toBeUndefined();
+    expect(useMessagesStore.getState().messages).toEqual([message]);
+    expect(useMessagesStore.getState()._pendingDeletes).toEqual({});
   });
 });
