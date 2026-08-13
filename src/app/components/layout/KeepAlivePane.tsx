@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 
 type PaneMode = "visible" | "hidden";
 
@@ -9,6 +9,9 @@ type PaneMode = "visible" | "hidden";
  * ("The children should not have changed if we pass in the same set",
  * facebook/react#35734). This helper preserves mounted state with CSS + inert
  * until DevTools catches up.
+ *
+ * Uses `inert` (not `aria-hidden`) so a focused control inside a just-hidden
+ * pane is not reported as hidden from assistive tech.
  */
 export function KeepAlivePane({
   mode,
@@ -20,13 +23,19 @@ export function KeepAlivePane({
   className?: string;
 }) {
   const hidden = mode === "hidden";
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!hidden) return;
+    const root = rootRef.current;
+    const active = document.activeElement;
+    if (root && active instanceof HTMLElement && root.contains(active)) {
+      active.blur();
+    }
+  }, [hidden]);
 
   return (
-    <div
-      className={hidden ? "hidden" : className}
-      aria-hidden={hidden || undefined}
-      inert={hidden ? true : undefined}
-    >
+    <div ref={rootRef} className={hidden ? "hidden" : className} inert={hidden ? true : undefined}>
       {children}
     </div>
   );

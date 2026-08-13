@@ -53,8 +53,11 @@ export function FilterBar({
     !showArchivedFilter && filterBy === "archived" ? "all" : filterBy;
 
   return (
-    <fieldset className="m-0 flex min-w-0 flex-wrap items-center gap-2 border-0 p-0">
-      <legend className="sr-only">Sort and filter messages</legend>
+    <div
+      role="group"
+      aria-label="Sort and filter messages"
+      className="m-0 flex min-w-0 flex-wrap items-center gap-2"
+    >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -112,6 +115,6 @@ export function FilterBar({
           </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>
-    </fieldset>
+    </div>
   );
 }

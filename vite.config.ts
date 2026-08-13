@@ -3,11 +3,11 @@ import tailwindcss from "@tailwindcss/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
 import { VitePWA } from "vite-plugin-pwa";
-import { createAliases } from "./alias.config.ts";
+import { createAliases } from "./alias.config";
 import {
   buildDevSecurityHeaders,
   buildProductionSecurityHeaders,
-} from "./security-headers.ts";
+} from "./security-headers";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -32,7 +32,14 @@ export default defineConfig(({ mode }) => {
         filename: "sw.js",
         registerType: "prompt",
         injectRegister: false,
-        includeAssets: ["favicon.png", "icon.png", "icon-192.png", "icon-512.png", "robots.txt"],
+        includeAssets: [
+          "favicon.png",
+          "apple-touch-icon.png",
+          "icon.png",
+          "icon-192.png",
+          "icon-512.png",
+          "robots.txt",
+        ],
         devOptions: {
           enabled: false,
         },
