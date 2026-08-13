@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useEffectEvent } from "react";
 import { toast } from "sonner";
 import { getNotificationPermission } from "@/push/permissions";
 import { usePushStore } from "@/push/store";
@@ -12,10 +12,14 @@ export function useInboxPush(userId: string | null | undefined) {
   const sendTest = usePushStore((s) => s.sendTest);
   const isSendingTest = usePushStore((s) => s.isSendingTest);
 
-  useEffect(() => {
+  const syncDeniedPermission = useEffectEvent(() => {
     if (getNotificationPermission() === "denied" && usePushStore.getState().enabled) {
       usePushStore.setState({ enabled: false, error: null });
     }
+  });
+
+  useEffect(() => {
+    syncDeniedPermission();
   }, [userId]);
 
   const onEnablePush = () => {

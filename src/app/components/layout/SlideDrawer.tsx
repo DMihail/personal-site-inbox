@@ -174,7 +174,7 @@ export function SlideDrawer({
       ) : null}
       <button
         type="button"
-        className={`ui-transition absolute inset-0 cursor-pointer bg-black/60 backdrop-blur-[2px] ${open ? "pointer-events-auto" : "pointer-events-none"}`.trim()}
+        className={`slide-drawer-backdrop ui-transition absolute inset-0 cursor-pointer bg-black/60 md:backdrop-blur-[2px] ${open ? "pointer-events-auto" : "pointer-events-none"}`.trim()}
         style={{ opacity: backdropOpacity }}
         aria-label="Close panel"
         onClick={onClose}

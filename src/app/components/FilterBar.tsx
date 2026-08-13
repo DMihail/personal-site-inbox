@@ -1,6 +1,5 @@
 import type { FilterOption, SortOption } from "@/app/features/inbox/types";
 import { SlidersHorizontal, ArrowUpDown } from "lucide-react";
-import { useEffect } from "react";
 import { Button } from "./ui/button";
 import {
   DropdownMenu,
@@ -42,13 +41,6 @@ export function FilterBar({
   currentView,
 }: FilterBarProps) {
   const showArchivedFilter = currentView === "archived";
-
-  useEffect(() => {
-    if (!showArchivedFilter && filterBy === "archived") {
-      onFilterChange("all");
-    }
-  }, [showArchivedFilter, filterBy, onFilterChange]);
-
   const effectiveFilter =
     !showArchivedFilter && filterBy === "archived" ? "all" : filterBy;
 

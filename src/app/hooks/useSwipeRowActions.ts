@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 import {
   clampSwipeOffset,
   resolveSwipeOpen,
@@ -41,9 +41,13 @@ export function useSwipeRowActions({
   const restingOffset = open ? -maxReveal : 0;
   const offset = dragOffset ?? restingOffset;
 
+  const closeIfDisabled = useEffectEvent(() => {
+    onOpenChange(false);
+  });
+
   useEffect(() => {
-    if (!enabled && open) onOpenChange(false);
-  }, [enabled, open, onOpenChange]);
+    if (!enabled && open) closeIfDisabled();
+  }, [enabled, open]);
 
   const finishDrag = useCallback(
     (clientX: number) => {

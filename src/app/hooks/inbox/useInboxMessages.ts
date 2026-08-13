@@ -38,10 +38,13 @@ export function useInboxMessages(currentView: View) {
     useShallow((s) => selectMessageCounts(s.messages)),
   );
 
+  const activeFilterBy =
+    currentView !== "archived" && filterBy === "archived" ? "all" : filterBy;
+
   const filteredMessages = selectFilteredMessages(
     messages,
     currentView,
-    filterBy,
+    activeFilterBy,
     deferredSearchQuery,
     sortBy,
   );
@@ -73,7 +76,7 @@ export function useInboxMessages(currentView: View) {
     importantCount,
     searchQuery,
     sortBy,
-    filterBy,
+    filterBy: activeFilterBy,
     setSearchQuery,
     setSortBy,
     setFilterBy,

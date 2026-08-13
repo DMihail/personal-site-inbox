@@ -176,7 +176,7 @@ export function DesktopInboxLayout({
           <div className="flex min-h-0 min-w-0 flex-1">
             {!showMessagesDrawer ? (
               <aside
-                className="flex w-[28rem] shrink-0 flex-col border-e border-glass-border glass backdrop-blur-xl xl:w-[32rem]"
+                className="flex w-[28rem] shrink-0 flex-col border-e border-glass-border glass xl:w-[32rem]"
                 aria-label="Message list"
               >
                 <InboxMessagesPanel {...messagesPanelProps} />

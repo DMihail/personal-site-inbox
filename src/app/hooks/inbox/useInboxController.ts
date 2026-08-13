@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState, useTransition } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { pathToView, VIEW_PAGE_TITLES, viewToPath } from "@/app/features/inbox/viewRouting";
@@ -46,6 +46,7 @@ export function useInboxController() {
     selectedMessageId,
   });
 
+  const [, startViewTransition] = useTransition();
   const [navMenuOpen, setNavMenuOpen] = useState(false);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const pendingDeleteTimers = useRef(new Map<string, number>());
@@ -63,13 +64,27 @@ export function useInboxController() {
     return () => stopSubscription();
   }, [startSubscription, stopSubscription]);
 
+  const consumeDeepLink = useEffectEvent((messageId: string) => {
+    selectMessage(messageId);
+    onCloseMessagesList();
+    navigate({ pathname: location.pathname, search: "" }, { replace: true });
+  });
+
   // Consume `/inbox?message=<id>` from push deep links, then strip the query.
   useEffect(() => {
     if (!deepLinkMessageId) return;
-    selectMessage(deepLinkMessageId);
-    onCloseMessagesList();
-    navigate({ pathname: location.pathname, search: "" }, { replace: true });
-  }, [deepLinkMessageId, location.pathname, navigate, onCloseMessagesList, selectMessage]);
+    consumeDeepLink(deepLinkMessageId);
+  }, [deepLinkMessageId]);
+
+  const navigateFromNotification = useEffectEvent((url: string) => {
+    try {
+      const parsed = new URL(url, window.location.origin);
+      if (parsed.origin !== window.location.origin) return;
+      navigate(`${parsed.pathname}${parsed.search}${parsed.hash}`);
+    } catch {
+      /* ignore malformed urls */
+    }
+  });
 
   // SW / other tabs can ask the focused client to navigate after a notification click.
   useEffect(() => {
@@ -78,18 +93,12 @@ export function useInboxController() {
     const onMessage = (event: MessageEvent) => {
       const data = event.data as { type?: string; url?: string } | undefined;
       if (data?.type !== "NOTIFICATION_NAVIGATE" || typeof data.url !== "string") return;
-      try {
-        const url = new URL(data.url, window.location.origin);
-        if (url.origin !== window.location.origin) return;
-        navigate(`${url.pathname}${url.search}${url.hash}`);
-      } catch {
-        /* ignore malformed urls */
-      }
+      navigateFromNotification(data.url);
     };
 
     navigator.serviceWorker.addEventListener("message", onMessage);
     return () => navigator.serviceWorker.removeEventListener("message", onMessage);
-  }, [navigate]);
+  }, []);
 
   const isOnline = useOnlineStatus({
     onOnline: () => {
@@ -111,11 +120,13 @@ export function useInboxController() {
     });
 
   const handleSelectView = (view: View) => {
-    navigate(viewToPath(view));
     setNavMenuOpen(false);
     setMobileDetailOpen(false);
     if (view !== "settings") onOpenMessagesList();
     else onCloseMessagesList();
+    startViewTransition(() => {
+      navigate(viewToPath(view), { viewTransition: true });
+    });
   };
 
   const handleSelectMessage = (messageId: string) => {
