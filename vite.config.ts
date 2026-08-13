@@ -3,11 +3,11 @@ import tailwindcss from "@tailwindcss/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
 import { VitePWA } from "vite-plugin-pwa";
-import { createAliases } from "./alias.config";
+import { createAliases } from "./alias.config.ts";
 import {
   buildDevSecurityHeaders,
   buildProductionSecurityHeaders,
-} from "./security-headers";
+} from "./security-headers.ts";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
