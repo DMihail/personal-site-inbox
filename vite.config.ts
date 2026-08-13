@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
         filename: "sw.js",
         registerType: "prompt",
         injectRegister: false,
-        includeAssets: ["favicon.png", "icon.png", "robots.txt"],
+        includeAssets: ["favicon.png", "icon.png", "icon-192.png", "icon-512.png", "robots.txt"],
         devOptions: {
           enabled: false,
         },
@@ -42,14 +42,20 @@ export default defineConfig(({ mode }) => {
           ...({ gcm_sender_id: "103953800507" } as { gcm_sender_id: string }),
           icons: [
             {
-              src: "/icon.png",
-              sizes: "150x150",
+              src: "/icon-192.png",
+              sizes: "192x192",
               type: "image/png",
               purpose: "any",
             },
             {
-              src: "/icon.png",
-              sizes: "150x150",
+              src: "/icon-512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "any",
+            },
+            {
+              src: "/icon-512.png",
+              sizes: "512x512",
               type: "image/png",
               purpose: "maskable",
             },

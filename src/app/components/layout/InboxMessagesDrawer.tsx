@@ -24,6 +24,9 @@ interface InboxMessagesDrawerProps {
   onDelete: (messageId: string) => void;
   onClose: () => void;
   isSearchPending?: boolean;
+  isLoading?: boolean;
+  messagesError?: string | null;
+  onRetryMessages?: () => void;
 }
 
 export function InboxMessagesDrawer({
@@ -45,6 +48,9 @@ export function InboxMessagesDrawer({
   onDelete,
   onClose,
   isSearchPending = false,
+  isLoading = false,
+  messagesError = null,
+  onRetryMessages,
 }: InboxMessagesDrawerProps) {
   const headingId = "inbox-messages-drawer-heading";
 
@@ -87,6 +93,9 @@ export function InboxMessagesDrawer({
         onDelete={onDelete}
         enableSwipe
         isSearchPending={isSearchPending}
+        isLoading={isLoading}
+        messagesError={messagesError}
+        onRetryMessages={onRetryMessages}
         headingId={headingId}
       />
     </SlideDrawer>

@@ -1,13 +1,21 @@
 import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
 interface EmptyStateProps {
   icon: LucideIcon;
   title: string;
   description?: string;
   titleLevel?: "h2" | "h3";
+  action?: ReactNode;
 }
 
-export function EmptyState({ icon: Icon, title, description, titleLevel = "h3" }: EmptyStateProps) {
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  titleLevel = "h3",
+  action,
+}: EmptyStateProps) {
   const TitleTag = titleLevel === "h2" ? "h2" : "h3";
 
   return (
@@ -23,6 +31,7 @@ export function EmptyState({ icon: Icon, title, description, titleLevel = "h3" }
           <TitleTag className="text-heading text-text-primary">{title}</TitleTag>
           {description ? <p className="text-body-sm text-text-secondary">{description}</p> : null}
         </div>
+        {action ? <div className="flex justify-center pt-1">{action}</div> : null}
       </div>
     </div>
   );

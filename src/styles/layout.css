@@ -38,7 +38,7 @@
     position: relative;
     overflow: hidden;
     content-visibility: auto;
-    contain-intrinsic-size: auto 5.5rem;
+    contain-intrinsic-size: auto 7.5rem;
     contain: layout paint;
   }
 

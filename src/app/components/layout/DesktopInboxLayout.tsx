@@ -59,6 +59,9 @@ export function DesktopInboxLayout({
   onReply,
   onLogout,
   onPushEnabledChange,
+  onRetryMessages,
+  isLoading = false,
+  messagesError = null,
   isSearchPending = false,
   pushEnabled,
   pushRegistering,
@@ -103,6 +106,9 @@ export function DesktopInboxLayout({
     onArchive,
     onDelete,
     isSearchPending,
+    isLoading,
+    messagesError,
+    onRetryMessages,
   };
 
   return (

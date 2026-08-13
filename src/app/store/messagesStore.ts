@@ -19,9 +19,12 @@ interface MessagesState {
   hasLoadedOnce: boolean;
   _unsubscribe: (() => void) | null;
   _subscribeInFlight: boolean;
+  _subscribeGeneration: number;
 
   startSubscription: () => void;
   stopSubscription: () => void;
+  /** Tear down and start a fresh Firestore listener (offline retry). */
+  restartSubscription: () => void;
 
   selectMessage: (id: string) => void;
   setSearchQuery: (q: string) => void;
@@ -50,21 +53,32 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
   hasLoadedOnce: false,
   _unsubscribe: null,
   _subscribeInFlight: false,
+  _subscribeGeneration: 0,
 
   startSubscription: () => {
     if (get()._unsubscribe || get()._subscribeInFlight) return;
 
-    set({ isLoading: true, error: null, _subscribeInFlight: true });
+    const generation = get()._subscribeGeneration + 1;
+    set({
+      isLoading: true,
+      error: null,
+      _subscribeInFlight: true,
+      _subscribeGeneration: generation,
+    });
 
     void getFirestoreDb()
       .then(async (firestoreDb) => {
-        if (get()._unsubscribe) return;
+        if (get()._subscribeGeneration !== generation) return;
 
         const { collection, onSnapshot, orderBy, query } = await import("firebase/firestore");
+        if (get()._subscribeGeneration !== generation) return;
+
         const q = query(collection(firestoreDb, "messages"), orderBy("createdAt", "desc"));
         const unsub = onSnapshot(
           q,
           (snap) => {
+            if (get()._subscribeGeneration !== generation) return;
+
             const knownMessageIds = new Set(get().messages.map((m) => m.id));
             const { hasLoadedOnce } = get();
 
@@ -83,21 +97,44 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
             set({ messages: msgs, isLoading: false, error: null, hasLoadedOnce: true });
           },
           (err) => {
+            if (get()._subscribeGeneration !== generation) return;
             set({ error: err.message, isLoading: false });
           },
         );
 
+        if (get()._subscribeGeneration !== generation) {
+          unsub();
+          return;
+        }
+
         set({ _unsubscribe: unsub });
       })
+      .catch((err: unknown) => {
+        if (get()._subscribeGeneration !== generation) return;
+        const message = err instanceof Error ? err.message : "Could not connect to inbox";
+        set({ error: message, isLoading: false, _unsubscribe: null });
+      })
       .finally(() => {
-        set({ _subscribeInFlight: false });
+        if (get()._subscribeGeneration === generation) {
+          set({ _subscribeInFlight: false });
+        }
       });
   },
 
   stopSubscription: () => {
     const unsub = get()._unsubscribe;
     if (unsub) unsub();
-    set({ _unsubscribe: null, _subscribeInFlight: false });
+    set({
+      _unsubscribe: null,
+      _subscribeInFlight: false,
+      _subscribeGeneration: get()._subscribeGeneration + 1,
+      isLoading: false,
+    });
+  },
+
+  restartSubscription: () => {
+    get().stopSubscription();
+    get().startSubscription();
   },
 
   selectMessage: (id) => {

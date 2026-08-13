@@ -14,6 +14,9 @@ export function useInboxMessages(currentView: View) {
   const searchQuery = useMessagesStore((s) => s.searchQuery);
   const sortBy = useMessagesStore((s) => s.sortBy);
   const filterBy = useMessagesStore((s) => s.filterBy);
+  const isLoading = useMessagesStore((s) => s.isLoading);
+  const messagesError = useMessagesStore((s) => s.error);
+  const hasLoadedOnce = useMessagesStore((s) => s.hasLoadedOnce);
   const storeSetSearchQuery = useMessagesStore((s) => s.setSearchQuery);
   const storeSetSortBy = useMessagesStore((s) => s.setSortBy);
   const storeSetFilterBy = useMessagesStore((s) => s.setFilterBy);
@@ -24,6 +27,7 @@ export function useInboxMessages(currentView: View) {
   const remove = useMessagesStore((s) => s.remove);
   const startSubscription = useMessagesStore((s) => s.startSubscription);
   const stopSubscription = useMessagesStore((s) => s.stopSubscription);
+  const restartSubscription = useMessagesStore((s) => s.restartSubscription);
 
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [, startTransition] = useTransition();
@@ -41,6 +45,7 @@ export function useInboxMessages(currentView: View) {
   );
   const selectedMessage = selectSelectedMessage(messages, selectedMessageId);
   const isSearchPending = searchQuery !== deferredSearchQuery;
+  const showMessagesLoading = isLoading && !hasLoadedOnce;
 
   const setSearchQuery = (value: string) => {
     storeSetSearchQuery(value);
@@ -59,6 +64,8 @@ export function useInboxMessages(currentView: View) {
     selectedMessage,
     filteredMessages,
     isSearchPending,
+    isLoading: showMessagesLoading,
+    messagesError,
     inboxCount,
     unreadCount,
     importantCount,
@@ -75,5 +82,6 @@ export function useInboxMessages(currentView: View) {
     remove,
     startSubscription,
     stopSubscription,
+    restartSubscription,
   };
 }

@@ -10,7 +10,8 @@ import {
 
 /** Switch to windowing once the list is large enough to hurt scroll jank. */
 export const MESSAGE_LIST_VIRTUALIZE_AFTER = 48;
-const ESTIMATED_ROW_PX = 104;
+/** Conservative row estimate (padding + clamp-2 + meta); prefer overshoot to blank gaps. */
+const ESTIMATED_ROW_PX = 120;
 const OVERSCAN = 8;
 
 interface MessageVirtualListProps<T> {

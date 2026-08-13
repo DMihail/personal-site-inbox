@@ -32,6 +32,7 @@ export function useSwipeRowActions({
     startX: 0,
     startY: 0,
     startOffset: 0,
+    currentOffset: 0,
     lastX: 0,
     lastTime: 0,
     axis: "undecided" as "undecided" | "horizontal" | "vertical",
@@ -46,7 +47,7 @@ export function useSwipeRowActions({
 
   const finishDrag = useCallback(
     (clientX: number) => {
-      const { lastX, lastTime, axis, startX } = dragRef.current;
+      const { lastX, lastTime, axis, startX, currentOffset } = dragRef.current;
       const velocityX = (clientX - lastX) / Math.max(16, Date.now() - lastTime);
       const moved = Math.abs(clientX - startX);
 
@@ -61,9 +62,9 @@ export function useSwipeRowActions({
         suppressedClickRef.current = true;
       }
 
-      onOpenChange(resolveSwipeOpen(offset, velocityX, maxReveal));
+      onOpenChange(resolveSwipeOpen(currentOffset, velocityX, maxReveal));
     },
-    [maxReveal, offset, onOpenChange],
+    [maxReveal, onOpenChange],
   );
 
   const onPointerDown = useCallback(
@@ -76,6 +77,7 @@ export function useSwipeRowActions({
         startX: event.clientX,
         startY: event.clientY,
         startOffset: restingOffset,
+        currentOffset: restingOffset,
         lastX: event.clientX,
         lastTime: Date.now(),
         axis: "undecided",
@@ -108,7 +110,9 @@ export function useSwipeRowActions({
 
       if (dragRef.current.axis !== "horizontal") return;
 
-      setDragOffset(clampSwipeOffset(startOffset + dx, maxReveal));
+      const nextOffset = clampSwipeOffset(startOffset + dx, maxReveal);
+      dragRef.current.currentOffset = nextOffset;
+      setDragOffset(nextOffset);
       dragRef.current.lastX = event.clientX;
       dragRef.current.lastTime = Date.now();
     },

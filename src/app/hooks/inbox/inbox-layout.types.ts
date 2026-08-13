@@ -31,6 +31,9 @@ export interface InboxLayoutBaseProps {
   onReply: () => void;
   onLogout: () => void | Promise<void>;
   onPushEnabledChange: (enabled: boolean) => void;
+  onRetryMessages?: () => void;
+  isLoading?: boolean;
+  messagesError?: string | null;
   isSearchPending?: boolean;
   pushEnabled: boolean;
   pushRegistering: boolean;

@@ -1,12 +1,12 @@
 import { lazy, Suspense, useState } from "react";
-import { MailX, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "../ui/button";
 import { InboxItem } from "../InboxItem";
 import { MessageDetail } from "../MessageDetail";
-import { EmptyState } from "../EmptyState";
 import { FilterBar } from "../FilterBar";
 import { SearchBar } from "../SearchBar";
 import { MessageVirtualList } from "../MessageVirtualList";
+import { MessagesListStatus } from "../MessagesListStatus";
 import { scrollPaneClass } from "./scrollPane";
 import { KeepAlivePane } from "./KeepAlivePane";
 import { InboxAppHeader } from "./InboxAppHeader";
@@ -61,6 +61,9 @@ export function MobileInboxLayout({
   onReply,
   onLogout,
   onPushEnabledChange,
+  onRetryMessages,
+  isLoading = false,
+  messagesError = null,
   pushEnabled,
   pushRegistering,
   isSendingTest,
@@ -142,9 +145,10 @@ export function MobileInboxLayout({
                 onSortChange={onSortChange}
                 filterBy={filterBy}
                 onFilterChange={onFilterChange}
+                currentView={currentView}
               />
             </section>
-            {filteredMessages.length > 0 ? (
+            {filteredMessages.length > 0 && !isLoading && !messagesError ? (
               <MessageVirtualList
                 items={filteredMessages}
                 getKey={(message) => message.id}
@@ -170,10 +174,11 @@ export function MobileInboxLayout({
               />
             ) : (
               <div className={`${scrollPaneClass} flex items-center justify-center`}>
-                <EmptyState
-                  icon={MailX}
-                  title="No messages"
-                  description={
+                <MessagesListStatus
+                  isLoading={isLoading}
+                  error={messagesError}
+                  isEmpty
+                  emptyDescription={
                     searchQuery
                       ? "No results found"
                       : currentView === "unread"
@@ -184,6 +189,7 @@ export function MobileInboxLayout({
                             ? "No archived messages"
                             : "Your inbox is empty"
                   }
+                  onRetry={onRetryMessages}
                 />
               </div>
             )}

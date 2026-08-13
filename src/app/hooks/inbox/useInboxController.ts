@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { pathToView, VIEW_PAGE_TITLES, viewToPath } from "@/app/features/inbox/viewRouting";
+import { mutationErrorMessage, parseMessageIdFromSearch } from "@/app/features/inbox/messageLinks";
 import type { View } from "@/app/features/inbox/types";
 import { useAuthStore } from "@/app/store/authStore";
 import { isPortfolioApiConfigured, sendInboxReply } from "@/utils/reply-api";
@@ -24,9 +25,12 @@ export function useInboxController() {
   const {
     startSubscription,
     stopSubscription,
+    restartSubscription,
     selectMessage,
     archive,
     remove,
+    markAsRead,
+    toggleImportant,
     selectedMessage,
     selectedMessageId,
     ...inbox
@@ -46,16 +50,50 @@ export function useInboxController() {
   const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [lastSync, setLastSync] = useState(() => new Date());
 
+  const deepLinkMessageId = parseMessageIdFromSearch(location.search);
+  if (deepLinkMessageId && !mobileDetailOpen) {
+    setMobileDetailOpen(true);
+  }
+
   useEffect(() => {
     startSubscription();
     return () => stopSubscription();
   }, [startSubscription, stopSubscription]);
+
+  // Consume `/inbox?message=<id>` from push deep links, then strip the query.
+  useEffect(() => {
+    if (!deepLinkMessageId) return;
+    selectMessage(deepLinkMessageId);
+    onCloseMessagesList();
+    navigate({ pathname: location.pathname, search: "" }, { replace: true });
+  }, [deepLinkMessageId, location.pathname, navigate, onCloseMessagesList, selectMessage]);
+
+  // SW / other tabs can ask the focused client to navigate after a notification click.
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+
+    const onMessage = (event: MessageEvent) => {
+      const data = event.data as { type?: string; url?: string } | undefined;
+      if (data?.type !== "NOTIFICATION_NAVIGATE" || typeof data.url !== "string") return;
+      try {
+        const url = new URL(data.url, window.location.origin);
+        if (url.origin !== window.location.origin) return;
+        navigate(`${url.pathname}${url.search}${url.hash}`);
+      } catch {
+        /* ignore malformed urls */
+      }
+    };
+
+    navigator.serviceWorker.addEventListener("message", onMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", onMessage);
+  }, [navigate]);
 
   const isOnline = useOnlineStatus({
     onOnline: () => {
       setShowOfflineModal(false);
       toast.success("Connection restored", { description: "You're back online" });
       setLastSync(new Date());
+      restartSubscription();
     },
     onOffline: () => {
       setShowOfflineModal(true);
@@ -84,13 +122,56 @@ export function useInboxController() {
   };
 
   const handleArchive = (messageId: string) => {
-    void archive(messageId);
+    void archive(messageId).catch((error: unknown) => {
+      toast.error("Could not update archive", {
+        description: mutationErrorMessage(error),
+      });
+    });
+    setMobileDetailOpen(false);
+  };
+
+  const runDelete = (messageId: string) => {
+    void remove(messageId)
+      .then(() => {
+        toast.success("Message deleted");
+      })
+      .catch((error: unknown) => {
+        toast.error("Could not delete message", {
+          description: mutationErrorMessage(error),
+        });
+      });
     setMobileDetailOpen(false);
   };
 
   const handleDelete = (messageId: string) => {
-    void remove(messageId);
-    setMobileDetailOpen(false);
+    toast.message("Delete this message?", {
+      description: "This cannot be undone.",
+      duration: 8_000,
+      action: {
+        label: "Delete",
+        onClick: () => runDelete(messageId),
+      },
+      cancel: {
+        label: "Cancel",
+        onClick: () => undefined,
+      },
+    });
+  };
+
+  const handleToggleImportant = (messageId: string) => {
+    void toggleImportant(messageId).catch((error: unknown) => {
+      toast.error("Could not update important", {
+        description: mutationErrorMessage(error),
+      });
+    });
+  };
+
+  const handleMarkAsRead = (messageId: string) => {
+    void markAsRead(messageId).catch((error: unknown) => {
+      toast.error("Could not mark as read", {
+        description: mutationErrorMessage(error),
+      });
+    });
   };
 
   const handleReply = () => {
@@ -124,6 +205,10 @@ export function useInboxController() {
     toast.info("Opening mail client");
   };
 
+  const handleRetryMessages = () => {
+    restartSubscription();
+  };
+
   return {
     currentView,
     isOnline,
@@ -140,10 +225,12 @@ export function useInboxController() {
     handleSelectMessage,
     handleArchive,
     handleDelete,
-    handleToggleImportant: inbox.toggleImportant,
+    handleToggleImportant,
+    handleMarkAsRead,
     handleReply,
     handleSendReply,
     handleOpenInMailClient,
+    handleRetryMessages,
     setReplyDialogOpen,
     setShowOfflineModal,
     setMobileDetailOpen,
@@ -155,7 +242,11 @@ export function useInboxController() {
     onCloseMobileDetail: () => setMobileDetailOpen(false),
     onRetryReconnect: () => {
       setShowOfflineModal(false);
-      toast.info("Attempting to reconnect...");
+      toast.info("Reconnecting…");
+      restartSubscription();
+      void fetch(window.location.origin, { method: "HEAD", cache: "no-store" }).catch(() => {
+        /* network probe — success is optional; subscription restart is the real work */
+      });
     },
     onContinueOffline: () => setShowOfflineModal(false),
     selectedMessage,

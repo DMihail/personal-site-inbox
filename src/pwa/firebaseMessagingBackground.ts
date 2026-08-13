@@ -41,7 +41,7 @@ function showPushNotification(payload: BackgroundPayload) {
   const title = data.title || payload.notification?.title || "New contact message";
   const body = data.body || payload.notification?.body || data.preview || "";
   const messageId = data.messageId;
-  const url = data.url || "/";
+    const url = data.url || (messageId ? `/inbox?message=${encodeURIComponent(messageId)}` : "/inbox");
 
   const options: NotificationOptions & { renotify?: boolean } = {
     body,
@@ -62,11 +62,21 @@ export function registerFirebaseMessagingBackground(): void {
     const targetUrl = safeInAppUrl((event.notification.data as { url?: string } | undefined)?.url);
 
     event.waitUntil(
-      self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(async (list) => {
         for (const client of list) {
-          if ("focus" in client) {
-            return client.focus();
+          if (!("focus" in client)) continue;
+          await client.focus();
+          const windowClient = client as WindowClient;
+          if ("navigate" in windowClient && typeof windowClient.navigate === "function") {
+            try {
+              await windowClient.navigate(targetUrl);
+              return;
+            } catch {
+              /* fall through to postMessage */
+            }
           }
+          windowClient.postMessage({ type: "NOTIFICATION_NAVIGATE", url: targetUrl });
+          return;
         }
         if (self.clients.openWindow) {
           return self.clients.openWindow(targetUrl);
