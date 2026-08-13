@@ -2,6 +2,7 @@ import { useId } from "react";
 import { useFormStatus } from "react-dom";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
+
 const MIN_REPLY_LENGTH = 2;
 
 interface ReplyFormFieldsProps {
@@ -25,7 +26,7 @@ export function ReplyFormFields({ apiConfigured }: ReplyFormFieldsProps) {
         required
         minLength={MIN_REPLY_LENGTH}
         aria-describedby={`${bodyId}-hint`}
-        className="reply-composer min-h-[12rem] resize-none focus-visible:ring-0"
+        className="reply-composer field-sizing-fixed min-h-64 resize-none focus-visible:ring-0 md:min-h-72 lg:min-h-80"
       />
       <p id={`${bodyId}-hint`} className="text-meta text-text-muted">
         Sent via the configured reply API.

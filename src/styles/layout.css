@@ -110,3 +110,130 @@
     }
   }
 }
+
+/*
+ * Reply dialog — unlayered so positioning wins over DialogContent utilities.
+ * Centered card on every viewport; height caps so the composer can scroll.
+ */
+[data-slot="dialog-content"].reply-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: hidden;
+  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  inset-inline: 0;
+  translate: none;
+  transform: none;
+  margin: auto;
+  width: min(42rem, calc(100% - 3rem));
+  max-width: none;
+  height: fit-content;
+  max-height: min(85dvh, 48rem);
+  padding: 1.5rem;
+  border-radius: 1rem;
+}
+
+.reply-dialog-header {
+  flex-shrink: 0;
+  padding-inline-end: 2.75rem;
+}
+
+.reply-dialog-scroll {
+  display: flex;
+  min-height: 0;
+  flex: 0 1 auto;
+  flex-direction: column;
+  gap: inherit;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.reply-dialog-form {
+  display: flex;
+  min-height: 0;
+  flex: 0 1 auto;
+  flex-direction: column;
+  gap: inherit;
+}
+
+.reply-dialog-quote {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem;
+}
+
+.reply-dialog-footer {
+  flex-shrink: 0;
+  flex-direction: column;
+  justify-content: stretch;
+  gap: 0.5rem;
+}
+
+.reply-dialog-footer [data-slot="button"] {
+  width: 100%;
+  min-height: 2.75rem;
+}
+
+.reply-dialog [data-slot="dialog-close"] {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  top: 0.75rem;
+  inset-inline-end: 0.75rem;
+}
+
+@media (max-width: 767px) {
+  [data-slot="dialog-content"].reply-dialog {
+    width: min(
+      28rem,
+      calc(100% - 2rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))
+    );
+    max-height: min(
+      88dvh,
+      calc(
+        var(--tg-viewport-stable-height, 100dvh) - 1.5rem - env(safe-area-inset-top, 0px) -
+          env(safe-area-inset-bottom, 0px)
+      )
+    );
+    gap: 0.875rem;
+    padding: 1.25rem;
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+    border-radius: 1rem;
+  }
+
+  .reply-dialog-quote {
+    padding: 0.625rem 0.75rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  [data-slot="dialog-content"].reply-dialog {
+    width: min(36rem, calc(100% - 2.5rem));
+    max-height: min(85dvh, 44rem);
+  }
+}
+
+@media (min-width: 768px) {
+  .reply-dialog [data-slot="dialog-close"] {
+    width: 2.25rem;
+    height: 2.25rem;
+    top: 1rem;
+    inset-inline-end: 1rem;
+  }
+
+  .reply-dialog-footer {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .reply-dialog-footer [data-slot="button"] {
+    width: auto;
+    min-height: 2.25rem;
+  }
+}

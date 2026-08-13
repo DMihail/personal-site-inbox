@@ -157,6 +157,31 @@
   }
 }
 
+/* Unlayered so height beats Textarea `min-h-16` utilities */
+.reply-composer {
+  field-sizing: fixed;
+  min-height: 16rem;
+  height: 16rem;
+  max-height: min(50dvh, 28rem);
+  overflow-y: auto;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .reply-composer {
+    min-height: 18rem;
+    height: 18rem;
+    max-height: min(52dvh, 32rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .reply-composer {
+    min-height: 20rem;
+    height: 20rem;
+    max-height: min(56dvh, 36rem);
+  }
+}
+
 /* Generic dark inputs (reply composer, etc.) */
 @layer base {
   .dark [data-slot="input"]:-webkit-autofill,

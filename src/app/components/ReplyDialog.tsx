@@ -75,9 +75,9 @@ export function ReplyDialog({
         }
       }}
     >
-      <DialogContent className="glass-elevated border-glass-border gap-5 p-6 sm:max-w-2xl">
-        <DialogHeader className="gap-1.5 space-y-0 text-left">
-          <DialogTitle className="pe-8 text-heading-sm text-text-primary">
+      <DialogContent className="reply-dialog glass-elevated border-glass-border">
+        <DialogHeader className="reply-dialog-header gap-1.5 space-y-0 text-left">
+          <DialogTitle className="text-heading-sm text-text-primary">
             Reply to {message.senderName}
           </DialogTitle>
           <DialogDescription className="text-body-sm text-text-secondary">
@@ -92,37 +92,41 @@ export function ReplyDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {!apiConfigured ? (
-          <p
-            className="rounded-lg border border-error/30 bg-error/10 p-3 text-body-sm text-error"
-            role="alert"
-          >
-            Set <code className="text-meta">VITE_PORTFOLIO_API_URL</code> in{" "}
-            <code className="text-meta">.env</code> (backend origin).
-          </p>
-        ) : null}
-
-        <div className="glass rounded-xl border border-glass-border p-4">
-          <p className="text-meta mb-2 text-text-muted">Original message</p>
-          <p className="text-body-sm line-clamp-4 text-text-secondary">{message.preview}</p>
-        </div>
-
         <form
           ref={formRef}
           key={message.id}
           action={sendReplyAction}
-          className="flex flex-col gap-5"
+          className="reply-dialog-form"
         >
-          <FormPendingFieldset>
-            <ReplyFormFields apiConfigured={apiConfigured} />
-            {replyState?.error ? (
-              <p className="text-body-sm text-error" role="alert">
-                {replyState.error}
+          <div className="reply-dialog-scroll">
+            {!apiConfigured ? (
+              <p
+                className="rounded-lg border border-error/30 bg-error/10 p-3 text-body-sm text-error"
+                role="alert"
+              >
+                Set <code className="text-meta">VITE_PORTFOLIO_API_URL</code> in{" "}
+                <code className="text-meta">.env</code> (backend origin).
               </p>
             ) : null}
-          </FormPendingFieldset>
 
-          <DialogFooter className="gap-2 sm:justify-end">
+            <div className="reply-dialog-quote glass rounded-xl border border-glass-border">
+              <p className="text-meta mb-1.5 text-text-muted">Original message</p>
+              <p className="text-body-sm line-clamp-3 text-text-secondary md:line-clamp-4">
+                {message.preview}
+              </p>
+            </div>
+
+            <FormPendingFieldset className="space-y-2">
+              <ReplyFormFields apiConfigured={apiConfigured} />
+              {replyState?.error ? (
+                <p className="text-body-sm text-error" role="alert">
+                  {replyState.error}
+                </p>
+              ) : null}
+            </FormPendingFieldset>
+          </div>
+
+          <DialogFooter className="reply-dialog-footer">
             <Button
               type="button"
               variant="outline"
