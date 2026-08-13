@@ -35,7 +35,7 @@ export function InboxAppHeader({
   const inTelegram = isTelegramMiniApp();
 
   return (
-    <header className="app-chrome-safe-top flex shrink-0 items-center justify-between gap-3 border-b border-glass-border glass px-4 py-3 backdrop-blur-xl md:h-16 md:px-6 md:py-0">
+    <header className="app-chrome-safe-top flex shrink-0 items-center justify-between gap-3 border-b border-glass-border glass px-4 py-3 md:h-16 md:px-6 md:py-0">
       <div className="flex min-w-0 items-center gap-3">
         <Button
           type="button"

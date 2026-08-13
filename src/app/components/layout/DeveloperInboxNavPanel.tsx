@@ -30,7 +30,7 @@ export function DeveloperInboxNavPanel({
 }: DeveloperInboxNavPanelProps) {
   return (
     <>
-      <header className="shrink-0 space-y-3 border-b border-glass-border glass p-4 backdrop-blur-xl">
+      <header className="shrink-0 space-y-3 border-b border-glass-border glass p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
             <h2 id={titleId} className="truncate text-lg text-text-primary md:text-heading-sm">

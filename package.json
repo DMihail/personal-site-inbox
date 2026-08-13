@@ -1,7 +1,7 @@
 {
   "name": "personal-site-inbox",
   "private": true,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && tsc -p tests/tsconfig.json --noEmit",
@@ -10,9 +10,9 @@
     "build": "node scripts/validate-production-env.mjs && vite build",
     "dev": "vite",
     "start": "vite",
-    "test": "VITE_CONFIG_NATIVE_IGNORE_WARNING=true vitest --config tests/vitest.config.ts",
-    "test:run": "VITE_CONFIG_NATIVE_IGNORE_WARNING=true vitest run --config tests/vitest.config.ts",
-    "test:coverage": "VITE_CONFIG_NATIVE_IGNORE_WARNING=true vitest run --coverage --config tests/vitest.config.ts",
+    "test": "vitest --config tests/vitest.config.ts",
+    "test:run": "vitest run --config tests/vitest.config.ts",
+    "test:coverage": "vitest run --coverage --config tests/vitest.config.ts",
     "sync:security-headers": "node --experimental-strip-types scripts/sync-vercel-security-headers.mjs"
   },
   "dependencies": {
@@ -58,6 +58,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^10.7.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-compiler": "^19.1.0-rc.2",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",

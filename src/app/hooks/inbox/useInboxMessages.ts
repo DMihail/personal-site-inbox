@@ -14,6 +14,9 @@ export function useInboxMessages(currentView: View) {
   const searchQuery = useMessagesStore((s) => s.searchQuery);
   const sortBy = useMessagesStore((s) => s.sortBy);
   const filterBy = useMessagesStore((s) => s.filterBy);
+  const isLoading = useMessagesStore((s) => s.isLoading);
+  const messagesError = useMessagesStore((s) => s.error);
+  const hasLoadedOnce = useMessagesStore((s) => s.hasLoadedOnce);
   const storeSetSearchQuery = useMessagesStore((s) => s.setSearchQuery);
   const storeSetSortBy = useMessagesStore((s) => s.setSortBy);
   const storeSetFilterBy = useMessagesStore((s) => s.setFilterBy);
@@ -21,9 +24,12 @@ export function useInboxMessages(currentView: View) {
   const markAsRead = useMessagesStore((s) => s.markAsRead);
   const archive = useMessagesStore((s) => s.archive);
   const toggleImportant = useMessagesStore((s) => s.toggleImportant);
-  const remove = useMessagesStore((s) => s.remove);
+  const queueDelete = useMessagesStore((s) => s.queueDelete);
+  const undoDelete = useMessagesStore((s) => s.undoDelete);
+  const commitDelete = useMessagesStore((s) => s.commitDelete);
   const startSubscription = useMessagesStore((s) => s.startSubscription);
   const stopSubscription = useMessagesStore((s) => s.stopSubscription);
+  const restartSubscription = useMessagesStore((s) => s.restartSubscription);
 
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [, startTransition] = useTransition();
@@ -32,15 +38,19 @@ export function useInboxMessages(currentView: View) {
     useShallow((s) => selectMessageCounts(s.messages)),
   );
 
+  const activeFilterBy =
+    currentView !== "archived" && filterBy === "archived" ? "all" : filterBy;
+
   const filteredMessages = selectFilteredMessages(
     messages,
     currentView,
-    filterBy,
+    activeFilterBy,
     deferredSearchQuery,
     sortBy,
   );
   const selectedMessage = selectSelectedMessage(messages, selectedMessageId);
   const isSearchPending = searchQuery !== deferredSearchQuery;
+  const showMessagesLoading = isLoading && !hasLoadedOnce;
 
   const setSearchQuery = (value: string) => {
     storeSetSearchQuery(value);
@@ -59,12 +69,14 @@ export function useInboxMessages(currentView: View) {
     selectedMessage,
     filteredMessages,
     isSearchPending,
+    isLoading: showMessagesLoading,
+    messagesError,
     inboxCount,
     unreadCount,
     importantCount,
     searchQuery,
     sortBy,
-    filterBy,
+    filterBy: activeFilterBy,
     setSearchQuery,
     setSortBy,
     setFilterBy,
@@ -72,8 +84,11 @@ export function useInboxMessages(currentView: View) {
     markAsRead,
     archive,
     toggleImportant,
-    remove,
+    queueDelete,
+    undoDelete,
+    commitDelete,
     startSubscription,
     stopSubscription,
+    restartSubscription,
   };
 }

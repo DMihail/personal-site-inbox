@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { MessageDetail } from "../MessageDetail";
 import { scrollPaneClass } from "./scrollPane";
 import { KeepAlivePane } from "./KeepAlivePane";
+import { SettingsFallback } from "./SettingsFallback";
 import { InboxAppHeader } from "./InboxAppHeader";
 import { InboxNavDrawer } from "./InboxNavDrawer";
 import { InboxMessagesDrawer } from "./InboxMessagesDrawer";
@@ -16,14 +17,6 @@ import type { InboxLayoutBaseProps } from "@/app/hooks/inbox/inbox-layout.types"
 const SettingsView = lazy(() =>
   import("../SettingsView").then((m) => ({ default: m.SettingsView })),
 );
-
-function SettingsFallback() {
-  return (
-    <div className="flex min-h-0 flex-1 items-center justify-center text-text-muted" role="status">
-      Loading settings…
-    </div>
-  );
-}
 
 interface DesktopInboxLayoutProps extends InboxLayoutBaseProps {
   onSelectMessage: (messageId: string) => void;
@@ -59,6 +52,9 @@ export function DesktopInboxLayout({
   onReply,
   onLogout,
   onPushEnabledChange,
+  onRetryMessages,
+  isLoading = false,
+  messagesError = null,
   isSearchPending = false,
   pushEnabled,
   pushRegistering,
@@ -103,6 +99,9 @@ export function DesktopInboxLayout({
     onArchive,
     onDelete,
     isSearchPending,
+    isLoading,
+    messagesError,
+    onRetryMessages,
   };
 
   return (
@@ -140,11 +139,17 @@ export function DesktopInboxLayout({
         />
       ) : null}
 
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <main
+        id="app-main"
+        className="flex min-h-0 flex-1 overflow-hidden"
+        aria-label={showSettings ? "Settings" : "Inbox"}
+      >
         {settingsMounted ? (
-          <KeepAlivePane mode={showSettings ? "visible" : "hidden"} className="flex min-h-0 flex-1 overflow-hidden">
-            <main
-              id={showSettings ? "app-main" : undefined}
+          <KeepAlivePane
+            mode={showSettings ? "visible" : "hidden"}
+            className="flex min-h-0 flex-1 overflow-hidden"
+          >
+            <section
               className={`${scrollPaneClass} w-full tablet-detail-scroll`}
               aria-label="Settings"
             >
@@ -160,24 +165,26 @@ export function DesktopInboxLayout({
                   onTestPush={onTestPush}
                 />
               </Suspense>
-            </main>
+            </section>
           </KeepAlivePane>
         ) : null}
 
-        <KeepAlivePane mode={showSettings ? "hidden" : "visible"} className="flex min-h-0 min-w-0 flex-1">
+        <KeepAlivePane
+          mode={showSettings ? "hidden" : "visible"}
+          className="flex min-h-0 min-w-0 flex-1"
+        >
           <div className="flex min-h-0 min-w-0 flex-1">
             {!showMessagesDrawer ? (
               <aside
-                className="flex w-[28rem] shrink-0 flex-col border-e border-glass-border glass backdrop-blur-xl xl:w-[32rem]"
+                className="flex w-[28rem] shrink-0 flex-col border-e border-glass-border glass xl:w-[32rem]"
                 aria-label="Message list"
               >
                 <InboxMessagesPanel {...messagesPanelProps} />
               </aside>
             ) : null}
 
-            <main
+            <section
               ref={detailRef}
-              id={showSettings ? undefined : "app-main"}
               className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background"
               aria-label="Message details"
             >
@@ -206,10 +213,10 @@ export function DesktopInboxLayout({
                   onReply={onReply}
                 />
               </div>
-            </main>
+            </section>
           </div>
         </KeepAlivePane>
-      </div>
+      </main>
     </div>
   );
 }

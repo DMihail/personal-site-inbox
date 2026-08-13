@@ -52,6 +52,8 @@ export async function sendInboxReply(
   }
 
   const idToken = await user.getIdToken();
+  const timeout = AbortSignal.timeout(20_000);
+  const requestSignal = signal ? AbortSignal.any([signal, timeout]) : timeout;
   let res: Response;
   try {
     res = await fetch(portfolioApiUrl("/api/inbox/reply"), {
@@ -61,10 +63,13 @@ export async function sendInboxReply(
         Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({ messageId, body: trimmed }),
-      signal,
+      signal: requestSignal,
     });
   } catch (error) {
-    if (signal?.aborted || (error instanceof DOMException && error.name === "AbortError")) {
+    if (
+      requestSignal.aborted ||
+      (error instanceof DOMException && error.name === "AbortError")
+    ) {
       throw error;
     }
     throw new Error("Could not reach reply API — check VITE_PORTFOLIO_API_URL and CORS", {

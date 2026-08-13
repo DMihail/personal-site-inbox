@@ -38,6 +38,12 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # CI does not ship .env; use a disposable key so validate-production-env passes.
-          # Production (Vercel) must set the real VITE_ZUSTAND_STORAGE_KEY.
+          # CI does not ship .env; disposable values so validate-production-env passes.
+          # Production (Vercel) must set the real secrets.
           VITE_ZUSTAND_STORAGE_KEY: ci-only-zustand-storage-key
+          VITE_FIREBASE_APIKEY: ci-firebase-api-key
+          VITE_FIREBASE_AUTH_DOMAIN: ci-project.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: ci-project
+          VITE_FIREBASE_APP_ID: 1:000000000000:web:ci
+          VITE_FIREBASE_MESSAGE_SENDER_ID: "000000000000"
+          VITE_FIREBASE_VAPID_KEY: ci-vapid-key

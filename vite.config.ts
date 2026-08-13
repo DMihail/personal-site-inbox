@@ -3,11 +3,19 @@ import tailwindcss from "@tailwindcss/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
 import { VitePWA } from "vite-plugin-pwa";
-import { createAliases } from "./alias.config";
-import { devSecurityHeaders, productionSecurityHeaders } from "./security-headers";
+import { createAliases } from "./alias.config.ts";
+import {
+  buildDevSecurityHeaders,
+  buildProductionSecurityHeaders,
+} from "./security-headers.ts";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  for (const [key, value] of Object.entries(env)) {
+    if (process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
   const portfolioApiProxyTarget =
     env.VITE_PORTFOLIO_API_URL?.trim().replace(/\/$/, "") || "http://localhost:3000";
 
@@ -24,11 +32,20 @@ export default defineConfig(({ mode }) => {
         filename: "sw.js",
         registerType: "prompt",
         injectRegister: false,
-        includeAssets: ["favicon.png", "icon.png", "robots.txt"],
+        includeAssets: [
+          "favicon.png",
+          "apple-touch-icon.png",
+          "icon.png",
+          "icon-192.png",
+          "icon-512.png",
+          "icon-512-maskable.png",
+          "robots.txt",
+        ],
         devOptions: {
           enabled: false,
         },
         manifest: {
+          id: "/",
           name: "Developer Inbox",
           short_name: "Inbox",
           description:
@@ -36,20 +53,26 @@ export default defineConfig(({ mode }) => {
           start_url: "/",
           scope: "/",
           display: "standalone",
-          orientation: "portrait",
+          display_override: ["standalone", "minimal-ui"],
           background_color: "#0a0a0a",
           theme_color: "#0a0a0a",
           ...({ gcm_sender_id: "103953800507" } as { gcm_sender_id: string }),
           icons: [
             {
-              src: "/icon.png",
-              sizes: "150x150",
+              src: "/icon-192.png",
+              sizes: "192x192",
               type: "image/png",
               purpose: "any",
             },
             {
-              src: "/icon.png",
-              sizes: "150x150",
+              src: "/icon-512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "any",
+            },
+            {
+              src: "/icon-512-maskable.png",
+              sizes: "512x512",
               type: "image/png",
               purpose: "maskable",
             },
@@ -66,6 +89,7 @@ export default defineConfig(({ mode }) => {
     build: {
       target: "es2022",
       cssMinify: true,
+      reportCompressedSize: false,
       modulePreload: {
         resolveDependencies(_filename, deps) {
           return deps.filter(
@@ -104,7 +128,14 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      headers: devSecurityHeaders,
+      warmup: {
+        clientFiles: [
+          "./src/app/pages/InboxShell.tsx",
+          "./src/app/components/layout/MobileInboxLayout.tsx",
+          "./src/app/components/layout/DesktopInboxLayout.tsx",
+        ],
+      },
+      headers: buildDevSecurityHeaders(),
       proxy: {
         "/api": {
           target: portfolioApiProxyTarget,
@@ -113,8 +144,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     preview: {
-      headers: productionSecurityHeaders,
+      headers: buildProductionSecurityHeaders(),
     },
-    assetsInclude: ["**/*.svg"],
   };
 });

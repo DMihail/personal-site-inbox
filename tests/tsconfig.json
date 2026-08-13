@@ -3,6 +3,7 @@
   "compilerOptions": {
     "types": ["vite/client", "vitest/globals", "node"],
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "baseUrl": ".."
   },
   "include": ["./**/*", "../security-headers.ts"],

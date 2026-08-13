@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { AppErrorBoundary } from "../components/AppErrorBoundary";
 import { OfflineModal } from "../components/OfflineModal";
 import { PwaUpdateBanner } from "../components/PwaUpdateBanner";
 import { SkipLink } from "../components/SkipLink";
@@ -74,51 +75,56 @@ export function InboxShell() {
     onArchive: c.handleArchive,
     onToggleImportant: c.handleToggleImportant,
     onDelete: c.handleDelete,
-    onMarkAsRead: c.markAsRead,
+    onMarkAsRead: c.handleMarkAsRead,
     onReply: c.handleReply,
     onLogout: c.handleLogout,
     onPushEnabledChange: c.handlePushEnabledChange,
+    onRetryMessages: c.handleRetryMessages,
+    isLoading: c.isLoading,
+    messagesError: c.messagesError,
     isSearchPending: c.isSearchPending,
     ...c.pushHandlers,
   };
 
   return (
-    <div className="app-telegram-viewport flex h-dvh w-screen flex-col overflow-hidden bg-background text-foreground dark">
-      <SkipLink />
-      <OfflineModal
-        isOpen={c.showOfflineModal}
-        onRetry={c.onRetryReconnect}
-        onContinue={c.onContinueOffline}
-        lastSync={c.lastSync}
-      />
+    <AppErrorBoundary title="Inbox crashed">
+      <div className="app-telegram-viewport flex h-dvh w-screen flex-col overflow-hidden bg-background text-foreground dark">
+        <SkipLink />
+        <OfflineModal
+          isOpen={c.showOfflineModal}
+          onRetry={c.onRetryReconnect}
+          onContinue={c.onContinueOffline}
+          lastSync={c.lastSync}
+        />
 
-      {c.replyDialogOpen ? (
-        <Suspense fallback={null}>
-          <ReplyDialog
-            isOpen={c.replyDialogOpen}
-            onClose={() => c.setReplyDialogOpen(false)}
-            message={c.selectedMessage}
-            onSend={c.handleSendReply}
-            onOpenInMailClient={c.handleOpenInMailClient}
-          />
+        {c.replyDialogOpen ? (
+          <Suspense fallback={null}>
+            <ReplyDialog
+              isOpen={c.replyDialogOpen}
+              onClose={() => c.setReplyDialogOpen(false)}
+              message={c.selectedMessage}
+              onSend={c.handleSendReply}
+              onOpenInMailClient={c.handleOpenInMailClient}
+            />
+          </Suspense>
+        ) : null}
+
+        <PwaUpdateBanner />
+
+        <Suspense fallback={<InboxLayoutFallback />}>
+          {isMdUp ? (
+            <DesktopInboxLayout {...layoutProps} onSelectMessage={c.handleSelectMessage} />
+          ) : (
+            <MobileInboxLayout
+              {...layoutProps}
+              mobileDetailOpen={c.mobileDetailOpen}
+              onOpenDetail={c.onOpenMobileDetail}
+              onCloseDetail={c.onCloseMobileDetail}
+              onSelectMessage={c.handleSelectMessage}
+            />
+          )}
         </Suspense>
-      ) : null}
-
-      <PwaUpdateBanner />
-
-      <Suspense fallback={<InboxLayoutFallback />}>
-        {isMdUp ? (
-          <DesktopInboxLayout {...layoutProps} onSelectMessage={c.handleSelectMessage} />
-        ) : (
-          <MobileInboxLayout
-            {...layoutProps}
-            mobileDetailOpen={c.mobileDetailOpen}
-            onOpenDetail={c.onOpenMobileDetail}
-            onCloseDetail={c.onCloseMobileDetail}
-            onSelectMessage={c.handleSelectMessage}
-          />
-        )}
-      </Suspense>
-    </div>
+      </div>
+    </AppErrorBoundary>
   );
 }

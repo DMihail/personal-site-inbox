@@ -33,33 +33,43 @@
     }
   }
 
-  /* Message list rows — no backdrop-filter (blur is expensive on long lists) */
+  /* Message list rows — opaque surface so swipe actions never bleed through. */
   .inbox-row {
     position: relative;
+    isolation: isolate;
     overflow: hidden;
-    content-visibility: auto;
-    contain-intrinsic-size: auto 5.5rem;
-    contain: layout paint;
+    border-radius: 0.75rem;
+    background-color: var(--background);
   }
 
   .inbox-row-surface {
     position: relative;
     z-index: 1;
+    overflow: hidden;
     touch-action: pan-y;
-    background: rgba(18, 18, 18, 0.92);
+    background-color: oklch(0.177 0 0);
+    background-clip: padding-box;
+    backface-visibility: hidden;
   }
 
   .inbox-row-surface--read {
-    background: rgba(18, 18, 18, 0.88);
+    background-color: oklch(0.16 0 0);
   }
 
   .inbox-row-surface--unread,
   .inbox-row-surface--active {
-    background: rgba(24, 24, 24, 0.96);
+    background-color: oklch(0.21 0 0);
   }
 
   .inbox-row-actions {
     z-index: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  .inbox-row-actions--revealed {
+    pointer-events: auto;
+    visibility: visible;
   }
 
   .inbox-swipe-action {
@@ -69,7 +79,7 @@
     justify-content: center;
     gap: 0.25rem;
     border: 0;
-    color: #0a0a0a;
+    color: var(--background);
     cursor: pointer;
     font-size: 0.65rem;
     font-weight: 600;
@@ -91,7 +101,7 @@
 
   .inbox-swipe-action--delete {
     background: var(--error);
-    color: #fff;
+    color: oklch(1 0 0);
   }
 
   @media (prefers-reduced-motion: reduce) {

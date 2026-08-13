@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState, useTransition } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { pathToView, VIEW_PAGE_TITLES, viewToPath } from "@/app/features/inbox/viewRouting";
+import { mutationErrorMessage, parseMessageIdFromSearch } from "@/app/features/inbox/messageLinks";
 import type { View } from "@/app/features/inbox/types";
 import { useAuthStore } from "@/app/store/authStore";
 import { isPortfolioApiConfigured, sendInboxReply } from "@/utils/reply-api";
@@ -24,9 +25,14 @@ export function useInboxController() {
   const {
     startSubscription,
     stopSubscription,
+    restartSubscription,
     selectMessage,
     archive,
-    remove,
+    queueDelete,
+    undoDelete,
+    commitDelete,
+    markAsRead,
+    toggleImportant,
     selectedMessage,
     selectedMessageId,
     ...inbox
@@ -40,22 +46,66 @@ export function useInboxController() {
     selectedMessageId,
   });
 
+  const [, startViewTransition] = useTransition();
   const [navMenuOpen, setNavMenuOpen] = useState(false);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const pendingDeleteTimers = useRef(new Map<string, number>());
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [lastSync, setLastSync] = useState(() => new Date());
+
+  const deepLinkMessageId = parseMessageIdFromSearch(location.search);
+  if (deepLinkMessageId && !mobileDetailOpen) {
+    setMobileDetailOpen(true);
+  }
 
   useEffect(() => {
     startSubscription();
     return () => stopSubscription();
   }, [startSubscription, stopSubscription]);
 
+  const consumeDeepLink = useEffectEvent((messageId: string) => {
+    selectMessage(messageId);
+    onCloseMessagesList();
+    navigate({ pathname: location.pathname, search: "" }, { replace: true });
+  });
+
+  // Consume `/inbox?message=<id>` from push deep links, then strip the query.
+  useEffect(() => {
+    if (!deepLinkMessageId) return;
+    consumeDeepLink(deepLinkMessageId);
+  }, [deepLinkMessageId]);
+
+  const navigateFromNotification = useEffectEvent((url: string) => {
+    try {
+      const parsed = new URL(url, window.location.origin);
+      if (parsed.origin !== window.location.origin) return;
+      navigate(`${parsed.pathname}${parsed.search}${parsed.hash}`);
+    } catch {
+      /* ignore malformed urls */
+    }
+  });
+
+  // SW / other tabs can ask the focused client to navigate after a notification click.
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+
+    const onMessage = (event: MessageEvent) => {
+      const data = event.data as { type?: string; url?: string } | undefined;
+      if (data?.type !== "NOTIFICATION_NAVIGATE" || typeof data.url !== "string") return;
+      navigateFromNotification(data.url);
+    };
+
+    navigator.serviceWorker.addEventListener("message", onMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", onMessage);
+  }, []);
+
   const isOnline = useOnlineStatus({
     onOnline: () => {
       setShowOfflineModal(false);
       toast.success("Connection restored", { description: "You're back online" });
       setLastSync(new Date());
+      restartSubscription();
     },
     onOffline: () => {
       setShowOfflineModal(true);
@@ -70,11 +120,13 @@ export function useInboxController() {
     });
 
   const handleSelectView = (view: View) => {
-    navigate(viewToPath(view));
     setNavMenuOpen(false);
     setMobileDetailOpen(false);
     if (view !== "settings") onOpenMessagesList();
     else onCloseMessagesList();
+    startViewTransition(() => {
+      navigate(viewToPath(view), { viewTransition: true });
+    });
   };
 
   const handleSelectMessage = (messageId: string) => {
@@ -84,13 +136,67 @@ export function useInboxController() {
   };
 
   const handleArchive = (messageId: string) => {
-    void archive(messageId);
+    void archive(messageId).catch((error: unknown) => {
+      toast.error("Could not update archive", {
+        description: mutationErrorMessage(error),
+      });
+    });
     setMobileDetailOpen(false);
   };
 
   const handleDelete = (messageId: string) => {
-    void remove(messageId);
+    if (!queueDelete(messageId)) return;
     setMobileDetailOpen(false);
+
+    const previousTimer = pendingDeleteTimers.current.get(messageId);
+    if (previousTimer !== undefined) window.clearTimeout(previousTimer);
+
+    const cancelPendingDelete = () => {
+      const timer = pendingDeleteTimers.current.get(messageId);
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+        pendingDeleteTimers.current.delete(messageId);
+      }
+    };
+
+    toast.success("Message deleted", {
+      duration: 6_000,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          cancelPendingDelete();
+          undoDelete(messageId);
+        },
+      },
+    });
+
+    pendingDeleteTimers.current.set(
+      messageId,
+      window.setTimeout(() => {
+        pendingDeleteTimers.current.delete(messageId);
+        void commitDelete(messageId).catch((error: unknown) => {
+          toast.error("Could not delete message", {
+            description: mutationErrorMessage(error),
+          });
+        });
+      }, 6_000),
+    );
+  };
+
+  const handleToggleImportant = (messageId: string) => {
+    void toggleImportant(messageId).catch((error: unknown) => {
+      toast.error("Could not update important", {
+        description: mutationErrorMessage(error),
+      });
+    });
+  };
+
+  const handleMarkAsRead = (messageId: string) => {
+    void markAsRead(messageId).catch((error: unknown) => {
+      toast.error("Could not mark as read", {
+        description: mutationErrorMessage(error),
+      });
+    });
   };
 
   const handleReply = () => {
@@ -124,6 +230,10 @@ export function useInboxController() {
     toast.info("Opening mail client");
   };
 
+  const handleRetryMessages = () => {
+    restartSubscription();
+  };
+
   return {
     currentView,
     isOnline,
@@ -140,10 +250,12 @@ export function useInboxController() {
     handleSelectMessage,
     handleArchive,
     handleDelete,
-    handleToggleImportant: inbox.toggleImportant,
+    handleToggleImportant,
+    handleMarkAsRead,
     handleReply,
     handleSendReply,
     handleOpenInMailClient,
+    handleRetryMessages,
     setReplyDialogOpen,
     setShowOfflineModal,
     setMobileDetailOpen,
@@ -155,7 +267,15 @@ export function useInboxController() {
     onCloseMobileDetail: () => setMobileDetailOpen(false),
     onRetryReconnect: () => {
       setShowOfflineModal(false);
-      toast.info("Attempting to reconnect...");
+      toast.info("Reconnecting…");
+      restartSubscription();
+      void fetch(window.location.origin, {
+        method: "HEAD",
+        cache: "no-store",
+        signal: AbortSignal.timeout(8_000),
+      }).catch(() => {
+        /* network probe — success is optional; subscription restart is the real work */
+      });
     },
     onContinueOffline: () => setShowOfflineModal(false),
     selectedMessage,

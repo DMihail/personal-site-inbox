@@ -21,7 +21,7 @@
   }
 
   .auth-input:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--glass-border) 70%, var(--cyan) 30%);
+    border-color: color-mix(in oklch, var(--glass-border) 70%, var(--cyan) 30%);
   }
 
   .auth-input:focus-visible {
@@ -89,7 +89,7 @@
   }
 
   .btn-sign-out {
-    border: 1px solid color-mix(in srgb, var(--error) 35%, transparent) !important;
+    border: 1px solid color-mix(in oklch, var(--error) 35%, transparent) !important;
     background-color: transparent !important;
     color: var(--error) !important;
     transition:
@@ -101,13 +101,13 @@
   }
 
   .btn-sign-out:hover:not(:disabled) {
-    background-color: color-mix(in srgb, var(--error) 12%, transparent) !important;
-    border-color: color-mix(in srgb, var(--error) 55%, transparent) !important;
+    background-color: color-mix(in oklch, var(--error) 12%, transparent) !important;
+    border-color: color-mix(in oklch, var(--error) 55%, transparent) !important;
     color: var(--error) !important;
   }
 
   .btn-sign-out:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--error) 45%, transparent);
+    outline: 2px solid color-mix(in oklch, var(--error) 45%, transparent);
     outline-offset: 2px;
   }
 
@@ -138,7 +138,7 @@
   }
 
   .reply-composer:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--glass-border) 70%, var(--cyan) 30%);
+    border-color: color-mix(in oklch, var(--glass-border) 70%, var(--cyan) 30%);
   }
 
   .reply-composer:focus-visible {
@@ -148,7 +148,7 @@
   }
 
   .reply-composer[aria-invalid="true"] {
-    border-color: color-mix(in srgb, var(--error) 55%, var(--glass-border));
+    border-color: color-mix(in oklch, var(--error) 55%, var(--glass-border));
   }
 
   .reply-composer:disabled {

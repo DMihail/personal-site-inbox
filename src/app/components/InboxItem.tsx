@@ -45,7 +45,6 @@ export function InboxItem({
   const swipeEnabled = enableSwipe && Boolean(onToggleImportant || onArchive || onDelete);
   const actionCount = [onToggleImportant, onArchive, onDelete].filter(Boolean).length;
   const maxReveal = actionCount * SWIPE_ACTION_WIDTH;
-  const actionsRevealed = swipeOpen;
 
   const handleSwipeOpenChange = useCallback(
     (open: boolean) => {
@@ -75,12 +74,17 @@ export function InboxItem({
     onSwipeOpenChange?.(false);
   };
 
+  const actionsRevealed = swipeEnabled && (swipeOpen || swipe.offset < 0);
+
   return (
     <li className="inbox-row list-none">
       {swipeEnabled ? (
         <div
-          className="inbox-row-actions absolute inset-y-0 end-0 flex items-stretch overflow-hidden rounded-xl"
+          className={`inbox-row-actions absolute inset-y-0 end-0 flex items-stretch overflow-hidden rounded-xl${
+            actionsRevealed ? " inbox-row-actions--revealed" : ""
+          }`}
           style={{ width: swipe.maxReveal }}
+          hidden={!actionsRevealed}
           aria-hidden={!actionsRevealed}
         >
           {onToggleImportant ? (
@@ -249,6 +253,25 @@ export function InboxItem({
                 <Star
                   className={`h-4 w-4 ${message.isImportant ? "fill-mint text-mint" : "text-text-muted"}`}
                 />
+              </Button>
+            ) : null}
+            {onArchive ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onArchive(message.id);
+                }}
+                className="ui-hover-ghost h-7 w-7 p-0"
+                aria-label={message.isArchived ? "Move to inbox" : "Archive message"}
+              >
+                {message.isArchived ? (
+                  <ArchiveRestore className="h-4 w-4 text-text-muted" aria-hidden="true" />
+                ) : (
+                  <Archive className="h-4 w-4 text-text-muted" aria-hidden="true" />
+                )}
               </Button>
             ) : null}
             {onDelete ? (

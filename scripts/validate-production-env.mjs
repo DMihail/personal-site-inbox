@@ -31,14 +31,30 @@ loadEnvFile(resolve(process.cwd(), ".env.production"));
 loadEnvFile(resolve(process.cwd(), ".env.production.local"));
 
 /** Fail production builds when required client env is missing. */
-const required = ["VITE_ZUSTAND_STORAGE_KEY"];
+const required = [
+  "VITE_ZUSTAND_STORAGE_KEY",
+  "VITE_FIREBASE_APIKEY",
+  "VITE_FIREBASE_AUTH_DOMAIN",
+  "VITE_FIREBASE_PROJECT_ID",
+  "VITE_FIREBASE_APP_ID",
+];
+
+/** Recommended for push; warn but do not fail the build. */
+const recommended = ["VITE_FIREBASE_MESSAGE_SENDER_ID", "VITE_FIREBASE_VAPID_KEY"];
 
 const missing = required.filter((name) => !process.env[name]?.trim());
 
 if (missing.length > 0) {
   console.error(`[build] Missing required environment variable(s): ${missing.join(", ")}`);
   console.error(
-    "[build] Set them in .env / Vercel env. Zustand persist is skipped without VITE_ZUSTAND_STORAGE_KEY.",
+    "[build] Set them in .env / Vercel env. See .env.example for the full list.",
   );
   process.exit(1);
+}
+
+const missingRecommended = recommended.filter((name) => !process.env[name]?.trim());
+if (missingRecommended.length > 0) {
+  console.warn(
+    `[build] Missing recommended push env (background FCM may be limited): ${missingRecommended.join(", ")}`,
+  );
 }

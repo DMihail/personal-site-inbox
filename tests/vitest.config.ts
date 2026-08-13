@@ -2,7 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import { createAliases, projectRoot } from "../alias.config";
+import { createAliases, projectRoot } from "../alias.config.ts";
 
 const testsDir = path.dirname(fileURLToPath(import.meta.url));
 

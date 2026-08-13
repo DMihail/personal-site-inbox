@@ -1,4 +1,5 @@
 import type { Message } from "@/app/features/inbox/types";
+import { messageDeepLinkPath } from "@/app/features/inbox/messageLinks";
 import type { PushPayload } from "@/push/types";
 import { getActiveFcmRegistration } from "@/push/service-worker";
 import { showNotificationOnce } from "@/push/dedupe";
@@ -57,12 +58,18 @@ export async function notifyFromPushPayload(payload: PushPayload): Promise<void>
   const body =
     payload.notification?.body ?? data.body ?? (data.preview ? String(data.preview) : "");
   const messageId = typeof data.messageId === "string" ? data.messageId : undefined;
+  const url =
+    typeof data.url === "string" && data.url.trim()
+      ? data.url
+      : messageId
+        ? messageDeepLinkPath(messageId)
+        : "/inbox";
 
   await showNotificationOnce(messageId, () =>
     showBrowserNotification(title, {
       body,
       tag: messageId ? `message:${messageId}` : undefined,
-      data: { ...data, url: data.url ?? "/" },
+      data: { ...data, url },
     }),
   );
 }
@@ -71,6 +78,6 @@ export async function notifyNewMessage(message: Message): Promise<ShowBrowserNot
   return showBrowserNotification("New contact message", {
     body: `${message.senderName} · ${message.senderEmail}`,
     tag: `message:${message.id}`,
-    data: { messageId: message.id, url: "/" },
+    data: { messageId: message.id, url: messageDeepLinkPath(message.id) },
   });
 }

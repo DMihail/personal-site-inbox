@@ -3,6 +3,7 @@ import tseslint from "typescript-eslint";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
+import reactCompiler from "eslint-plugin-react-compiler";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 
 export default [
@@ -17,10 +18,11 @@ export default [
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  reactCompiler.configs.recommended,
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 2024,
       sourceType: "module",
       globals: globals.browser,
     },
@@ -56,7 +58,7 @@ export default [
   {
     files: ["src/sw.js"],
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 2024,
       sourceType: "script",
       globals: {
         ...globals.serviceworker,
@@ -76,7 +78,7 @@ export default [
   {
     files: ["scripts/**/*.{js,mjs,cjs}", "*.config.{js,mjs,cjs}", "security-headers.ts"],
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 2024,
       sourceType: "module",
       globals: globals.node,
     },

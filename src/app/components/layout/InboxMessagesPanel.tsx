@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { MailX } from "lucide-react";
 import { InboxItem } from "../InboxItem";
-import { EmptyState } from "../EmptyState";
 import { SearchBar } from "../SearchBar";
 import { FilterBar } from "../FilterBar";
 import { MessageVirtualList } from "../MessageVirtualList";
+import { MessagesListStatus } from "../MessagesListStatus";
 import { scrollPaneClass } from "./scrollPane";
 import type { Message } from "../../features/inbox/types";
 import type { FilterOption, SortOption } from "@/app/features/inbox/types";
@@ -29,6 +28,9 @@ interface InboxMessagesPanelProps {
   headingId?: string;
   className?: string;
   isSearchPending?: boolean;
+  isLoading?: boolean;
+  messagesError?: string | null;
+  onRetryMessages?: () => void;
 }
 
 export function InboxMessagesPanel({
@@ -50,6 +52,9 @@ export function InboxMessagesPanel({
   headingId = "inbox-list-heading",
   className = "",
   isSearchPending = false,
+  isLoading = false,
+  messagesError = null,
+  onRetryMessages,
 }: InboxMessagesPanelProps) {
   const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
 
@@ -62,6 +67,8 @@ export function InboxMessagesPanel({
         : currentView === "archived"
           ? "No archived messages"
           : "Your inbox is empty";
+
+  const showList = !isLoading && !messagesError && filteredMessages.length > 0;
 
   return (
     <div className={`flex min-h-0 flex-1 flex-col ${className}`.trim()}>
@@ -88,14 +95,15 @@ export function InboxMessagesPanel({
           onSortChange={onSortChange}
           filterBy={filterBy}
           onFilterChange={onFilterChange}
+          currentView={currentView}
         />
       </section>
 
       <div
         className={`flex min-h-0 flex-1 flex-col${isSearchPending ? " opacity-70" : ""}`.trim()}
-        aria-busy={isSearchPending || undefined}
+        aria-busy={isLoading || isSearchPending || undefined}
       >
-        {filteredMessages.length > 0 ? (
+        {showList ? (
           <MessageVirtualList
             items={filteredMessages}
             getKey={(message) => message.id}
@@ -119,7 +127,13 @@ export function InboxMessagesPanel({
           />
         ) : (
           <div className={scrollPaneClass}>
-            <EmptyState icon={MailX} title="No messages" description={emptyDescription} />
+            <MessagesListStatus
+              isLoading={isLoading}
+              error={messagesError}
+              isEmpty
+              emptyDescription={emptyDescription}
+              onRetry={onRetryMessages}
+            />
           </div>
         )}
       </div>
