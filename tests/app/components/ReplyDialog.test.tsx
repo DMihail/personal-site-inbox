@@ -19,7 +19,9 @@ describe("ReplyDialog", () => {
     );
 
     const dialog = screen.getByRole("dialog");
-    expect(dialog).toHaveClass("reply-dialog");
+    expect(dialog).toHaveClass("reply-dialog", "translate-x-0", "translate-y-0");
+    expect(dialog.className).not.toMatch(/translate-x-\[-50%\]/);
+    expect(dialog.className).not.toMatch(/translate-y-\[-50%\]/);
     expect(screen.getByRole("heading", { name: "Reply to Alex Rivera" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Your reply" })).toHaveClass("reply-composer");
     expect(screen.getByRole("button", { name: "Send Reply" })).toBeInTheDocument();
