@@ -126,7 +126,7 @@
   right: 0;
   bottom: 0;
   inset-inline: 0;
-  translate: none;
+  translate: 0;
   transform: none;
   margin: auto;
   width: min(42rem, calc(100% - 3rem));

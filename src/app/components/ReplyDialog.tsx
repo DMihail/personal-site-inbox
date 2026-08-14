@@ -75,7 +75,7 @@ export function ReplyDialog({
         }
       }}
     >
-      <DialogContent className="reply-dialog glass-elevated border-glass-border">
+      <DialogContent className="reply-dialog glass-elevated border-glass-border inset-0 start-0 top-0 translate-x-0 translate-y-0 sm:max-w-none">
         <DialogHeader className="reply-dialog-header gap-1.5 space-y-0 text-left">
           <DialogTitle className="text-heading-sm text-text-primary">
             Reply to {message.senderName}
