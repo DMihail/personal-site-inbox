@@ -49,7 +49,7 @@ async function runForUser(uid: string | null): Promise<void> {
 }
 
 /**
- * Call once at app start.
+ * Call once when the authenticated inbox mounts.
  * - Stable device id
  * - Ensure unified SW is ready when push is configured (bootstrap also registers it)
  * - Token refresh when user is signed in and push is enabled

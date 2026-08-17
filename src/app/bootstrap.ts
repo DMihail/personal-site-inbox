@@ -1,5 +1,4 @@
 import { useAuthStore } from "@/app/store/authStore";
-import { initPushModule } from "@/push/init";
 import { ensurePersistentStorage } from "@/pwa/persistentBrowserStorage";
 import { ensureAppServiceWorker } from "@/pwa/appServiceWorker";
 import { isPwaRuntime } from "@/pwa/config";
@@ -19,5 +18,4 @@ export function bootstrapApp(): void {
 
   stopAuthListener?.();
   stopAuthListener = useAuthStore.getState().startAuthListener();
-  initPushModule();
 }

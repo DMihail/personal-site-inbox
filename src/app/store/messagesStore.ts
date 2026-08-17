@@ -6,6 +6,11 @@ import {
 } from "../features/inbox/mapFirestoreMessage";
 import { shouldToastForMessageChange } from "../notifications/shouldToastForMessageChange";
 import { notifyIncomingMessage } from "../notifications/notifyIncomingMessage";
+import {
+  addPendingDeleteId,
+  readPendingDeleteIds,
+  removePendingDeleteId,
+} from "./pendingDeletesStorage";
 
 type PendingDelete = {
   message: Message;
@@ -42,7 +47,7 @@ interface MessagesState {
   archive: (id: string) => Promise<void>;
   toggleImportant: (id: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
-  /** Hide locally and wait for undo; Firestore delete happens in `commitDelete`. */
+  /** Hide locally, persist the id, and wait for undo; Firestore delete happens in `commitDelete`. */
   queueDelete: (id: string) => boolean;
   undoDelete: (id: string) => boolean;
   commitDelete: (id: string) => Promise<void>;
@@ -56,6 +61,16 @@ function insertAt(messages: Message[], index: number, message: Message): Message
   const next = messages.slice();
   next.splice(Math.min(index, next.length), 0, message);
   return next;
+}
+
+function hiddenDeleteIds(pendingDeletes: Record<string, PendingDelete>): Set<string> {
+  return new Set([...Object.keys(pendingDeletes), ...readPendingDeleteIds()]);
+}
+
+async function deleteMessageDocument(id: string): Promise<void> {
+  const firestoreDb = await getFirestoreDb();
+  const { deleteDoc, doc } = await import("firebase/firestore");
+  await deleteDoc(doc(firestoreDb, "messages", id));
 }
 
 export const useMessagesStore = create<MessagesState>((set, get) => ({
@@ -87,6 +102,10 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
       .then(async (firestoreDb) => {
         if (get()._subscribeGeneration !== generation) return;
 
+        for (const id of readPendingDeleteIds()) {
+          void get().commitDelete(id).catch(() => undefined);
+        }
+
         const { collection, onSnapshot, orderBy, query } = await import("firebase/firestore");
         if (get()._subscribeGeneration !== generation) return;
 
@@ -108,7 +127,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
               notifyIncomingMessage(msg, (id) => get().selectMessage(id));
             }
 
-            const pendingIds = new Set(Object.keys(get()._pendingDeletes));
+            const pendingIds = hiddenDeleteIds(get()._pendingDeletes);
             const msgs: Message[] = [];
             snap.forEach((d) => {
               if (pendingIds.has(d.id)) return;
@@ -229,6 +248,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     if (index < 0) return false;
     const message = messages[index];
     if (!message) return false;
+    addPendingDeleteId(id);
     set({
       messages: messages.filter((item) => item.id !== id),
       selectedMessageId: selectedMessageId === id ? null : selectedMessageId,
@@ -244,6 +264,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     const pending = get()._pendingDeletes[id];
     if (!pending) return false;
     const { [id]: _, ...rest } = get()._pendingDeletes;
+    removePendingDeleteId(id);
     set({
       messages: insertAt(get().messages, pending.index, pending.message),
       selectedMessageId: pending.selectedMessageId,
@@ -254,19 +275,37 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
 
   commitDelete: async (id) => {
     const pending = get()._pendingDeletes[id];
-    if (!pending) return;
-    const { [id]: _, ...rest } = get()._pendingDeletes;
-    set({ _pendingDeletes: rest });
+    const persisted = readPendingDeleteIds().includes(id);
+    if (!pending && !persisted) return;
+
+    if (pending) {
+      const { [id]: _, ...rest } = get()._pendingDeletes;
+      set({ _pendingDeletes: rest });
+    }
+
     try {
-      const firestoreDb = await getFirestoreDb();
-      const { deleteDoc, doc } = await import("firebase/firestore");
-      await deleteDoc(doc(firestoreDb, "messages", id));
+      await deleteMessageDocument(id);
     } catch (error) {
-      set({
-        messages: insertAt(get().messages, pending.index, pending.message),
-        selectedMessageId: pending.selectedMessageId,
-      });
+      if (pending) {
+        set({
+          messages: insertAt(get().messages, pending.index, pending.message),
+          selectedMessageId: pending.selectedMessageId,
+        });
+      }
       throw error;
+    } finally {
+      removePendingDeleteId(id);
     }
   },
 }));
+
+export function flushPendingDeletesOnUnload(): void {
+  const state = useMessagesStore.getState();
+  for (const id of hiddenDeleteIds(state._pendingDeletes)) {
+    void state.commitDelete(id).catch(() => undefined);
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("pagehide", flushPendingDeletesOnUnload);
+}

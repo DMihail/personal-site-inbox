@@ -1,4 +1,3 @@
-import { format } from "date-fns/format";
 import {
   Archive,
   ArchiveRestore,
@@ -14,6 +13,12 @@ import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { EmptyState } from "./EmptyState";
 import type { Message } from "../features/inbox/types";
+import {
+  formatClockTime,
+  formatDateTime,
+  formatMediumDate,
+  formatShortDate,
+} from "@/utils/formatDate";
 
 interface MessageDetailProps {
   message: Message | null;
@@ -62,7 +67,7 @@ export function MessageDetail({
                 {message.repliedAt ? (
                   <span className="text-meta inline-flex items-center gap-1 rounded-full border border-mint/30 px-2 py-0.5 text-mint">
                     <MailCheck className="h-3 w-3" aria-hidden="true" />
-                    Replied {format(message.repliedAt, "MMM d")}
+                    Replied {formatShortDate(message.repliedAt)}
                   </span>
                 ) : null}
               </div>
@@ -80,8 +85,8 @@ export function MessageDetail({
               className="block space-y-0.5 text-end text-meta text-text-muted"
               dateTime={message.timestamp.toISOString()}
             >
-              <span className="block">{format(message.timestamp, "MMM d, yyyy")}</span>
-              <span className="block">{format(message.timestamp, "HH:mm")}</span>
+              <span className="block">{formatMediumDate(message.timestamp)}</span>
+              <span className="block">{formatClockTime(message.timestamp)}</span>
             </time>
           </div>
         </div>
@@ -192,7 +197,7 @@ export function MessageDetail({
                       className="text-meta text-text-muted"
                       dateTime={message.repliedAt.toISOString()}
                     >
-                      {format(message.repliedAt, "PPpp")}
+                      {formatDateTime(message.repliedAt)}
                     </time>
                   </footer>
                 ) : null}
@@ -234,7 +239,7 @@ export function MessageDetail({
                 <dt className="shrink-0 text-text-muted sm:w-32">Received</dt>
                 <dd className="text-text-secondary">
                   <time dateTime={message.timestamp.toISOString()}>
-                    {format(message.timestamp, "PPpp")}
+                    {formatDateTime(message.timestamp)}
                   </time>
                 </dd>
               </div>

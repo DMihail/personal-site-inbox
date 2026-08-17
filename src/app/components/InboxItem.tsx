@@ -1,4 +1,4 @@
-import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
+import { formatRelativeTime } from "@/utils/formatDate";
 import {
   Archive,
   ArchiveRestore,
@@ -190,7 +190,7 @@ export function InboxItem({
                   className="font-mono text-meta text-text-muted"
                   dateTime={message.timestamp.toISOString()}
                 >
-                  {formatDistanceToNow(message.timestamp, { addSuffix: true })}
+                  {formatRelativeTime(message.timestamp)}
                 </time>
                 <span className="text-text-muted" aria-hidden="true">
                   ·
