@@ -32,15 +32,7 @@ export default defineConfig(({ mode }) => {
         filename: "sw.js",
         registerType: "prompt",
         injectRegister: false,
-        includeAssets: [
-          "favicon.png",
-          "apple-touch-icon.png",
-          "icon.png",
-          "icon-192.png",
-          "icon-512.png",
-          "icon-512-maskable.png",
-          "robots.txt",
-        ],
+        includeAssets: ["robots.txt"],
         devOptions: {
           enabled: false,
         },
@@ -79,7 +71,12 @@ export default defineConfig(({ mode }) => {
           ],
         },
         injectManifest: {
-          globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest,woff2}"],
+          globPatterns: [
+            "**/*.{js,css,html,svg,ico,woff2}",
+            "favicon.png",
+            "apple-touch-icon.png",
+          ],
+          globIgnores: ["**/icon.png", "**/icon-source.png"],
         },
       }),
     ],

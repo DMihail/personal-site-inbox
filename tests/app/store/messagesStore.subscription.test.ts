@@ -9,9 +9,14 @@ vi.mock("@/app/notifications/notifyIncomingMessage", () => ({
 }));
 
 import { useMessagesStore } from "@/app/store/messagesStore";
+import {
+  clearPendingDeleteIdsForTests,
+  readPendingDeleteIds,
+} from "@/app/store/pendingDeletesStorage";
 
 describe("messagesStore subscription lifecycle", () => {
   beforeEach(() => {
+    clearPendingDeleteIdsForTests();
     useMessagesStore.setState({
       messages: [],
       selectedMessageId: null,
@@ -72,9 +77,11 @@ describe("messagesStore subscription lifecycle", () => {
     expect(useMessagesStore.getState().queueDelete("m1")).toBe(true);
     expect(useMessagesStore.getState().messages).toEqual([]);
     expect(useMessagesStore.getState().selectedMessageId).toBeNull();
+    expect(readPendingDeleteIds()).toEqual(["m1"]);
     expect(useMessagesStore.getState().undoDelete("m1")).toBe(true);
     expect(useMessagesStore.getState().messages).toEqual([message]);
     expect(useMessagesStore.getState().selectedMessageId).toBe("m1");
+    expect(readPendingDeleteIds()).toEqual([]);
   });
 
   it("commitDelete is a no-op after undo", async () => {

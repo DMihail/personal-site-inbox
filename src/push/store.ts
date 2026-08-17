@@ -4,18 +4,11 @@ import { withSecurePersist } from "@/shared/persist/securePersist";
 import { migratePushPersist } from "@/shared/persist/persistMigrate";
 import { isPushConfigured } from "@/push/config";
 import {
-  registerPushToken,
-  subscribeForegroundPush,
-  unregisterPushToken,
-  unsubscribeForegroundPush,
-} from "@/push/messaging";
-import { notifyFromPushPayload } from "@/push/display";
-import {
   getNotificationPermission,
   getNotificationPermissionError,
   getPushNotificationSupport,
 } from "@/push/permissions";
-import { runPushTest } from "@/push/run-test";
+import type { PushTestResult } from "@/push/run-test";
 
 interface PushState {
   enabled: boolean;
@@ -25,12 +18,16 @@ interface PushState {
   isSendingTest: boolean;
   setEnabled: (enabled: boolean, uid: string | null) => Promise<void>;
   sync: (uid: string | null) => Promise<void>;
-  sendTest: () => ReturnType<typeof runPushTest>;
+  sendTest: () => Promise<PushTestResult>;
 }
 
 let inflightSync: Promise<void> | null = null;
 
 async function startForeground(): Promise<void> {
+  const [{ subscribeForegroundPush }, { notifyFromPushPayload }] = await Promise.all([
+    import("@/push/messaging"),
+    import("@/push/display"),
+  ]);
   await subscribeForegroundPush((payload) => {
     void notifyFromPushPayload(payload);
   });
@@ -53,6 +50,7 @@ export const usePushStore = create<PushState>()(
 
         if (!enabled) {
           set({ enabled: false, isRegistering: true, error: null });
+          const { unregisterPushToken, unsubscribeForegroundPush } = await import("@/push/messaging");
           await unregisterPushToken(uid);
           unsubscribeForegroundPush();
           set({ token: null, isRegistering: false });
@@ -77,6 +75,7 @@ export const usePushStore = create<PushState>()(
           return;
         }
 
+        const { registerPushToken } = await import("@/push/messaging");
         const result = await registerPushToken(uid);
         if (result.ok) {
           await startForeground();
@@ -113,6 +112,7 @@ export const usePushStore = create<PushState>()(
         inflightSync = (async () => {
           const { enabled } = get();
           if (!uid || !enabled) {
+            const { unsubscribeForegroundPush } = await import("@/push/messaging");
             unsubscribeForegroundPush();
             if (!uid) set({ token: null });
             return;
@@ -122,6 +122,7 @@ export const usePushStore = create<PushState>()(
             return;
           }
 
+          const { registerPushToken } = await import("@/push/messaging");
           const result = await registerPushToken(uid);
           if (result.ok) {
             await startForeground();
@@ -142,7 +143,7 @@ export const usePushStore = create<PushState>()(
       sendTest: async () => {
         set({ isSendingTest: true });
         try {
-          return await runPushTest(get().enabled);
+          return await (await import("@/push/run-test")).runPushTest(get().enabled);
         } finally {
           set({ isSendingTest: false });
         }
@@ -157,7 +158,7 @@ export const usePushStore = create<PushState>()(
   ),
 );
 
-/** Resolves after IndexedDB rehydration so bootstrap sync sees persisted `enabled`. */
+/** Resolves after IndexedDB rehydration so inbox push sync sees persisted `enabled`. */
 export function waitForPushStoreHydration(): Promise<void> {
   return new Promise((resolve) => {
     if (usePushStore.persist.hasHydrated()) {

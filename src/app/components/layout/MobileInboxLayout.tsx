@@ -2,7 +2,6 @@ import { lazy, Suspense, useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "../ui/button";
 import { InboxItem } from "../InboxItem";
-import { MessageDetail } from "../MessageDetail";
 import { FilterBar } from "../FilterBar";
 import { SearchBar } from "../SearchBar";
 import { MessageVirtualList } from "../MessageVirtualList";
@@ -16,6 +15,9 @@ import type { InboxLayoutBaseProps } from "@/app/hooks/inbox/inbox-layout.types"
 
 const SettingsView = lazy(() =>
   import("../SettingsView").then((m) => ({ default: m.SettingsView })),
+);
+const MessageDetail = lazy(() =>
+  import("../MessageDetail").then((m) => ({ default: m.MessageDetail })),
 );
 
 interface MobileInboxLayoutProps extends InboxLayoutBaseProps {
@@ -222,20 +224,31 @@ export function MobileInboxLayout({
                 </Button>
               </div>
               <div className={scrollPaneClass}>
-                <MessageDetail
-                  message={selectedMessage}
-                  onMarkAsRead={onMarkAsRead}
-                  onArchive={(id) => {
-                    onArchive(id);
-                    onCloseDetail();
-                  }}
-                  onToggleImportant={onToggleImportant}
-                  onDelete={(id) => {
-                    onDelete(id);
-                    onCloseDetail();
-                  }}
-                  onReply={onReply}
-                />
+                <Suspense
+                  fallback={
+                    <div
+                      className="flex min-h-0 flex-1 items-center justify-center text-text-muted"
+                      role="status"
+                    >
+                      Loading message…
+                    </div>
+                  }
+                >
+                  <MessageDetail
+                    message={selectedMessage}
+                    onMarkAsRead={onMarkAsRead}
+                    onArchive={(id) => {
+                      onArchive(id);
+                      onCloseDetail();
+                    }}
+                    onToggleImportant={onToggleImportant}
+                    onDelete={(id) => {
+                      onDelete(id);
+                      onCloseDetail();
+                    }}
+                    onReply={onReply}
+                  />
+                </Suspense>
               </div>
             </section>
           </KeepAlivePane>

@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { AppErrorBoundary } from "../components/AppErrorBoundary";
 import { OfflineModal } from "../components/OfflineModal";
 import { PwaUpdateBanner } from "../components/PwaUpdateBanner";
@@ -39,6 +39,10 @@ function InboxLayoutFallback() {
 export function InboxShell() {
   const c = useInboxController();
   const isMdUp = useMediaQuery(MEDIA_QUERIES.mdUp);
+
+  useEffect(() => {
+    void import("@/push/init").then((m) => m.initPushModule());
+  }, []);
 
   useTelegramStartNavigation(true);
   useTelegramInboxBack({
