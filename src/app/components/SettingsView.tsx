@@ -85,7 +85,9 @@ export function SettingsView({
   return (
     <div className="h-full min-h-0 space-y-6 overflow-y-auto overscroll-y-contain p-4 md:p-6">
       <header className="space-y-1">
-        <h2 className="text-3xl text-text-primary">Settings</h2>
+        <h2 id="settings-page-heading" className="text-3xl text-text-primary">
+          Settings
+        </h2>
         <p className="text-meta text-text-muted">Notifications, connection, and account</p>
       </header>
 

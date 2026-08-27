@@ -1,6 +1,7 @@
 import { type ComponentProps } from "react";
 import { Shield, ArrowRight } from "lucide-react";
 import { cn } from "./ui/utils";
+import { APP_NAME } from "@/utils/app-info";
 import { AppVersion } from "./AppVersion";
 import { PwaInstallPrompt } from "./PwaInstallPrompt";
 import { FormPendingFieldset, FormSubmitButton } from "./form";
@@ -37,7 +38,7 @@ export function AuthScreen({
             <Shield className="h-10 w-10 text-cyan" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-display text-text-primary">Communication Hub</h1>
+            <h1 className="text-display text-text-primary">{APP_NAME}</h1>
             <p className="text-body text-text-secondary">
               Sign in with your inbox email and password
             </p>

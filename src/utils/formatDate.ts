@@ -1,3 +1,6 @@
+/** UI copy is English; keep date formatting consistent across locales. */
+const LOCALE = "en";
+
 const RELATIVE_DIVISIONS: ReadonlyArray<{ amount: number; unit: Intl.RelativeTimeFormatUnit }> = [
   { amount: 60, unit: "second" },
   { amount: 60, unit: "minute" },
@@ -13,25 +16,25 @@ export function formatRelativeTime(date: Date, nowMs: number = Date.now()): stri
   let duration = (date.getTime() - nowMs) / 1000;
   for (const division of RELATIVE_DIVISIONS) {
     if (Math.abs(duration) < division.amount) {
-      return new Intl.RelativeTimeFormat(undefined, { numeric: "auto" }).format(
+      return new Intl.RelativeTimeFormat(LOCALE, { numeric: "auto" }).format(
         Math.round(duration),
         division.unit,
       );
     }
     duration /= division.amount;
   }
-  return new Intl.RelativeTimeFormat(undefined, { numeric: "auto" }).format(
+  return new Intl.RelativeTimeFormat(LOCALE, { numeric: "auto" }).format(
     Math.round(duration),
     "year",
   );
 }
 
 export function formatShortDate(date: Date): string {
-  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
+  return new Intl.DateTimeFormat(LOCALE, { month: "short", day: "numeric" }).format(date);
 }
 
 export function formatMediumDate(date: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(LOCALE, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -39,7 +42,7 @@ export function formatMediumDate(date: Date): string {
 }
 
 export function formatClockTime(date: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(LOCALE, {
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
@@ -47,7 +50,7 @@ export function formatClockTime(date: Date): string {
 }
 
 export function formatDateTime(date: Date): string {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "medium" }).format(
+  return new Intl.DateTimeFormat(LOCALE, { dateStyle: "medium", timeStyle: "medium" }).format(
     date,
   );
 }

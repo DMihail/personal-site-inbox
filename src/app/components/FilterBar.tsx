@@ -59,7 +59,7 @@ export function FilterBar({
             className="glass ui-hover-glass border-glass-border"
             aria-label={`Sort: ${SORT_LABELS[sortBy]}`}
           >
-            <ArrowUpDown className="h-4 w-4 mr-2" />
+            <ArrowUpDown className="h-4 w-4 mr-2" aria-hidden="true" />
             {SORT_LABELS[sortBy]}
           </Button>
         </DropdownMenuTrigger>

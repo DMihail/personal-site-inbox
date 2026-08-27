@@ -162,6 +162,7 @@ export function MessageDetail({
             variant="outline"
             onClick={() => onDelete(message.id)}
             className="ui-hover-danger glass ms-auto border-glass-border"
+            aria-label={`Delete message from ${message.senderName}`}
           >
             <Trash2 className="me-2 h-4 w-4" aria-hidden="true" />
             Delete

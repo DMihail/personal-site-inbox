@@ -151,7 +151,7 @@ export function DesktopInboxLayout({
           >
             <section
               className={`${scrollPaneClass} w-full tablet-detail-scroll`}
-              aria-label="Settings"
+              aria-labelledby="settings-page-heading"
             >
               <Suspense fallback={<SettingsFallback />}>
                 <SettingsView

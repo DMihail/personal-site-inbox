@@ -12,6 +12,7 @@ import { SettingsFallback } from "./SettingsFallback";
 import { InboxAppHeader } from "./InboxAppHeader";
 import { InboxNavDrawer } from "./InboxNavDrawer";
 import type { InboxLayoutBaseProps } from "@/app/hooks/inbox/inbox-layout.types";
+import { VIEW_SECTION_HEADINGS } from "../../features/inbox/viewRouting";
 
 const SettingsView = lazy(() =>
   import("../SettingsView").then((m) => ({ default: m.SettingsView })),
@@ -79,6 +80,10 @@ export function MobileInboxLayout({
   if (showDetail && !detailMounted) setDetailMounted(true);
 
   const mainLabel = showSettings ? "Settings" : showDetail ? "Message details" : "Inbox";
+  const listHeading =
+    currentView === "settings"
+      ? "All messages"
+      : VIEW_SECTION_HEADINGS[currentView as keyof typeof VIEW_SECTION_HEADINGS];
 
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden md:hidden">
@@ -116,7 +121,7 @@ export function MobileInboxLayout({
             mode={showSettings ? "visible" : "hidden"}
             className="flex min-h-0 flex-1 flex-col overflow-hidden"
           >
-            <section className={scrollPaneClass} aria-label="Settings">
+            <section className={scrollPaneClass} aria-labelledby="settings-page-heading">
               <Suspense fallback={<SettingsFallback />}>
                 <SettingsView
                   isOnline={isOnline}
@@ -139,12 +144,25 @@ export function MobileInboxLayout({
         >
           <section
             className="flex min-h-0 flex-1 flex-col overflow-hidden"
-            aria-label="Inbox"
+            aria-labelledby="mobile-inbox-list-heading"
           >
-            <div
-              className="shrink-0 space-y-2 border-b border-glass-border p-3"
-              aria-label="Search and filters"
-            >
+            <div className="shrink-0 space-y-2 border-b border-glass-border p-3">
+              <div className="flex items-center justify-between gap-2">
+                <h2
+                  id="mobile-inbox-list-heading"
+                  className="text-text-primary capitalize md:text-heading-sm"
+                >
+                  {listHeading}
+                </h2>
+                <output
+                  className="text-meta tabular-nums text-text-muted"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  <span className="sr-only">Message count: </span>
+                  {filteredMessages.length}
+                </output>
+              </div>
               <SearchBar value={searchQuery} onChange={onSearchChange} />
               <FilterBar
                 sortBy={sortBy}
@@ -160,7 +178,7 @@ export function MobileInboxLayout({
                 getKey={(message) => message.id}
                 scrollClassName={scrollPaneClass}
                 listClassName="m-0 list-none space-y-2 p-3"
-                aria-label="Messages"
+                labelledBy="mobile-inbox-list-heading"
                 renderItem={(message) => (
                   <InboxItem
                     message={message}
@@ -218,6 +236,7 @@ export function MobileInboxLayout({
                   size="sm"
                   onClick={onCloseDetail}
                   className="ui-hover-ghost"
+                  aria-label="Back to inbox"
                 >
                   <X className="me-2 h-4 w-4" aria-hidden="true" />
                   Back to inbox
