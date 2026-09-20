@@ -46,6 +46,7 @@ export default defineConfig(({ mode }) => {
           scope: "/",
           display: "standalone",
           display_override: ["standalone", "minimal-ui"],
+          orientation: "portrait",
           background_color: "#0a0a0a",
           theme_color: "#0a0a0a",
           ...({ gcm_sender_id: "103953800507" } as { gcm_sender_id: string }),
