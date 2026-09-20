@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
+import { PortraitOrientationGate } from "@/app/components/PortraitOrientationGate";
 import { TelegramProvider } from "./TelegramProvider";
 
 interface AppProvidersProps {
@@ -10,6 +11,7 @@ export function AppProviders({ children }: AppProvidersProps) {
   return (
     <TelegramProvider>
       {children}
+      <PortraitOrientationGate />
       <Toaster
         position="top-right"
         offset={{

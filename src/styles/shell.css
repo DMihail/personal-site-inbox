@@ -66,3 +66,33 @@ html.telegram-mini-app .app-telegram-viewport {
     scroll-behavior: auto !important;
   }
 }
+
+/* Phone / tablet landscape — block until the device is rotated to portrait. */
+.portrait-orientation-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(1rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px))
+    max(1rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+  background: color-mix(in oklch, var(--background) 92%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.portrait-orientation-gate__card {
+  max-width: 22rem;
+  width: 100%;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  display: grid;
+  gap: 0.75rem;
+  justify-items: center;
+}
+
+.portrait-orientation-gate__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+}
