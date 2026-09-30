@@ -1,18 +1,45 @@
+import { useLayoutEffect, useRef } from "react";
 import { Smartphone } from "lucide-react";
-import { MEDIA_QUERIES } from "@/shared/constants/media-queries";
-import { useMediaQuery } from "@/app/hooks/useMediaQuery";
+
+interface PortraitOrientationGateProps {
+  open: boolean;
+}
 
 /**
  * Blocks phone/tablet landscape: the inbox chrome is designed for portrait only.
- * Desktop (lg+) is unrestricted. Installed PWA also declares `orientation: portrait`.
+ * Callers must mark the rest of the app `inert` while `open` is true.
+ * Installed PWA also declares `orientation: portrait`.
  */
-export function PortraitOrientationGate() {
-  const isPhoneOrTabletLandscape = useMediaQuery(MEDIA_QUERIES.phoneOrTabletLandscape);
+export function PortraitOrientationGate({ open }: PortraitOrientationGateProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
 
-  if (!isPhoneOrTabletLandscape) return null;
+  useLayoutEffect(() => {
+    if (!open) return;
+
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    dialog.focus({ preventScroll: true });
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      // No actionable controls — keep focus on the dialog itself.
+      event.preventDefault();
+      dialog.focus({ preventScroll: true });
+    };
+
+    dialog.addEventListener("keydown", onKeyDown);
+    return () => {
+      dialog.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  if (!open) return null;
 
   return (
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       className="portrait-orientation-gate"
       role="alertdialog"
       aria-modal="true"

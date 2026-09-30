@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { PortraitOrientationGate } from "@/app/components/PortraitOrientationGate";
+import { AppProviders } from "@/app/providers/AppProviders";
 import { MEDIA_QUERIES } from "@/shared/constants/media-queries";
 
 function mockMatchMedia(matchesByQuery: Record<string, boolean>) {
@@ -30,18 +31,35 @@ describe("PortraitOrientationGate", () => {
       [MEDIA_QUERIES.phoneOrTabletLandscape]: true,
     });
 
-    render(<PortraitOrientationGate />);
+    render(<PortraitOrientationGate open />);
 
-    expect(screen.getByRole("alertdialog", { name: "Rotate to portrait" })).toBeInTheDocument();
+    const dialog = screen.getByRole("alertdialog", { name: "Rotate to portrait" });
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveFocus();
     expect(screen.getByText(/portrait mode on phones and tablets/i)).toBeInTheDocument();
   });
 
-  it("renders nothing in portrait or on desktop", () => {
+  it("renders nothing when closed", () => {
+    const { container } = render(<PortraitOrientationGate open={false} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("marks app content inert and keeps the gate interactive", () => {
     mockMatchMedia({
-      [MEDIA_QUERIES.phoneOrTabletLandscape]: false,
+      [MEDIA_QUERIES.phoneOrTabletLandscape]: true,
     });
 
-    const { container } = render(<PortraitOrientationGate />);
-    expect(container).toBeEmptyDOMElement();
+    const { container } = render(
+      <AppProviders>
+        <button type="button">Behind gate</button>
+      </AppProviders>,
+    );
+
+    const inertRoot = container.querySelector("[inert]");
+    expect(inertRoot).not.toBeNull();
+    expect(inertRoot).toContainElement(screen.getByRole("button", { name: "Behind gate" }));
+    expect(inertRoot).not.toContainElement(
+      screen.getByRole("alertdialog", { name: "Rotate to portrait" }),
+    );
   });
 });

@@ -79,6 +79,7 @@ html.telegram-mini-app .app-telegram-viewport {
     max(1rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
   background: color-mix(in oklch, var(--background) 92%, transparent);
   backdrop-filter: blur(8px);
+  outline: none;
 }
 
 .portrait-orientation-gate__card {
